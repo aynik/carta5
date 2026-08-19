@@ -1,0 +1,29 @@
+# Test files
+tests/
+vitest.config.js
+coverage/
+
+# Source control
+.git/
+.gitignore
+.husky/
+
+# Development files
+.prettierrc.json
+.eslintcache
+eslint.config.js
+babel.config.json
+webpack.config.js
+
+# CI/CD
+.github/
+
+# Misc
+*.log
+*.wav
+*.aea
+.DS_Store
+node_modules/
+.env*
+
+# Keep dist folder for CDN usage

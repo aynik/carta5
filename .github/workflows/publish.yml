@@ -1,0 +1,55 @@
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: npm-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out release tag
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.16.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify release tag
+        run: |
+          expected_tag="v$(node -p "require('./package.json').version")"
+          test "$expected_tag" = "$GITHUB_REF_NAME"
+
+      - name: Run contributor gate
+        run: npm run check
+
+      - name: Publish to npm
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body: |
+            Changes in this release:
+            - Published to npm: https://www.npmjs.com/package/carta5
+
+            CDN URLs:
+            - https://unpkg.com/carta5@latest/dist/carta5.min.js
+            - https://unpkg.com/carta5@latest/dist/carta5-worker.min.js
+            - https://unpkg.com/carta5@latest/dist/carta5-worker-interface.min.js
