@@ -45,23 +45,18 @@ npm run check
 ## PCM convention
 
 JavaScript encoder APIs accept planar PCM as one `Float32Array` per channel.
-Every channel in a chunk must have the same length. Samples use signed 16-bit
-amplitude values represented as floats: `-32768` through `32767`, rather than
-normalized Web Audio values.
-
-When using an `AudioBuffer`, scale its normalized samples before encoding:
+Every channel in a chunk must have the same length. Samples use the normalized
+Web Audio convention from `-1` through `1`. `AudioBuffer` channels can be
+passed directly:
 
 ```js
 const channels = Array.from(
   { length: audioBuffer.numberOfChannels },
-  (_, channel) =>
-    Float32Array.from(audioBuffer.getChannelData(channel), (value) =>
-      Math.fround(value * 32768)
-    )
+  (_, channel) => audioBuffer.getChannelData(channel)
 )
 ```
 
-Decoded JavaScript PCM uses the same signed-sample amplitude domain.
+Decoded JavaScript PCM uses the same normalized convention.
 
 ## JavaScript API
 
@@ -199,7 +194,7 @@ const profiles = await codec.getProfiles()
 codec.terminate()
 ```
 
-`encode()` accepts encoder-domain planar PCM and returns an ATRACX WAVE `Blob`.
+`encode()` accepts normalized planar PCM and returns an ATRACX WAVE `Blob`.
 `decode()` accepts a `Blob`, `ArrayBuffer`, or `Uint8Array` and returns a signed
 16-bit PCM WAVE `Blob`. `inspect()` reads container metadata without decoding.
 Always call `terminate()` when the worker is no longer needed.
@@ -241,8 +236,7 @@ when encoding, and input and output paths must be different.
 ## Compatibility and limitations
 
 - Encoding and decoding are limited to the 41 profiles listed above.
-- JavaScript APIs require planar `Float32Array` input in signed-sample amplitude
-  scale; they do not accept normalized Web Audio samples directly.
+- JavaScript APIs require planar normalized `Float32Array` input.
 - The maintained container contract is RIFF/WAVE with the ATRACX subtype,
   canonical extension fields, frame alignment, and timeline metadata.
 - Stateful frame APIs must receive frames in order and must not be shared

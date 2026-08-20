@@ -29,7 +29,7 @@ export class WaveStreamingEncoder {
   }
 
   /**
-   * Consume one equally sized encoder-domain planar PCM chunk.
+   * Consume one equally sized normalized planar PCM chunk.
    *
    * @param {Float32Array[]} channels One channel per profile channel.
    * @returns {Uint8Array[]} Newly visible complete encoded frames.
@@ -39,7 +39,7 @@ export class WaveStreamingEncoder {
   }
 
   /**
-   * Lazily consume one equally sized encoder-domain planar PCM chunk.
+   * Lazily consume one equally sized normalized planar PCM chunk.
    *
    * @param {Float32Array[]} channels One channel per profile channel.
    * @returns {Generator<Uint8Array>} Newly visible complete encoded frames.
@@ -71,9 +71,9 @@ export function createWaveStreamingEncoder(options, bufferPool) {
 }
 
 /**
- * Encode complete planar signed-sample PCM into an ATRACX WAVE image.
+ * Encode complete planar normalized PCM into an ATRACX WAVE image.
  *
- * @param {Float32Array[]} channels Equal-length encoder-domain PCM channels.
+ * @param {Float32Array[]} channels Equal-length normalized PCM channels.
  * @param {WaveCodecOptions} [options] Maintained profile and alignment options.
  * @returns {Uint8Array} Complete ATRACX WAVE byte image.
  */

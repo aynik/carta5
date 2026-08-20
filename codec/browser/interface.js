@@ -42,9 +42,9 @@ export class Carta5Worker {
   }
 
   /**
-   * Encode planar PCM into an ATRACX WAVE blob.
+   * Encode normalized planar PCM into an ATRACX WAVE blob.
    *
-   * @param {Float32Array[]} pcmData Maintained-topology planar PCM.
+   * @param {Float32Array[]} pcmData Maintained-topology normalized planar PCM.
    * @param {CodecProfileOptions} [options] Encoder profile options.
    * @returns {Promise<WorkerEncodeResult>} Encoded blob and metadata.
    */

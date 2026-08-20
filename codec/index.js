@@ -10,7 +10,7 @@
 export { BufferPool } from './core/buffers.js'
 export { resolveProfile, resolveWaveProfile } from './core/profiles.js'
 export { decode } from './pipeline/decoder.js'
-export { createFrameEncoder as encode } from './pipeline/encoder.js'
+export { encode } from './pipeline/encoder.js'
 export {
   WaveStreamingDecoder,
   createWaveStreamingDecoder,

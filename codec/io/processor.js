@@ -17,10 +17,10 @@ import { createPcmWave } from './serialization.js'
  */
 export class AudioProcessor {
   /**
-   * Adapt arbitrary planar PCM chunks to complete ATRAC3plus frames.
+   * Adapt arbitrary normalized planar PCM chunks to complete ATRAC3plus frames.
    *
    * @param {AsyncIterable<Float32Array[]>|Iterable<Float32Array[]>} pcmChunks
-   * Planar stereo PCM chunks.
+   * Planar normalized PCM chunks.
    * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Encoder profile and progress options.
    * @returns {AsyncGenerator<Uint8Array>} Encoded frame stream.
    */
@@ -45,7 +45,7 @@ export class AudioProcessor {
    * @param {AsyncIterable<Uint8Array>|Iterable<Uint8Array>} encodedFrames
    * Complete encoded frames.
    * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Decoder profile and progress options.
-   * @returns {AsyncGenerator<Float32Array[]>} Decoded planar frames.
+   * @returns {AsyncGenerator<Float32Array[]>} Decoded normalized planar frames.
    */
   static async *decodeStream(encodedFrames, options = {}) {
     const decodeFrame = decode(options)
@@ -62,7 +62,7 @@ export class AudioProcessor {
    * @param {AsyncIterable<Uint8Array>|Iterable<Uint8Array>} encodedFrames
    * Complete encoded frames.
    * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Timeline, profile, and progress options.
-   * @returns {AsyncGenerator<Float32Array[]>} Timeline-trimmed planar chunks.
+   * @returns {AsyncGenerator<Float32Array[]>} Timeline-trimmed normalized planar chunks.
    */
   static async *decodeWaveStream(encodedFrames, options = {}) {
     const decoder = createWaveStreamingDecoder(options)
@@ -78,7 +78,7 @@ export class AudioProcessor {
   /**
    * Fold complete equally sized planar buffers into zero-padded coding frames.
    *
-   * @param {Float32Array[]} buffers Complete planar PCM.
+   * @param {Float32Array[]} buffers Complete normalized planar PCM.
    * @param {number} [frameSize] Samples per emitted channel frame.
    * @returns {Generator<Float32Array[]>} Zero-padded planar frames.
    */
@@ -111,9 +111,9 @@ export class AudioProcessor {
   }
 
   /**
-   * Encode complete planar PCM buffers into an ATRACX WAVE image.
+   * Encode complete normalized planar PCM buffers into an ATRACX WAVE image.
    *
-   * @param {Float32Array[]} channels Complete maintained-topology planar PCM.
+   * @param {Float32Array[]} channels Complete maintained-topology normalized PCM.
    * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Encoder profile and WAVE options.
    * @returns {Uint8Array} Complete ATRACX WAVE image.
    */
@@ -122,10 +122,10 @@ export class AudioProcessor {
   }
 
   /**
-   * Decode an ATRACX WAVE image into complete planar PCM buffers.
+   * Decode an ATRACX WAVE image into complete normalized planar PCM buffers.
    *
    * @param {Uint8Array} input Complete ATRACX WAVE image.
-   * @returns {Float32Array[]} Decoded planar PCM.
+   * @returns {Float32Array[]} Decoded normalized planar PCM.
    */
   static decodeWavePcm(input) {
     return decodeWavePcm(input)
@@ -179,9 +179,9 @@ export class AudioProcessor {
   }
 
   /**
-   * Serialize planar PCM into a browser-compatible PCM WAVE blob.
+   * Serialize normalized planar PCM into a browser-compatible PCM WAVE blob.
    *
-   * @param {Float32Array[]} channels Complete planar PCM channels.
+   * @param {Float32Array[]} channels Complete normalized planar PCM channels.
    * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] PCM WAVE serialization options.
    * @returns {Blob} PCM WAVE blob.
    */

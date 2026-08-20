@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createWave, parseWave } from '../codec/io/wave.js'
 import { encodeWavePcm } from '../codec/io/wave-encoder.js'
 import { decodeWavePcm } from '../codec/io/wave-decoder.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 import { WAVE_HEADER_BYTES } from '../codec/core/constants.js'
 
 describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {
@@ -90,7 +91,7 @@ describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {
   it('preserves the arbitrary-chunk runtime and exact visible timeline', () => {
     const source = Float32Array.from(
       { length: 3000 },
-      (_, sample) => (((sample * 31 + 17) % 251) - 125) / 16
+      (_, sample) => (((sample * 31 + 17) % 251) - 125) / 16 / PCM_SCALE
     )
     const wave = encodeWavePcm([source], {
       bitrateKbps: 128,

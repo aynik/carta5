@@ -37,6 +37,7 @@ import {
 } from '../codec/core/tables.js'
 import { CORE_MODE_MIN_INCLUSIVE_THRESHOLD } from '../codec/core/constants.js'
 import { CORE_MODE_EXCLUSIVE_THRESHOLDS } from '../codec/core/tables.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 describe('ATRAC3plus foundation geometry', () => {
   it('pins frame, QMF, analysis, and stream geometry', () => {
@@ -193,9 +194,10 @@ describe('ATRAC3plus profile resolution', () => {
       const pcm = Array.from({ length: channels }, (_, channel) =>
         Float32Array.from({ length: FRAME_SAMPLES }, (_, sample) =>
           Math.fround(
-            (((sample * 37 + channel * 101 + profileIndex * 53) % 2048) -
+            ((((sample * 37 + channel * 101 + profileIndex * 53) % 2048) -
               1024) *
-              24
+              24) /
+              PCM_SCALE
           )
         )
       )

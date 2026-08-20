@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AudioProcessor } from '../codec/io/processor.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 function signal(sampleCount = 1500) {
   const channels = [
@@ -7,12 +8,12 @@ function signal(sampleCount = 1500) {
     new Float32Array(sampleCount),
   ]
   for (let sample = 0; sample < sampleCount; sample++) {
-    channels[0][sample] = Math.round(
-      12000 * Math.sin((2 * Math.PI * 440 * sample) / 44100)
-    )
-    channels[1][sample] = Math.round(
-      9000 * Math.sin((2 * Math.PI * 660 * sample) / 44100)
-    )
+    channels[0][sample] =
+      Math.round(12000 * Math.sin((2 * Math.PI * 440 * sample) / 44100)) /
+      PCM_SCALE
+    channels[1][sample] =
+      Math.round(9000 * Math.sin((2 * Math.PI * 660 * sample) / 44100)) /
+      PCM_SCALE
   }
   return channels
 }

@@ -3,6 +3,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { decodeWavePcm } from '../codec/io/wave-decoder.js'
 import { encodeWavePcm } from '../codec/io/wave-encoder.js'
 import { createPcmWave } from '../codec/io/serialization.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 describe('ATRAC3plus browser worker boundaries', () => {
   const messages = []
@@ -38,8 +39,9 @@ describe('ATRAC3plus browser worker boundaries', () => {
     const channels = Array.from({ length: 2 }, (_, channel) =>
       Float32Array.from({ length: 3000 }, (_, sample) =>
         Math.fround(
-          10000 *
-            Math.sin((2 * Math.PI * (440 + channel * 220) * sample) / 44100)
+          (10000 *
+            Math.sin((2 * Math.PI * (440 + channel * 220) * sample) / 44100)) /
+            PCM_SCALE
         )
       )
     )

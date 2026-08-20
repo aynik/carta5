@@ -14,6 +14,7 @@ import { reconstructCodingUnitSpectra } from '../transforms/spectral-reconstruct
 import { addDecodedTones } from '../transforms/tone.js'
 import { addSubbandNoise } from '../transforms/subband-noise.js'
 import { pipe } from '../utils.js'
+import { normalizePcm } from '../io/pcm.js'
 
 /**
  * Validate one complete internal ATRAC3plus frame before state capture.
@@ -299,11 +300,11 @@ export function createPcmFrameDecoder(
  *
  * @param {CodecProfileOptions} [options] Maintained profile options.
  * @param {BufferPool} [bufferPool] Reusable state, frame, and scratch storage.
- * @returns {function(Uint8Array): Float32Array[]} One-frame planar decoder.
+ * @returns {function(Uint8Array): Float32Array[]} One-frame normalized planar decoder.
  */
 export function decode(options = {}, bufferPool = new BufferPool()) {
   const context = createDecoderContext(options, bufferPool)
-  return pipe(
+  const decodeFrame = pipe(
     context,
     validateDecodeFrameStage,
     decodeTransactionStage,
@@ -315,4 +316,5 @@ export function decode(options = {}, bufferPool = new BufferPool()) {
     historyRotationStage,
     decodeCommitStage
   )
+  return (frame) => normalizePcm(decodeFrame(frame))
 }

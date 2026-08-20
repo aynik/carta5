@@ -30,6 +30,7 @@ import {
   rotateEncoderFrameHistories,
 } from '../state/encoder.js'
 import { FramePackError, packFrame } from '../io/frame.js'
+import { scalePcmFrame } from '../io/pcm.js'
 import { writeMdctOutputs } from '../transforms/mdct.js'
 import { analyzeQmfFrame } from '../transforms/qmf.js'
 import { pipe } from '../utils.js'
@@ -611,5 +612,46 @@ export function createFrameEncoder(
     )
     context.allocationBudgetReductionBits = 0
     throw new RangeError('ATRAC3plus frame packing retry limit was exhausted')
+  }
+}
+
+/**
+ * Compose one persistent encoder accepting normalized Web Audio PCM.
+ *
+ * The adapter reuses one codec-domain frame for the lifetime of the closure.
+ * Initial analysis-delay frames return `null`.
+ *
+ * @param {CodecProfileOptions} [options] Maintained profile options.
+ * @param {BufferPool} [bufferPool] Reusable state, frame, and scratch storage.
+ * @returns {function(Float32Array[]|{channels: Float32Array[], sampleCount?: number}): (Uint8Array|null)} One-frame encoder.
+ */
+export function encode(options = {}, bufferPool = new BufferPool()) {
+  const profile = resolveProfile(options)
+  if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
+  const encodeFrame = createFrameEncoder(profile, bufferPool)
+  const codecFrame = Array.from(
+    { length: profile.channels },
+    () => new Float32Array(FRAME_SAMPLES)
+  )
+  return (input) => {
+    const channels = Array.isArray(input) ? input : input?.channels
+    const sampleCount = Array.isArray(input)
+      ? FRAME_SAMPLES
+      : (input?.sampleCount ?? FRAME_SAMPLES)
+    if (
+      !Array.isArray(channels) ||
+      channels.length !== profile.channels ||
+      !Number.isInteger(sampleCount) ||
+      sampleCount < 0 ||
+      sampleCount > FRAME_SAMPLES ||
+      !channels.every(
+        (channel) =>
+          channel instanceof Float32Array && channel.length === FRAME_SAMPLES
+      )
+    ) {
+      throw new RangeError('ATRAC3plus PCM frame geometry is invalid')
+    }
+    scalePcmFrame(channels, codecFrame)
+    return encodeFrame({ channels: codecFrame, sampleCount })
   }
 }

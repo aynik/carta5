@@ -45,7 +45,7 @@ export class WaveStreamingDecoder {
    * Decode one complete frame and return its visible timeline interval.
    *
    * @param {Uint8Array} frame One profile-sized encoded frame.
-   * @returns {Float32Array[]} Timeline-trimmed planar PCM.
+   * @returns {Float32Array[]} Timeline-trimmed normalized planar PCM.
    */
   write(frame) {
     if (this.finalized) {
@@ -94,7 +94,7 @@ export function createWaveStreamingDecoder(options, bufferPool) {
 }
 
 /**
- * Decode a complete ATRACX WAVE byte image into planar signed-sample PCM.
+ * Decode a complete ATRACX WAVE byte image into planar normalized PCM.
  *
  * @param {Uint8Array} input Complete ATRACX WAVE byte image.
  * @returns {Float32Array[]} One equal-length PCM buffer per encoded channel.

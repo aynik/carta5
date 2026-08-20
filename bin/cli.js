@@ -32,6 +32,7 @@ import {
   createPcmWaveHeader,
   interleavePcm16,
 } from '../codec/io/serialization.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 /**
  * Format a duration in seconds as MM:SS.
@@ -405,7 +406,7 @@ async function* readAtracFrames(filePath, metadata) {
 }
 
 /**
- * Convert interleaved signed PCM chunks to encoder-domain planar stereo.
+ * Convert interleaved signed PCM chunks to normalized planar PCM.
  *
  * @param {AsyncIterable<Uint8Array>} chunks
  * @param {number} channelCount
@@ -425,9 +426,8 @@ async function* readPlanarPcm(chunks, channelCount) {
     )
     for (let sample = 0; sample < sampleCount; sample++) {
       for (let channel = 0; channel < channelCount; channel++) {
-        channels[channel][sample] = chunk.readInt16LE(
-          sample * blockBytes + channel * 2
-        )
+        channels[channel][sample] =
+          chunk.readInt16LE(sample * blockBytes + channel * 2) / PCM_SCALE
       }
     }
     if (sampleCount !== 0) yield channels

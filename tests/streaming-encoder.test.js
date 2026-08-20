@@ -24,6 +24,7 @@ import { createFrameEncoder } from '../codec/pipeline/encoder.js'
 import { createPcmFrameDecoder, decode } from '../codec/pipeline/decoder.js'
 import { createStreamingEncoder } from '../codec/io/stream-encoder.js'
 import { SpectrumSyntaxScratch } from '../codec/state/spectrum.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 function referencePcm(frameIndex = 0) {
   return Float32Array.from(
@@ -151,7 +152,7 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
   it('is invariant to arbitrary chunk boundaries and drains exactly once', () => {
     const source = Float32Array.from(
       { length: 3000 },
-      (_, sample) => (((sample * 31 + 17) % 251) - 125) / 16
+      (_, sample) => (((sample * 31 + 17) % 251) - 125) / 16 / PCM_SCALE
     )
     const options = { bitrateKbps: 128, channels: 1, sampleRate: 44100 }
     const contiguous = createStreamingEncoder(options)

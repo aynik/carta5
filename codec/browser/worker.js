@@ -1,4 +1,4 @@
-/** Browser worker boundary for complete ATRACX WAVE jobs. */
+/** Browser worker boundary for normalized PCM and complete ATRACX WAVE jobs. */
 
 import {
   DELAY_SAMPLES,

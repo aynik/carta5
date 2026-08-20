@@ -6,16 +6,19 @@ import { createProgram, main } from '../bin/cli.js'
 import { decodeWavePcm } from '../codec/io/wave-decoder.js'
 import { createPcmWave } from '../codec/io/serialization.js'
 import { parseWave } from '../codec/io/wave.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
-/** Build a short stereo PCM fixture in the encoder's signed-sample domain. */
+/** Build a short normalized stereo PCM fixture. */
 function createInputWave(sampleCount = 2048) {
   const channels = [
     new Float32Array(sampleCount),
     new Float32Array(sampleCount),
   ]
   for (let sample = 0; sample < sampleCount; sample++) {
-    channels[0][sample] = Math.sin((2 * Math.PI * 440 * sample) / 44100) * 8000
-    channels[1][sample] = Math.sin((2 * Math.PI * 660 * sample) / 44100) * 8000
+    channels[0][sample] =
+      (Math.sin((2 * Math.PI * 440 * sample) / 44100) * 8000) / PCM_SCALE
+    channels[1][sample] =
+      (Math.sin((2 * Math.PI * 660 * sample) / 44100) * 8000) / PCM_SCALE
   }
   return createPcmWave(channels)
 }

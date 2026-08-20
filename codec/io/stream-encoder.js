@@ -4,7 +4,7 @@ import { BufferPool } from '../core/buffers.js'
 import { FRAME_SAMPLES, DONE, DRAINING, FEEDING } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { flushTailFramesForSampleCount } from '../core/timing.js'
-import { createFrameEncoder } from '../pipeline/encoder.js'
+import { encode } from '../pipeline/encoder.js'
 
 /**
  * Validate planar PCM channel count and equal lengths, returning the chunk's sample count.
@@ -45,7 +45,7 @@ export class StreamingEncoder {
     if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
     this.profile = profile
     this.bufferPool = bufferPool
-    this.encodeFrame = createFrameEncoder(profile, bufferPool)
+    this.encodeFrame = encode(profile, bufferPool)
     this.inputFrame = Array.from(
       { length: profile.channels },
       () => new Float32Array(FRAME_SAMPLES)
@@ -86,7 +86,7 @@ export class StreamingEncoder {
   /**
    * Consume one arbitrary equally sized planar chunk and collect its output.
    *
-   * @param {Float32Array[]} channels Encoder-domain planar PCM.
+   * @param {Float32Array[]} channels Normalized planar PCM.
    * @returns {Uint8Array[]} Newly visible complete encoded frames.
    */
   write(channels) {
@@ -96,7 +96,7 @@ export class StreamingEncoder {
   /**
    * Lazily consume one arbitrary equally sized planar chunk.
    *
-   * @param {Float32Array[]} channels Encoder-domain planar PCM.
+   * @param {Float32Array[]} channels Normalized planar PCM.
    * @returns {Generator<Uint8Array>} Newly visible complete encoded frames.
    */
   *frames(channels) {
