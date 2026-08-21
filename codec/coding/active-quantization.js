@@ -10,11 +10,12 @@ import { quantizeSpectrumBand } from './spectrum-quantization.js'
 import { SpectrumPricingState } from '../state/spectrum-pricing.js'
 
 /**
- * Verify that each active band has normalized samples, thresholds, syntax, and pricing storage before quantization.
+ * Verify active syntax, source samples, pricing, and destination rows.
  *
  * @param {CodingUnitAllocationTransaction} transaction
+ * @param {Int16Array[]} output
  */
-function validateActiveQuantization(transaction) {
+function validateQuantization(transaction, output) {
   const bandCount = transaction.bandCount
   if (
     transaction.channelCount < 1 ||
@@ -27,11 +28,12 @@ function validateActiveQuantization(transaction) {
   for (let channel = 0; channel < transaction.channelCount; channel++) {
     const block = transaction.channelBlocks[channel]
     const spectrum = transaction.normalizedSpectra[channel]
+    const symbols = output[channel]
     const thresholds =
       transaction.sourceChannels[channel].quantizationThresholdScales
     if (
       !block?.syntax ||
-      !(block.quantizedSpectrum instanceof Int16Array) ||
+      !(symbols instanceof Int16Array) ||
       !(spectrum instanceof Float32Array) ||
       !(
         transaction.spectrumPricingStates[channel] instanceof
@@ -56,7 +58,7 @@ function validateActiveQuantization(transaction) {
         thresholds[band] < 0 ||
         required === undefined ||
         required > spectrum.length ||
-        required > block.quantizedSpectrum.length
+        required > symbols.length
       ) {
         throw new RangeError('ATRAC3plus active quantization input is invalid')
       }
@@ -65,17 +67,20 @@ function validateActiveQuantization(transaction) {
 }
 
 /**
- * Quantize every active band and mark the allocation symbols current.
+ * Quantize every active band into explicit caller-owned rows.
  *
  * @param {CodingUnitAllocationTransaction} transaction Active transaction.
+ * @param {Int16Array[]} output Destination symbol rows.
  * @returns {CodingUnitAllocationTransaction} The updated transaction.
  */
-export function quantizeActiveAllocation(transaction) {
-  validateActiveQuantization(transaction)
+function quantize(transaction, output) {
+  validateQuantization(transaction, output)
   const bandCount = transaction.bandCount
   for (let channel = 0; channel < transaction.channelCount; channel++) {
     const block = transaction.channelBlocks[channel]
     const spectrum = transaction.normalizedSpectra[channel]
+    const symbols = output[channel]
+    symbols.fill(0)
     const thresholds =
       transaction.sourceChannels[channel].quantizationThresholdScales
     const pricing = transaction.spectrumPricingStates[channel]
@@ -83,26 +88,49 @@ export function quantizeActiveAllocation(transaction) {
       const mode = block.syntax.wordLengths[band]
       if (mode < 1) continue
       const offset = transaction.quantizationOffsets[channel][band]
-      if (
-        pricing.writeCachedQuantizedBand(
-          band,
-          mode,
-          offset,
-          block.quantizedSpectrum
-        )
-      ) {
+      if (pricing.writeCachedQuantizedBand(band, mode, offset, symbols)) {
         continue
       }
-      quantizeSpectrumBand(
-        spectrum,
-        thresholds,
-        band,
-        mode,
-        offset,
-        block.quantizedSpectrum
-      )
+      quantizeSpectrumBand(spectrum, thresholds, band, mode, offset, symbols)
     }
   }
+  return transaction
+}
+
+/**
+ * Materialize allocation-local symbols used by reconstruction refinement.
+ *
+ * @param {CodingUnitAllocationTransaction} transaction Active allocation.
+ * @returns {CodingUnitAllocationTransaction} The updated transaction.
+ */
+export function quantizeTrial(transaction) {
+  quantize(transaction, transaction.trialSpectra)
   transaction.quantizationDirty = false
+  return transaction
+}
+
+/**
+ * Materialize the retained symbols consumed by packing.
+ *
+ * @param {CodingUnitAllocationTransaction} transaction Retained allocation.
+ * @returns {CodingUnitAllocationTransaction} The updated transaction.
+ */
+export function quantizeSymbols(transaction) {
+  if (transaction.quantizationDirty) {
+    throw new RangeError('ATRAC3plus retained allocation is not ready')
+  }
+  for (let channel = 0; channel < transaction.channelCount; channel++) {
+    if (
+      !(transaction.trialSpectra[channel] instanceof Int16Array) ||
+      !(transaction.symbols[channel] instanceof Int16Array) ||
+      transaction.symbols[channel].length <
+        transaction.trialSpectra[channel].length
+    ) {
+      throw new RangeError('ATRAC3plus retained symbol storage is invalid')
+    }
+  }
+  for (let channel = 0; channel < transaction.channelCount; channel++) {
+    transaction.symbols[channel].set(transaction.trialSpectra[channel])
+  }
   return transaction
 }

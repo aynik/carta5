@@ -172,9 +172,15 @@ describe('ATRAC3plus spectrum syntax', () => {
     }
     const bytes = new Uint8Array(256)
     const writer = new BitWriter(bytes)
-    packChannelSpectrum(block, shared, scratch, writer)
+    packChannelSpectrum(block, block.quantizedSpectrum, shared, scratch, writer)
     const counter = new BitCounter()
-    packChannelSpectrum(block, shared, scratch, counter)
+    packChannelSpectrum(
+      block,
+      block.quantizedSpectrum,
+      shared,
+      scratch,
+      counter
+    )
     expect(writer.bitPosition).toBe(141)
     expect(counter.bitPosition).toBe(141)
     expect(Buffer.from(bytes.subarray(0, 18)).toString('hex')).toBe(

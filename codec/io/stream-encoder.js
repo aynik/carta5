@@ -151,14 +151,3 @@ export class StreamingEncoder {
     return output
   }
 }
-
-/**
- * Create a persistent arbitrary-chunk ATRAC3plus encoder.
- *
- * @param {CodecProfileOptions} [options] Maintained profile options.
- * @param {BufferPool} [bufferPool] Explicit codec storage owner.
- * @returns {StreamingEncoder} Stateful chunk adapter.
- */
-export function createStreamingEncoder(options, bufferPool) {
-  return new StreamingEncoder(options, bufferPool)
-}

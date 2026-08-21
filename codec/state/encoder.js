@@ -606,7 +606,6 @@ class EncodeAllocationCheckpointChannel {
     this.currentScaleHistory = new EncodeScaleHistory()
     this.syntax = new ChannelSyntaxState()
     this.scaleFactorEncode = new ScaleFactorEncodeState()
-    this.quantizedSpectrum = new Int16Array(FRAME_SAMPLES)
     this.toneSlot = new ToneSlot()
   }
 
@@ -619,7 +618,6 @@ class EncodeAllocationCheckpointChannel {
     source.currentScaleHistory.copyTo(this.currentScaleHistory)
     source.syntax.copyTo(this.syntax)
     source.scaleFactorEncode.copyTo(this.scaleFactorEncode)
-    this.quantizedSpectrum.set(source.quantizedSpectrum)
     source.toneSlots[0].copyTo(this.toneSlot)
   }
 
@@ -632,7 +630,6 @@ class EncodeAllocationCheckpointChannel {
     this.currentScaleHistory.copyTo(destination.currentScaleHistory)
     this.syntax.copyTo(destination.syntax)
     this.scaleFactorEncode.copyTo(destination.scaleFactorEncode)
-    destination.quantizedSpectrum.set(this.quantizedSpectrum)
     this.toneSlot.copyTo(destination.toneSlots[0])
   }
 }

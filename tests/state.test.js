@@ -186,6 +186,9 @@ describe('ATRAC3plus persistent state', () => {
     expect(encoderFrame.pcmChannels).toHaveLength(MAX_CHANNELS)
     expect(encoderFrame.allocationTransactions).toHaveLength(MAX_CODING_UNITS)
     const allocation = encoderFrame.allocationTransactions[0]
+    expect(allocation.trialSpectra[0]).not.toBe(
+      encoderFrame.allocationTransactions[1].trialSpectra[0]
+    )
     expect(allocation.reconstructionRefinement).toBeInstanceOf(
       ReconstructionRefinementScratch
     )
@@ -363,11 +366,12 @@ describe('ATRAC3plus persistent state', () => {
     expect(checkpoint).toBeInstanceOf(EncoderAllocationCheckpoint)
     expect(checkpoint.channels[0]).not.toHaveProperty('analysis')
     expect(checkpoint.channels[0]).not.toHaveProperty('detection')
+    expect(checkpoint.channels[0]).not.toHaveProperty('quantizedSpectrum')
     expect(staged.sharedCodingUnits[0].scaleFactorCount).toBe(21)
     expect(channel.currentScaleHistory.scaleFactors[3]).toBe(11)
     expect(channel.syntax.wordLengths[4]).toBe(5)
     expect(channel.scaleFactorEncode.mode2Values[7]).toBe(19)
-    expect(channel.quantizedSpectrum[8]).toBe(-27)
+    expect(channel.quantizedSpectrum[8]).toBe(0)
     expect(channel.toneSlots[0].active).toBe(true)
     expect(channel.toneSlots[0].records[2].phaseBases[1]).toBe(13)
     expect(channel.analysis.tail[0]).toBe(4.5)

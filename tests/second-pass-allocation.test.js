@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { searchAllocation } from '../codec/coding/second-pass-allocation.js'
 import { reduceCommittedAllocationToBudget } from '../codec/coding/offset-refinement.js'
 import { fillRemainingBitBudget } from '../codec/coding/budget-fill.js'
-import { quantizeActiveAllocation } from '../codec/coding/active-quantization.js'
+import {
+  quantizeSymbols,
+  quantizeTrial,
+} from '../codec/coding/active-quantization.js'
 import { refineSpectralNoiseLevels } from '../codec/coding/spectral-noise-refinement.js'
 import { refineScaleFactors } from '../codec/coding/scale-factor-refinement.js'
 import { planAllocationBandOrder } from '../codec/coding/allocation-order.js'
@@ -57,6 +60,7 @@ function createFixture() {
   for (let channel = 0; channel < 2; channel++) {
     const block = new EncodeChannelState(channel)
     transaction.channelBlocks[channel] = block
+    transaction.symbols[channel] = block.quantizedSpectrum
     transaction.spectrumPricingStates[channel] = new SpectrumPricingState()
     transaction.spectrumPricedBands[channel] = new PricedSpectrumBand()
     for (let band = 0; band < 12; band++) {
@@ -131,7 +135,7 @@ function createFilledFixture() {
 function createRefinementFixture() {
   const fixture = createFilledFixture()
   const { transaction, shared } = fixture
-  quantizeActiveAllocation(transaction)
+  quantizeTrial(transaction)
   transaction.coreMode = 0
   shared.presenceFlags[1][1] = 1
   for (let channel = 0; channel < transaction.channelCount; channel++) {
@@ -270,62 +274,63 @@ describe('ATRAC3plus directional second allocation pass', () => {
     expect(allocation(batched)).toEqual(allocation(exact))
   })
 
-  it('publishes the active memoized quantization rows and clears dirty state', () => {
+  it('separates allocation trials from retained symbols', () => {
     const { transaction } = createFilledFixture()
     transaction.channelBlocks[0].quantizedSpectrum.fill(-1234)
     transaction.channelBlocks[1].quantizedSpectrum.fill(2345)
 
-    expect(quantizeActiveAllocation(transaction)).toBe(transaction)
+    expect(quantizeTrial(transaction)).toBe(transaction)
     expect(transaction.quantizationDirty).toBe(false)
     const coefficientCount = QUANTIZATION_UNIT_OFFSETS[12]
     expect(
-      transaction.channelBlocks.map((block) =>
-        hashInt16(block.quantizedSpectrum.slice(0, coefficientCount))
+      transaction.trialSpectra.map((symbols) =>
+        hashInt16(symbols.slice(0, coefficientCount))
       )
     ).toEqual(['0241ed8b37fd2d86', 'ebc47a33225ac25d'])
+    expect(transaction.channelBlocks[0].quantizedSpectrum[0]).toBe(-1234)
+    expect(transaction.channelBlocks[1].quantizedSpectrum[0]).toBe(2345)
+
+    expect(quantizeSymbols(transaction)).toBe(transaction)
     expect(
-      transaction.channelBlocks[0].quantizedSpectrum[coefficientCount]
-    ).toBe(-1234)
-    expect(
-      transaction.channelBlocks[1].quantizedSpectrum[coefficientCount]
-    ).toBe(2345)
+      transaction.symbols.map((symbols) =>
+        hashInt16(symbols.slice(0, coefficientCount))
+      )
+    ).toEqual(['0241ed8b37fd2d86', 'ebc47a33225ac25d'])
+    expect(transaction.symbols[0][coefficientCount]).toBe(0)
+    expect(transaction.symbols[1][coefficientCount]).toBe(0)
   })
 
   it('falls back to direct quantization when the prepared symbol cache is absent', () => {
     const cached = createFilledFixture().transaction
     const direct = createFilledFixture().transaction
-    quantizeActiveAllocation(cached)
+    quantizeTrial(cached)
     for (let channel = 0; channel < direct.channelCount; channel++) {
       direct.spectrumPricingStates[channel].clearCache()
     }
-    quantizeActiveAllocation(direct)
+    quantizeTrial(direct)
 
-    expect(
-      direct.channelBlocks.map((block) => [...block.quantizedSpectrum])
-    ).toEqual(cached.channelBlocks.map((block) => [...block.quantizedSpectrum]))
+    expect(direct.trialSpectra).toEqual(cached.trialSpectra)
   })
 
   it('validates every channel before publishing any quantized symbols', () => {
     const { transaction } = createFilledFixture()
     transaction.channelBlocks[0].quantizedSpectrum.fill(-1234)
     transaction.channelBlocks[1].quantizedSpectrum.fill(2345)
-    const initial = transaction.channelBlocks.map((block) => [
-      ...block.quantizedSpectrum,
-    ])
+    const initial = transaction.trialSpectra.map((symbols) => [...symbols])
     transaction.sourceChannels[1].quantizationThresholdScales[0] = NaN
 
-    expect(() => quantizeActiveAllocation(transaction)).toThrow(
+    expect(() => quantizeTrial(transaction)).toThrow(
       'active quantization input is invalid'
     )
-    expect(
-      transaction.channelBlocks.map((block) => [...block.quantizedSpectrum])
-    ).toEqual(initial)
+    expect(transaction.trialSpectra.map((symbols) => [...symbols])).toEqual(
+      initial
+    )
     expect(transaction.quantizationDirty).toBe(true)
   })
 
   it('lowers quantized evidence into spectral-noise rows', () => {
     const { transaction, shared } = createFilledFixture()
-    quantizeActiveAllocation(transaction)
+    quantizeTrial(transaction)
     transaction.coreMode = 0
     shared.presenceFlags[1][1] = 1
     for (let channel = 0; channel < transaction.channelCount; channel++) {
@@ -366,7 +371,7 @@ describe('ATRAC3plus directional second allocation pass', () => {
 
   it('refines scale factors and reprices their sidechain', () => {
     const { transaction, shared } = createRefinementFixture()
-    for (const block of transaction.channelBlocks.slice(
+    for (const symbols of transaction.trialSpectra.slice(
       0,
       transaction.channelCount
     )) {
@@ -375,9 +380,7 @@ describe('ATRAC3plus directional second allocation pass', () => {
         coefficient < QUANTIZATION_UNIT_OFFSETS[12];
         coefficient++
       ) {
-        block.quantizedSpectrum[coefficient] = Math.trunc(
-          block.quantizedSpectrum[coefficient] / 2
-        )
+        symbols[coefficient] = Math.trunc(symbols[coefficient] / 2)
       }
     }
     const total = refineScaleFactors(
@@ -405,7 +408,7 @@ describe('ATRAC3plus directional second allocation pass', () => {
 
   it('reduces a committed post-refinement allocation with negative-cost offsets', () => {
     const { transaction, shared } = createRefinementFixture()
-    for (const block of transaction.channelBlocks.slice(
+    for (const symbols of transaction.trialSpectra.slice(
       0,
       transaction.channelCount
     )) {
@@ -414,9 +417,7 @@ describe('ATRAC3plus directional second allocation pass', () => {
         coefficient < QUANTIZATION_UNIT_OFFSETS[12];
         coefficient++
       ) {
-        block.quantizedSpectrum[coefficient] = Math.trunc(
-          block.quantizedSpectrum[coefficient] / 2
-        )
+        symbols[coefficient] = Math.trunc(symbols[coefficient] / 2)
       }
     }
     refineScaleFactors(

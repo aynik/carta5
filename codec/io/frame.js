@@ -6,8 +6,8 @@ import {
   FRAME_TAG,
 } from '../core/constants.js'
 import { framePayloadCapacityBits } from '../core/geometry.js'
-import { BitWriter } from './bitstream.js'
-import { packCodingUnit } from './coding-unit.js'
+import { BitCounter, BitWriter } from './bitstream.js'
+import { measureCodingUnit, packCodingUnit } from './coding-unit.js'
 import { FrameHeader, frameTagForChannelCount, packFrameTag } from './syntax.js'
 
 /**
@@ -31,21 +31,19 @@ export class FramePackError extends RangeError {
 }
 
 /**
- * Verify frame capacity, coding-unit transactions, shared syntax, and output scratch before exact preflight and packing.
+ * Verify frame geometry, transactions, shared syntax, and spectrum work.
  *
  * @param {CodingUnitAllocationTransaction[]} transactions
  * @param {SharedState[]} sharedCodingUnits
  * @param {number} codingUnitCount
  * @param {number} frameBytes
- * @param {Uint8Array} scratch
  * @param {SpectrumSyntaxScratch} spectrumScratch
  */
-function validatePackRequest(
+function validateFrameRequest(
   transactions,
   sharedCodingUnits,
   codingUnitCount,
   frameBytes,
-  scratch,
   spectrumScratch
 ) {
   framePayloadCapacityBits(frameBytes, codingUnitCount)
@@ -53,11 +51,24 @@ function validatePackRequest(
     !Array.isArray(transactions) ||
     transactions.length < codingUnitCount ||
     !Array.isArray(sharedCodingUnits) ||
-    !(scratch instanceof Uint8Array) ||
-    scratch.length < frameBytes + FRAME_PACK_SCRATCH_SLACK_BYTES ||
     !spectrumScratch
   ) {
     throw new RangeError('ATRAC3plus frame pack request is invalid')
+  }
+}
+
+/**
+ * Verify bounded caller-owned output storage.
+ *
+ * @param {number} frameBytes Frame width.
+ * @param {Uint8Array} scratch Output scratch.
+ */
+function validateOutput(frameBytes, scratch) {
+  if (
+    !(scratch instanceof Uint8Array) ||
+    scratch.length < frameBytes + FRAME_PACK_SCRATCH_SLACK_BYTES
+  ) {
+    throw new RangeError('ATRAC3plus frame pack output is invalid')
   }
 }
 
@@ -75,6 +86,88 @@ function sharedForTransaction(transaction, sharedCodingUnits) {
     throw new RangeError('ATRAC3plus coding-unit shared state is missing')
   }
   return shared
+}
+
+/**
+ * Traverse one complete frame through a selected coding-unit serializer.
+ *
+ * @param {CodingUnitAllocationTransaction[]} transactions Selected units.
+ * @param {SharedState[]} sharedCodingUnits Detached shared unit states.
+ * @param {number} codingUnitCount Active coding-unit count.
+ * @param {number} frameBytes Profile frame width.
+ * @param {SpectrumSyntaxScratch} spectrumScratch Reusable spectrum work.
+ * @param {BitWriter|BitCounter} sink Bit sink.
+ * @param {function(CodingUnitAllocationTransaction, SharedState, SpectrumSyntaxScratch, BitWriter|BitCounter): number} writeUnit Unit serializer.
+ * @returns {number} Unpadded payload width in bits.
+ */
+function traverseFrame(
+  transactions,
+  sharedCodingUnits,
+  codingUnitCount,
+  frameBytes,
+  spectrumScratch,
+  sink,
+  writeUnit
+) {
+  const frameBits = frameBytes * 8
+  FrameHeader.pack(sink)
+  for (let unit = 0; unit < codingUnitCount; unit++) {
+    const transaction = transactions[unit]
+    const tag = frameTagForChannelCount(transaction?.channelCount)
+    if (tag === null) {
+      throw new RangeError('ATRAC3plus coding-unit frame tag is invalid')
+    }
+    packFrameTag(tag, sink)
+    writeUnit(
+      transaction,
+      sharedForTransaction(transaction, sharedCodingUnits),
+      spectrumScratch,
+      sink
+    )
+    if (sink.bitPosition > frameBits) {
+      throw new FramePackError('coding-unit overflow', unit)
+    }
+  }
+  packFrameTag(FRAME_TAG.TERMINATOR, sink)
+  if (sink.bitPosition > frameBits) {
+    throw new FramePackError('terminator overflow')
+  }
+  return sink.bitPosition
+}
+
+/**
+ * Measure a complete allocation with trial symbols and exact wire traversal.
+ *
+ * @param {CodingUnitAllocationTransaction[]} transactions Selected units.
+ * @param {SharedState[]} sharedCodingUnits Detached shared unit states.
+ * @param {number} codingUnitCount Active coding-unit count.
+ * @param {number} frameBytes Profile frame width.
+ * @param {SpectrumSyntaxScratch} spectrumScratch Reusable spectrum work.
+ * @returns {number} Unpadded payload width in bits.
+ */
+export function measureFrame(
+  transactions,
+  sharedCodingUnits,
+  codingUnitCount,
+  frameBytes,
+  spectrumScratch
+) {
+  validateFrameRequest(
+    transactions,
+    sharedCodingUnits,
+    codingUnitCount,
+    frameBytes,
+    spectrumScratch
+  )
+  return traverseFrame(
+    transactions,
+    sharedCodingUnits,
+    codingUnitCount,
+    frameBytes,
+    spectrumScratch,
+    new BitCounter(),
+    measureCodingUnit
+  )
 }
 
 /**
@@ -97,40 +190,25 @@ export function packFrame(
   scratch,
   spectrumScratch
 ) {
-  validatePackRequest(
+  validateFrameRequest(
     transactions,
     sharedCodingUnits,
     codingUnitCount,
     frameBytes,
-    scratch,
     spectrumScratch
   )
+  validateOutput(frameBytes, scratch)
   scratch.fill(0)
   const writer = new BitWriter(scratch)
-  const frameBits = frameBytes * 8
-  FrameHeader.pack(writer)
-  for (let unit = 0; unit < codingUnitCount; unit++) {
-    const transaction = transactions[unit]
-    const tag = frameTagForChannelCount(transaction?.channelCount)
-    if (tag === null) {
-      throw new RangeError('ATRAC3plus coding-unit frame tag is invalid')
-    }
-    packFrameTag(tag, writer)
-    packCodingUnit(
-      transaction,
-      sharedForTransaction(transaction, sharedCodingUnits),
-      spectrumScratch,
-      writer
-    )
-    if (writer.bitPosition > frameBits) {
-      throw new FramePackError('coding-unit overflow', unit)
-    }
-  }
-  packFrameTag(FRAME_TAG.TERMINATOR, writer)
-  if (writer.bitPosition > frameBits) {
-    throw new FramePackError('terminator overflow')
-  }
-  const payloadBits = writer.bitPosition
+  const payloadBits = traverseFrame(
+    transactions,
+    sharedCodingUnits,
+    codingUnitCount,
+    frameBytes,
+    spectrumScratch,
+    writer,
+    packCodingUnit
+  )
   const alignedByte = (payloadBits + 7) >>> 3
   for (let byte = alignedByte; byte < frameBytes; byte++) {
     scratch[byte] |= FRAME_PADDING_BYTE

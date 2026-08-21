@@ -1,4 +1,10 @@
-/** Streaming ATRAC3plus encoder composed from explicit transactional stages. */
+/**
+ * Streaming ATRAC3plus encoder pipeline.
+ *
+ * PCM passes through analysis, allocation, quantization, and packing.
+ * Validation, detached state, retry, delay, commit, and output detachment
+ * surround that semantic recipe.
+ */
 
 import {
   configureGainDetectionRequest,
@@ -6,31 +12,19 @@ import {
 } from '../analysis/gain-detection.js'
 import { applyIntensityStereo } from '../analysis/intensity.js'
 import { analyzeTones } from '../analysis/tone-analysis.js'
-import { prepareAllocationSource } from '../coding/allocation-seed.js'
-import { usesSinglePostScaleFactorFill } from '../coding/allocation-policy.js'
-import { initializeAllocation } from '../coding/initial-allocation.js'
-import { searchAllocation } from '../coding/second-pass-allocation.js'
-import { reduceCommittedAllocationToBudget } from '../coding/offset-refinement.js'
-import { fillRemainingBitBudget } from '../coding/budget-fill.js'
-import { quantizeActiveAllocation } from '../coding/active-quantization.js'
-import { refineSpectralNoiseLevels } from '../coding/spectral-noise-refinement.js'
-import { refineScaleFactors } from '../coding/scale-factor-refinement.js'
+import { createAllocation } from '../coding/allocation.js'
+import { quantizeSymbols } from '../coding/active-quantization.js'
 import { channelCorrelationTwoSegments } from '../analysis/perceptual.js'
 import { BufferPool } from '../core/buffers.js'
-import { framePayloadCapacityBits } from '../core/geometry.js'
 import { resolveProfile } from '../core/profiles.js'
-import {
-  BUDGET_RETRY_LIMIT,
-  BUDGET_RETRY_STEP_BITS,
-  FRAME_SAMPLES,
-} from '../core/constants.js'
+import { FRAME_SAMPLES } from '../core/constants.js'
 import {
   copyEncoderState,
   initializeEncoderStream,
   rotateEncoderFrameHistories,
 } from '../state/encoder.js'
-import { FramePackError, packFrame } from '../io/frame.js'
-import { scalePcmFrame } from '../io/pcm.js'
+import { packFrame } from '../io/frame.js'
+import { createPcmScaler } from '../io/pcm.js'
 import { writeMdctOutputs } from '../transforms/mdct.js'
 import { analyzeQmfFrame } from '../transforms/qmf.js'
 import { pipe } from '../utils.js'
@@ -43,7 +37,7 @@ import { pipe } from '../utils.js'
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(Float32Array[]|{channels: Float32Array[], sampleCount?: number}): EncoderFrame} Validation stage.
  */
-export function validateFrameStage(context) {
+export function validateFrame(context) {
   const { profile } = context
   const pcmChannels = context.bufferPool.encoder.frame.pcmChannels
   return (input) => {
@@ -88,7 +82,7 @@ export function validateFrameStage(context) {
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(EncoderFrame): EncoderFrame} Transaction capture stage.
  */
-export function transactionStage(context) {
+export function beginTransaction(context) {
   return (frame) => {
     copyEncoderState(
       context.bufferPool.encoder.state,
@@ -108,9 +102,9 @@ export function transactionStage(context) {
  * Refresh detached syntax geometry before current-frame signal analysis.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Geometry stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Geometry setup operation.
  */
-export function analysisGeometryStage(context) {
+export function prepareGeometry(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
     const { topology } = encoder.state
@@ -138,9 +132,9 @@ export function analysisGeometryStage(context) {
 /**
  * Rotate only detached frame histories before current-frame analysis.
  *
- * @returns {function(EncoderFrame): EncoderFrame} History rotation stage.
+ * @returns {function(EncoderFrame): EncoderFrame} History setup operation.
  */
-export function historyStage() {
+export function rotateHistory() {
   return (frame) => {
     rotateEncoderFrameHistories(frame.channelBlocks, frame.channelCount)
     return frame
@@ -151,9 +145,9 @@ export function historyStage() {
  * Advance the detached 16-band QMF histories for every stream channel.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} QMF analysis stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Band analysis application.
  */
-export function qmfStage(context) {
+export function analyzeBands(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
     analyzeQmfFrame(
@@ -171,30 +165,36 @@ export function qmfStage(context) {
  * Apply stereo-only intensity processing and publish delayed correlation.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Intensity analysis stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Intensity application.
  */
-export function intensityStage(context) {
+export function applyIntensity(context) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
-  return (frame) => {
-    if (frame.channelCount !== 2) return frame
+  const units = []
+  if (topology.channelCount === 2) {
     for (let unit = 0; unit < topology.codingUnitCount; unit++) {
       const channels = topology.codingUnitChannels[unit]
       if (
-        channels.length !== 2 ||
-        topology.codingUnitProfiles.channelModes[unit] !== 3
+        channels.length === 2 &&
+        topology.codingUnitProfiles.channelModes[unit] === 3
       ) {
-        continue
+        units.push(unit)
       }
+    }
+  }
+  const highRate = context.profile.sampleRate === 48000
+  return (frame) => {
+    for (const unit of units) {
+      const channels = topology.codingUnitChannels[unit]
       const leftIndex = channels.at(0)
       const rightIndex = channels.at(1)
       const left = frame.analysisStates[leftIndex]
       const right = frame.analysisStates[rightIndex]
-      const intensity = frame.intensityCodingUnits[unit]
+      const state = frame.intensityCodingUnits[unit]
       applyIntensityStereo(
-        intensity,
+        state,
         topology.codingUnitProfiles.coreModes[unit],
-        context.profile.sampleRate === 48000,
+        highRate,
         left,
         right,
         encoder.scratch.intensity
@@ -203,7 +203,7 @@ export function intensityStage(context) {
       const primary = frame.channelBlocks[leftIndex]
       const shared = frame.sharedCodingUnits[primary.sharedIndex]
       primary.intensityHistory.shift()
-      primary.intensityHistory.intensityBandLimit = intensity.intensityBandLimit
+      primary.intensityHistory.intensityBandLimit = state.intensityBandLimit
       for (
         let band = 0;
         band < Math.min(shared.codedSubbandCount, 16);
@@ -229,9 +229,9 @@ export function intensityStage(context) {
  * Plan complete per-unit tone syntax and residuals in detached state.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Tone analysis stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Tone application.
  */
-export function toneStage(context) {
+export function planTones(context) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
   return (frame) => {
@@ -252,13 +252,13 @@ export function toneStage(context) {
 
 /**
  * Plan gain records per coding unit and publish them only into detached state.
- * Intensity-stereo and tone stages belong immediately before this stage; this
- * stage deliberately owns neither policy.
+ * Intensity-stereo and tone applications run immediately before this one; gain
+ * deliberately owns neither policy.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Gain analysis stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Gain application.
  */
-export function gainStage(context) {
+export function planGain(context) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
   const detectionScratch = encoder.scratch.gain.detection
@@ -300,9 +300,9 @@ export function gainStage(context) {
  * Publish gain-scaled and gain-unscaled spectra from detached channel state.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} MDCT stage.
+ * @returns {function(EncoderFrame): EncoderFrame} Spectrum application.
  */
-export function mdctStage(context) {
+export function transformSpectrum(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
     for (let channel = 0; channel < frame.channelCount; channel++) {
@@ -332,143 +332,15 @@ export function mdctStage(context) {
 }
 
 /**
- * Complete one independent coding-unit allocation from measured spectra through final quantization.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @param {EncoderFrame} frame Detached frame transaction.
- * @param {number} unit Coding-unit index.
- * @returns {CodingUnitAllocationTransaction} Finalized coding-unit transaction.
- */
-function allocateCodingUnit(context, frame, unit) {
-  const encoder = context.bufferPool.encoder
-  const { topology } = encoder.state
-  const topologyChannels = topology.codingUnitChannels[unit]
-  const channelCount = topologyChannels.length
-  const coreMode = topology.codingUnitProfiles.coreModes[unit]
-  const allocationBudgetBits =
-    topology.codingUnitProfiles.budgetBits[unit] -
-    (context.allocationBudgetReductionBits ?? 0)
-  if (allocationBudgetBits < 1) {
-    throw new RangeError('ATRAC3plus retry budget is exhausted')
-  }
-  const transaction = encoder.frame.allocationTransactions[unit].beginAttempt(
-    channelCount,
-    coreMode,
-    allocationBudgetBits,
-    encoder.scratch.toneSwapGates[unit].beginFrame()
-  )
-  for (let ordinal = 0; ordinal < channelCount; ordinal++) {
-    const channel = topologyChannels.at(ordinal)
-    transaction.bindChannel(
-      ordinal,
-      frame.channelBlocks[channel],
-      frame.gainScaledSpectra[channel],
-      frame.gainUnscaledSpectra[channel]
-    )
-  }
-  transaction.completeBinding()
-
-  const shared =
-    frame.sharedCodingUnits[transaction.channelBlocks[0].sharedIndex]
-  const channelMode = topology.codingUnitProfiles.channelModes[unit]
-  const bitrateKbps = context.profile.bitrateKbps
-  prepareAllocationSource(
-    transaction,
-    shared.quantizationUnitCount,
-    channelMode,
-    context.profile.sampleRate
-  )
-  initializeAllocation(transaction, shared)
-  searchAllocation(transaction, shared)
-  if (!usesSinglePostScaleFactorFill(channelMode, bitrateKbps)) {
-    fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
-  }
-  quantizeActiveAllocation(transaction)
-  refineSpectralNoiseLevels(
-    transaction,
-    shared,
-    transaction.reconstructionRefinement
-  )
-  if (channelMode !== 4) {
-    refineScaleFactors(
-      transaction,
-      shared,
-      transaction.reconstructionRefinement
-    )
-  }
-  if (transaction.bitsTotal > transaction.allocationBudgetBits) {
-    reduceCommittedAllocationToBudget(transaction, shared)
-  }
-  if (channelMode !== 4) {
-    fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
-  }
-  if (transaction.bitsTotal > transaction.allocationBudgetBits) {
-    reduceCommittedAllocationToBudget(transaction, shared)
-  }
-  if (transaction.quantizationDirty) quantizeActiveAllocation(transaction)
-  return transaction
-}
-
-/**
- * Allocate each independent coding unit completely before advancing to the next unit.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Unit-local allocation stage.
- */
-export function allocationStage(context) {
-  const encoder = context.bufferPool.encoder
-  const { topology } = encoder.state
-  return (frame) => {
-    for (let unit = 0; unit < topology.codingUnitCount; unit++) {
-      allocateCodingUnit(context, frame, unit)
-    }
-    frame.allocationTransactions =
-      encoder.frame.allocationTransactionViews[topology.codingUnitCount]
-    return frame
-  }
-}
-
-/**
  * Consume one successful analyzed frame before stream output becomes visible.
  *
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(EncoderFrame): EncoderFrame} Analysis delay stage.
  */
-export function analysisToStreamDelayStage(context) {
+export function applyDelay(context) {
   const delay = context.bufferPool.encoder.state.analysisToStreamDelay
   return (frame) => {
     frame.analysisDelayed = delay.consumeAfterAllocation()
-    return frame
-  }
-}
-
-/**
- * Prove that finalized coding-unit allocations fit the complete frame payload
- * before serialization begins. Unit budgets are allocation targets rather
- * than serialized boundaries, so unused bits may move between units.
- *
- * Suppressed analysis-delay frames have no serialized representation and do
- * not require this check.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Allocation preflight stage.
- */
-export function allocationPreflightStage(context) {
-  const { topology } = context.bufferPool.encoder.state
-  const framePayloadBits = framePayloadCapacityBits(
-    context.profile.bytesPerFrame,
-    topology.codingUnitCount
-  )
-  return (frame) => {
-    if (frame.analysisDelayed) return frame
-    let allocationBits = 0
-    for (let unit = 0; unit < topology.codingUnitCount; unit++) {
-      const transaction = frame.allocationTransactions[unit]
-      allocationBits += transaction.bitsTotal
-    }
-    if (allocationBits > framePayloadBits) {
-      throw new FramePackError('allocation total overflow')
-    }
     return frame
   }
 }
@@ -479,7 +351,7 @@ export function allocationPreflightStage(context) {
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(EncoderFrame): EncoderFrame} Packing stage.
  */
-export function packingStage(context) {
+export function pack(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
     if (frame.analysisDelayed) {
@@ -510,7 +382,7 @@ export function packingStage(context) {
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(EncoderFrame): EncoderFrame} Atomic commit stage.
  */
-export function commitStage(context) {
+export function commitFrame(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
     if (!frame.analysisDelayed && !(frame.output instanceof Uint8Array)) {
@@ -519,6 +391,7 @@ export function commitStage(context) {
       )
     }
     copyEncoderState(encoder.frame, encoder.state, encoder.state.topology)
+    encoder.state.lastAllocationAttempts = frame.allocationAttempts
     frame.committed = true
     return frame
   }
@@ -529,89 +402,74 @@ export function commitStage(context) {
  *
  * @returns {function(EncoderFrame): (Uint8Array|null)} Output stage.
  */
-export function outputStage() {
+export function detachOutput() {
   return (frame) => (frame.output === null ? null : frame.output.slice())
 }
 
 /**
- * Compose the complete detached ATRAC3plus frame transaction.
- * Chunk adaptation and the ATRACX timeline remain outside this transaction.
+ * Allocate stream state and stable construction context.
  *
- * @param {CodecProfileOptions} [options] Maintained profile options.
- * @param {BufferPool} [bufferPool] Reusable state, frame, and scratch storage.
- * @returns {function(Float32Array[]|{channels: Float32Array[], sampleCount?: number}): (Uint8Array|null)} Persistent
- * one-frame encoder; initial analysis-delay frames return `null`.
+ * @param {CodecProfileOptions} options Maintained profile options.
+ * @param {BufferPool} bufferPool Reusable codec storage.
+ * @returns {EncoderContext} Pipeline ownership context.
  */
-export function createFrameEncoder(
-  options = {},
-  bufferPool = new BufferPool()
-) {
+function createEncoderContext(options, bufferPool) {
   const profile = resolveProfile(options)
   if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
   initializeEncoderStream(profile, bufferPool.encoder)
-  const context = {
-    profile,
-    bufferPool,
-    allocationBudgetReductionBits: 0,
-  }
-  const analyze = pipe(
+  return { profile, bufferPool }
+}
+
+/**
+ * Prepare detached format geometry and chronological histories for analysis.
+ *
+ * @param {EncoderContext} context Pipeline ownership context.
+ * @returns {function(EncoderFrame): EncoderFrame} Analysis setup protocol.
+ */
+function prepareAnalysis(context) {
+  return pipe(context, prepareGeometry, rotateHistory)
+}
+
+/**
+ * Compose ATRAC3plus signal analysis and format decisions.
+ *
+ * @param {EncoderContext} context Pipeline ownership context.
+ * @returns {function(EncoderFrame): EncoderFrame} Analysis stage.
+ */
+export function analyze(context) {
+  return pipe(
     context,
-    validateFrameStage,
-    transactionStage,
-    analysisGeometryStage,
-    historyStage,
-    qmfStage,
-    intensityStage,
-    toneStage,
-    gainStage,
-    mdctStage
+    analyzeBands,
+    applyIntensity,
+    planTones,
+    planGain,
+    transformSpectrum
   )
-  const allocate = allocationStage(context)
-  const publish = pipe(
-    context,
-    analysisToStreamDelayStage,
-    allocationPreflightStage,
-    packingStage,
-    commitStage,
-    outputStage
-  )
-  return (input) => {
-    let frame = analyze(input)
-    bufferPool.encoder.frame.allocationCheckpoint.capture(
-      bufferPool.encoder.frame,
-      bufferPool.encoder.state.topology
-    )
-    for (let attempt = 0; attempt < BUDGET_RETRY_LIMIT; attempt++) {
-      if (attempt > 0) {
-        bufferPool.encoder.frame.allocationCheckpoint.restore(
-          bufferPool.encoder.frame,
-          bufferPool.encoder.state.topology
-        )
-      }
-      context.allocationBudgetReductionBits = attempt * BUDGET_RETRY_STEP_BITS
-      try {
-        frame = allocate(frame)
-        const output = publish(frame)
-        bufferPool.encoder.state.lastAllocationAttempts = attempt + 1
-        context.allocationBudgetReductionBits = 0
-        return output
-      } catch (error) {
-        if (!(error instanceof FramePackError)) {
-          bufferPool.encoder.frame.allocationCheckpoint.restore(
-            bufferPool.encoder.frame,
-            bufferPool.encoder.state.topology
-          )
-          context.allocationBudgetReductionBits = 0
-          throw error
-        }
-      }
+}
+
+/**
+ * Compose retained allocation and exact frame fitting.
+ *
+ * @param {EncoderContext} context Pipeline ownership context.
+ * @returns {function(EncoderFrame): EncoderFrame} Allocation stage.
+ */
+export function allocate(context) {
+  return createAllocation(context)
+}
+
+/**
+ * Materialize final symbols for every retained coding unit.
+ *
+ * @param {EncoderContext} context Pipeline ownership context.
+ * @returns {function(EncoderFrame): EncoderFrame} Quantization stage.
+ */
+export function quantize(context) {
+  const { codingUnitCount } = context.bufferPool.encoder.state.topology
+  return (frame) => {
+    for (let unit = 0; unit < codingUnitCount; unit++) {
+      quantizeSymbols(frame.allocationTransactions[unit])
     }
-    bufferPool.encoder.frame.allocationCheckpoint.restore(
-      bufferPool.encoder.frame,
-      bufferPool.encoder.state.topology
-    )
-    context.allocationBudgetReductionBits = 0
-    throw new RangeError('ATRAC3plus frame packing retry limit was exhausted')
+    return frame
   }
 }
 
@@ -626,32 +484,20 @@ export function createFrameEncoder(
  * @returns {function(Float32Array[]|{channels: Float32Array[], sampleCount?: number}): (Uint8Array|null)} One-frame encoder.
  */
 export function encode(options = {}, bufferPool = new BufferPool()) {
-  const profile = resolveProfile(options)
-  if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
-  const encodeFrame = createFrameEncoder(profile, bufferPool)
-  const codecFrame = Array.from(
-    { length: profile.channels },
-    () => new Float32Array(FRAME_SAMPLES)
+  const context = createEncoderContext(options, bufferPool)
+  const encodeFrame = pipe(
+    context,
+    validateFrame,
+    beginTransaction,
+    prepareAnalysis,
+    analyze,
+    allocate,
+    quantize,
+    applyDelay,
+    pack,
+    commitFrame,
+    detachOutput
   )
-  return (input) => {
-    const channels = Array.isArray(input) ? input : input?.channels
-    const sampleCount = Array.isArray(input)
-      ? FRAME_SAMPLES
-      : (input?.sampleCount ?? FRAME_SAMPLES)
-    if (
-      !Array.isArray(channels) ||
-      channels.length !== profile.channels ||
-      !Number.isInteger(sampleCount) ||
-      sampleCount < 0 ||
-      sampleCount > FRAME_SAMPLES ||
-      !channels.every(
-        (channel) =>
-          channel instanceof Float32Array && channel.length === FRAME_SAMPLES
-      )
-    ) {
-      throw new RangeError('ATRAC3plus PCM frame geometry is invalid')
-    }
-    scalePcmFrame(channels, codecFrame)
-    return encodeFrame({ channels: codecFrame, sampleCount })
-  }
+  const scale = createPcmScaler(context.profile.channels)
+  return (input) => encodeFrame(scale(input))
 }

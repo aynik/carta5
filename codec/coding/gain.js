@@ -1,10 +1,6 @@
 /** ATRAC3plus gain-control records, planning, and validation. */
 
-import {
-  GAIN_LEVEL_MAX,
-  GAIN_LOCATION_MAX,
-  GAIN_SLOT_COUNT,
-} from '../core/constants.js'
+import { GAIN_SLOT_COUNT } from '../core/constants.js'
 
 /**
  * Coded gain-control record plus the detector history carried with that record.
@@ -388,43 +384,6 @@ export function writeGainRecordDeltaEnvelope(
     record.levels[destination] = scratch.levels[source]
   }
   return transitionCount
-}
-
-/**
- * Validate the wire-visible geometry and ordering of one gain record.
- *
- * @param {GainRecord} record Record to validate.
- * @returns {GainRecord} The validated input record.
- */
-export function validateGainRecord(record) {
-  if (
-    !Number.isInteger(record.entries) ||
-    record.entries < 0 ||
-    record.entries > 7
-  ) {
-    throw new RangeError('ATRAC3plus gain point count must be in 0..7')
-  }
-  let previousLocation = -1
-  for (let index = 0; index < record.entries; index++) {
-    const level = record.levels[index]
-    const location = record.locations[index]
-    if (level > GAIN_LEVEL_MAX) {
-      throw new RangeError('ATRAC3plus gain level must be in 0..15')
-    }
-    if (location > GAIN_LOCATION_MAX) {
-      throw new RangeError('ATRAC3plus gain location must be in 0..31')
-    }
-    if (location <= previousLocation) {
-      throw new RangeError(
-        'ATRAC3plus gain locations must be strictly ascending'
-      )
-    }
-    if (index > 0 && level === record.levels[index - 1]) {
-      throw new RangeError('Adjacent ATRAC3plus gain levels must differ')
-    }
-    previousLocation = location
-  }
-  return record
 }
 
 /**

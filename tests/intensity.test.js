@@ -4,12 +4,12 @@ import { applyIntensityStereo } from '../codec/analysis/intensity.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import {
-  analysisGeometryStage,
-  historyStage,
-  intensityStage,
-  qmfStage,
-  transactionStage,
-  validateFrameStage,
+  analyzeBands,
+  applyIntensity,
+  beginTransaction,
+  prepareGeometry,
+  rotateHistory,
+  validateFrame,
 } from '../codec/pipeline/encoder.js'
 import {
   EncodeAnalysisState,
@@ -111,12 +111,12 @@ describe('ATRAC3plus intensity stereo', () => {
     })
     initializeEncoderStream(profile, bufferPool.encoder)
     const context = { profile, bufferPool }
-    let frame = validateFrameStage(context)([pcm(0), pcm(1)])
-    frame = transactionStage(context)(frame)
-    frame = analysisGeometryStage(context)(frame)
-    frame = historyStage()(frame)
-    frame = qmfStage(context)(frame)
-    frame = intensityStage(context)(frame)
+    let frame = validateFrame(context)([pcm(0), pcm(1)])
+    frame = beginTransaction(context)(frame)
+    frame = prepareGeometry(context)(frame)
+    frame = rotateHistory()(frame)
+    frame = analyzeBands(context)(frame)
+    frame = applyIntensity(context)(frame)
 
     const stagedPrimary = frame.channelBlocks[0]
     expect(stagedPrimary.intensityHistory.intensityBandLimit).toBe(

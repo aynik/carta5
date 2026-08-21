@@ -3,20 +3,20 @@ import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import {
-  analysisToStreamDelayStage,
-  allocationPreflightStage,
-  allocationStage,
-  commitStage,
-  analysisGeometryStage,
-  gainStage,
-  historyStage,
-  intensityStage,
-  mdctStage,
-  packingStage,
-  qmfStage,
-  toneStage,
-  transactionStage,
-  validateFrameStage,
+  allocate,
+  analyze,
+  analyzeBands,
+  applyDelay,
+  applyIntensity,
+  beginTransaction,
+  commitFrame,
+  pack,
+  planGain,
+  planTones,
+  prepareGeometry,
+  quantize,
+  rotateHistory,
+  validateFrame,
 } from '../codec/pipeline/encoder.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'
 import { packCodingUnit } from '../codec/io/coding-unit.js'
@@ -63,19 +63,19 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     const unscaledView = bufferPool.encoder.frame.gainUnscaledSpectrumViews[1]
     const request = bufferPool.encoder.scratch.gain.detection.request
 
-    let frame = validateFrameStage(context)([referencePcm()])
-    frame = transactionStage(context)(frame)
-    frame = analysisGeometryStage(context)(frame)
-    frame = historyStage()(frame)
-    frame = qmfStage(context)(frame)
-    frame = intensityStage(context)(frame)
-    frame = toneStage(context)(frame)
-    frame = gainStage(context)(frame)
-    frame = mdctStage(context)(frame)
-    frame = allocationStage(context)(frame)
-    frame = analysisToStreamDelayStage(context)(frame)
-    frame = allocationPreflightStage(context)(frame)
-    frame = packingStage(context)(frame)
+    let frame = validateFrame(context)([referencePcm()])
+    frame = beginTransaction(context)(frame)
+    frame = prepareGeometry(context)(frame)
+    frame = rotateHistory()(frame)
+    frame = analyze(context)(frame)
+    frame = allocate(context)(frame)
+    expect(frame.allocationTransactions[0].trialSpectra[0].some(Boolean)).toBe(
+      true
+    )
+    expect(frame.channelBlocks[0].quantizedSpectrum.some(Boolean)).toBe(false)
+    frame = quantize(context)(frame)
+    frame = applyDelay(context)(frame)
+    frame = pack(context)(frame)
 
     expect(frame.channels).toBe(pcmView)
     expect(frame.qmfBands).toBe(qmfView)
@@ -178,10 +178,10 @@ describe('ATRAC3plus detached analysis stage chain', () => {
       sampleRate: 44100,
     })
     const context = { profile, bufferPool }
-    const frame = transactionStage(context)(
-      validateFrameStage(context)([referencePcm()])
+    const frame = beginTransaction(context)(
+      validateFrame(context)([referencePcm()])
     )
-    expect(() => analysisGeometryStage(context)(frame)).toThrow(RangeError)
+    expect(() => prepareGeometry(context)(frame)).toThrow(RangeError)
     expect(
       bufferPool.encoder.frame.analysisChannels[0].samples.every(Boolean)
     ).toBe(false)
@@ -196,64 +196,29 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     })
     initializeEncoderStream(profile, bufferPool.encoder)
     const context = { profile, bufferPool }
-    let frame = transactionStage(context)(
-      validateFrameStage(context)([referencePcm()])
+    let frame = beginTransaction(context)(
+      validateFrame(context)([referencePcm()])
     )
     frame.sharedCodingUnits[0].scaleFactorCount = 9
+    frame.allocationAttempts = 1
 
-    frame = analysisToStreamDelayStage(context)(frame)
+    frame = applyDelay(context)(frame)
     expect(frame.analysisDelayed).toBe(true)
     expect(bufferPool.encoder.state.analysisToStreamDelay.remainingFrames).toBe(
       6
     )
-    frame = packingStage(context)(frame)
+    frame = pack(context)(frame)
     expect(frame.output).toBeNull()
     expect(frame.packedPayloadBits).toBe(0)
-    frame = commitStage(context)(frame)
+    frame = commitFrame(context)(frame)
     expect(frame.committed).toBe(true)
     expect(bufferPool.encoder.state.sharedCodingUnits[0].scaleFactorCount).toBe(
       9
     )
 
     expect(() =>
-      commitStage(context)({ analysisDelayed: false, output: null })
+      commitFrame(context)({ analysisDelayed: false, output: null })
     ).toThrow('cannot commit before successful packing')
-  })
-
-  it('preflights the finalized aggregate budget before serialization', () => {
-    const bufferPool = new BufferPool()
-    const profile = resolveProfile({
-      bitrateKbps: 320,
-      channels: 6,
-      sampleRate: 48000,
-    })
-    initializeEncoderStream(profile, bufferPool.encoder)
-    const context = { profile, bufferPool }
-    const topology = bufferPool.encoder.state.topology
-    const transactions = bufferPool.encoder.frame.allocationTransactions
-    const frame = {
-      analysisDelayed: false,
-      allocationTransactions: transactions,
-    }
-
-    for (let unit = 0; unit < topology.codingUnitCount; unit++) {
-      const transaction = transactions[unit]
-      transaction.allocationBudgetBits =
-        topology.codingUnitProfiles.budgetBits[unit]
-      transaction.bitsTotal = transaction.allocationBudgetBits
-    }
-
-    transactions[0].bitsTotal += 64
-    transactions[1].bitsTotal -= 64
-    expect(allocationPreflightStage(context)(frame)).toBe(frame)
-
-    transactions[0].bitsTotal = profile.bytesPerFrame * 8
-    expect(() => allocationPreflightStage(context)(frame)).toThrow(
-      'allocation total overflow'
-    )
-
-    frame.analysisDelayed = true
-    expect(allocationPreflightStage(context)(frame)).toBe(frame)
   })
 
   it('rebinds pooled gain views across every multi-channel coding unit', () => {
@@ -271,14 +236,14 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     const channels = Array.from({ length: profile.channels }, (_, channel) =>
       Float32Array.from(referencePcm(), (value) => value + channel / 16)
     )
-    let frame = validateFrameStage(context)(channels)
-    frame = transactionStage(context)(frame)
-    frame = analysisGeometryStage(context)(frame)
-    frame = historyStage()(frame)
-    frame = qmfStage(context)(frame)
-    frame = intensityStage(context)(frame)
-    frame = toneStage(context)(frame)
-    frame = gainStage(context)(frame)
+    let frame = validateFrame(context)(channels)
+    frame = beginTransaction(context)(frame)
+    frame = prepareGeometry(context)(frame)
+    frame = rotateHistory()(frame)
+    frame = analyzeBands(context)(frame)
+    frame = applyIntensity(context)(frame)
+    frame = planTones(context)(frame)
+    frame = planGain(context)(frame)
 
     expect(
       frame.channelBlocks

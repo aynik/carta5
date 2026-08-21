@@ -99,11 +99,11 @@ function validatePlan(transaction, shared, plan) {
       !block?.syntax ||
       !(block.syntax.spectralNoiseLevelIndices instanceof Int32Array) ||
       block.syntax.spectralNoiseLevelIndices.length < SLOT_COUNT ||
-      !(block.quantizedSpectrum instanceof Int16Array) ||
+      !(transaction.trialSpectra[channel] instanceof Int16Array) ||
       !(transaction.normalizedSpectra[channel] instanceof Float32Array) ||
       required === undefined ||
       required > transaction.normalizedSpectra[channel].length ||
-      required > block.quantizedSpectrum.length
+      required > transaction.trialSpectra[channel].length
     ) {
       throw new RangeError(
         'ATRAC3plus spectral-noise channel binding is invalid'
@@ -238,7 +238,7 @@ function observeBand(transaction, shared, plan, channel, band) {
   const length = QUANTIZATION_UNIT_OFFSETS[band + 1] - start
   const quarterLength = length >> 2
   const quantizedSum = quarterAbsoluteSum(
-    sourceBlock.quantizedSpectrum,
+    transaction.trialSpectra[intensitySource],
     start,
     quarterLength
   )

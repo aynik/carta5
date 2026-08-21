@@ -95,11 +95,16 @@ export class CodingUnitAllocationTransaction {
     this.allocationBandOrder = workspace.allocationBandOrder
     this.reconstructionRefinement = workspace.reconstructionRefinement
     this.normalizedSpectra = workspace.normalizedSpectra
+    this.trialSpectra = Array.from(
+      { length: CODING_UNIT_MAX_CHANNELS },
+      () => new Int16Array(FRAME_SAMPLES)
+    )
     this.checkpointWordLengths = workspace.checkpointWordLengths
     this.checkpointSpectrumBits = workspace.checkpointSpectrumBits
     this.channelBlocks = new Array(CODING_UNIT_MAX_CHANNELS)
     this.gainScaledSpectra = new Array(CODING_UNIT_MAX_CHANNELS)
     this.gainUnscaledSpectra = new Array(CODING_UNIT_MAX_CHANNELS)
+    this.symbols = new Array(CODING_UNIT_MAX_CHANNELS)
     this.spectrumPricingStates = workspace.spectrumPricingStates
     this.spectrumPricedBands = workspace.spectrumPricedBands
     this.wordLengthTransaction = null
@@ -143,6 +148,8 @@ export class CodingUnitAllocationTransaction {
     this.channelBlocks.fill(null)
     this.gainScaledSpectra.fill(null)
     this.gainUnscaledSpectra.fill(null)
+    this.symbols.length = channelCount
+    this.symbols.fill(null)
     this.toneSwapGate = null
     this.coreMode = 0
     this.bandCount = 0
@@ -305,6 +312,8 @@ export class CodingUnitAllocationTransaction {
       gainScaledSpectrum.length < FRAME_SAMPLES ||
       !(gainUnscaledSpectrum instanceof Float32Array) ||
       gainUnscaledSpectrum.length < FRAME_SAMPLES ||
+      !(block.quantizedSpectrum instanceof Int16Array) ||
+      block.quantizedSpectrum.length < FRAME_SAMPLES ||
       !(normalizedSpectrum instanceof Float32Array) ||
       normalizedSpectrum.length < FRAME_SAMPLES ||
       typeof spectrumPricingState?.reset !== 'function' ||
@@ -316,6 +325,7 @@ export class CodingUnitAllocationTransaction {
     this.channelBlocks[ordinal] = block
     this.gainScaledSpectra[ordinal] = gainScaledSpectrum
     this.gainUnscaledSpectra[ordinal] = gainUnscaledSpectrum
+    this.symbols[ordinal] = block.quantizedSpectrum
     this.boundChannelCount++
     return this
   }

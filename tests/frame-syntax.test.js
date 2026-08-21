@@ -6,7 +6,7 @@ import { planScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
 
 import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
 import { planCodeTableSection } from '../codec/io/code-table-syntax.js'
-import { FramePackError, packFrame } from '../codec/io/frame.js'
+import { FramePackError, measureFrame, packFrame } from '../codec/io/frame.js'
 import {
   FrameDecodeScratch,
   unpackFrameSyntax,
@@ -67,6 +67,8 @@ function activeMonoFixture() {
   transaction.codeTableTransaction = codeTable
   transaction.gainPlan = selectGainSyntax(blocks, 0, 0, new GainCodingPlan())
   transaction.tonePlan = new ToneCodingPlan().clear(1)
+  transaction.symbols[0] = block.quantizedSpectrum
+  transaction.trialSpectra[0].set(block.quantizedSpectrum)
   return { shared, transaction }
 }
 
@@ -87,6 +89,15 @@ describe('ATRAC3plus bounded frame emission', () => {
         1,
         frameBytes,
         scratch,
+        new SpectrumSyntaxScratch()
+      )
+    ).toBe(45)
+    expect(
+      measureFrame(
+        [transaction],
+        [shared],
+        1,
+        frameBytes,
         new SpectrumSyntaxScratch()
       )
     ).toBe(45)

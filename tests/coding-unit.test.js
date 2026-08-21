@@ -5,10 +5,10 @@ import { planScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
 
 import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
 import { planCodeTableSection } from '../codec/io/code-table-syntax.js'
-import { packCodingUnit } from '../codec/io/coding-unit.js'
+import { measureCodingUnit, packCodingUnit } from '../codec/io/coding-unit.js'
 import { unpackCodingUnit } from '../codec/io/coding-unit-decoder.js'
 
-import { BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitCounter, BitReader, BitWriter } from '../codec/io/bitstream.js'
 import { DecodeChannelState } from '../codec/state/decoder.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { SharedState } from '../codec/state/shared.js'
@@ -62,6 +62,8 @@ function createActiveMonoFixture() {
   transaction.codeTableTransaction = codeTable
   transaction.gainPlan = gain
   transaction.tonePlan = tone
+  transaction.symbols[0] = block.quantizedSpectrum
+  transaction.trialSpectra[0].set(block.quantizedSpectrum)
   return { block, shared, transaction }
 }
 
@@ -73,6 +75,14 @@ describe('ATRAC3plus coding-unit emission', () => {
     const writer = new BitWriter(bytes)
     expect(
       packCodingUnit(transaction, shared, new SpectrumSyntaxScratch(), writer)
+    ).toBe(40)
+    expect(
+      measureCodingUnit(
+        transaction,
+        shared,
+        new SpectrumSyntaxScratch(),
+        new BitCounter()
+      )
     ).toBe(40)
     expect(Buffer.from(bytes).toString('hex')).toBe('0020e03900')
 

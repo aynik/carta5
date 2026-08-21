@@ -28,14 +28,15 @@ export function spectralNoiseLevelFieldCount(bandCount, mapCount) {
  * Verify finalized channel syntax, quantized coefficients, shared band geometry, and bit sink before packing spectrum data.
  *
  * @param {EncodeChannelState} block
+ * @param {Int16Array} symbols
  * @param {SharedState} shared
  * @param {SpectrumSyntaxScratch} scratch
  * @param {BitWriter|BitCounter} sink
  */
-function validateRequest(block, shared, scratch, sink) {
+function validateRequest(block, symbols, shared, scratch, sink) {
   if (
     !block?.syntax ||
-    !(block.quantizedSpectrum instanceof Int16Array) ||
+    !(symbols instanceof Int16Array) ||
     !shared ||
     !Number.isInteger(shared.scaleFactorCount) ||
     shared.scaleFactorCount < 0 ||
@@ -72,13 +73,14 @@ export function packSpectralNoiseTrailer(block, shared, sink) {
  * Emit one channel's coefficients followed by its spectral-noise trailer.
  *
  * @param {EncodeChannelState} block Encoder channel block.
+ * @param {Int16Array} symbols Final or trial coefficient symbols.
  * @param {SharedState} shared Shared coding-unit syntax state.
  * @param {SpectrumSyntaxScratch} scratch Reusable symbol storage.
  * @param {BitWriter|BitCounter} sink Bit sink exposing `write(value, bits)`.
  * @returns {void}
  */
-export function packChannelSpectrum(block, shared, scratch, sink) {
-  validateRequest(block, shared, scratch, sink)
+export function packChannelSpectrum(block, symbols, shared, scratch, sink) {
+  validateRequest(block, symbols, shared, scratch, sink)
   const syntax = block.syntax
   for (let band = 0; band < shared.scaleFactorCount; band++) {
     const mode = syntax.wordLengths[band]
@@ -102,7 +104,7 @@ export function packChannelSpectrum(block, shared, scratch, sink) {
       )
     }
     packSpectrumPayload(
-      block.quantizedSpectrum,
+      symbols,
       start,
       end - start,
       descriptor,

@@ -1,4 +1,10 @@
-/** Streaming ATRAC3plus decoder composed from explicit transactional stages. */
+/**
+ * Streaming ATRAC3plus decoder pipeline.
+ *
+ * Encoded bytes pass through unpacking, dequantization, and synthesis.
+ * Validation, detached state, history rotation, commit, and PCM normalization
+ * surround that semantic recipe.
+ */
 
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
@@ -22,7 +28,7 @@ import { normalizePcm } from '../io/pcm.js'
  * @param {DecoderContext} context Pipeline ownership context.
  * @returns {function(Uint8Array): DecoderFrame} Frame validation stage.
  */
-function validateDecodeFrameStage(context) {
+export function validateFrame(context) {
   const bytes = context.profile.bytesPerFrame
   return (input) => {
     if (!(input instanceof Uint8Array) || input.length !== bytes) {
@@ -41,7 +47,7 @@ function validateDecodeFrameStage(context) {
  * @param {DecoderContext} context Pipeline ownership context.
  * @returns {function(DecoderFrame): DecoderFrame} Transaction capture stage.
  */
-function decodeTransactionStage(context) {
+export function beginTransaction(context) {
   return (frame) => {
     copyDecoderState(
       context.bufferPool.decoder.state,
@@ -55,9 +61,9 @@ function decodeTransactionStage(context) {
  * Traverse every configured coding unit into detached decoder blocks.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Syntax traversal stage.
+ * @returns {function(DecoderFrame): DecoderFrame} Unpacking stage.
  */
-function frameSyntaxStage(context) {
+export function unpack(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
@@ -79,17 +85,17 @@ function frameSyntaxStage(context) {
  * Reconstruct every detached coding unit into fixed decoder spectra.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Spectrum stage.
+ * @returns {function(DecoderFrame): DecoderFrame} Dequantization stage.
  */
-function spectrumReconstructionStage(context) {
+export function dequantize(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
     for (let unit = 0; unit < topology.codingUnitCount; unit++) {
       reconstructCodingUnitSpectra(
-        decoder.frame.channelBlocks,
+        frame.channelBlocks,
         topology.codingUnitChannels[unit],
-        decoder.frame.sharedCodingUnits[unit],
+        frame.sharedCodingUnits[unit],
         decoder.frame.spectra,
         decoder.scratch.spectralReconstruction
       )
@@ -100,25 +106,25 @@ function spectrumReconstructionStage(context) {
 }
 
 /**
- * Apply inverse MDCT, inverse gain, and frame overlap per decoded channel.
+ * Synthesize subbands through inverse MDCT, inverse gain, and frame overlap.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Inverse MDCT stage.
+ * @returns {function(DecoderFrame): DecoderFrame} Spectrum synthesis application.
  */
-function inverseMdctStage(context) {
+function synthesizeSpectrum(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
     for (let unit = 0; unit < topology.codingUnitCount; unit++) {
       const channels = topology.codingUnitChannels[unit]
-      const shared = decoder.frame.sharedCodingUnits[unit]
+      const shared = frame.sharedCodingUnits[unit]
       for (let ordinal = 0; ordinal < channels.length; ordinal++) {
         const channelIndex = channels.at(ordinal)
-        const channel = decoder.frame.channelBlocks[channelIndex]
+        const channel = frame.channelBlocks[channelIndex]
         const synthesis = decoder.frame.synthesisCodingUnits[unit][ordinal]
         if (
           inverseMdctFrame(
-            decoder.frame.spectra[channelIndex],
+            frame.spectra[channelIndex],
             decoder.frame.subbandSamples[channelIndex],
             channel.previousGainRecords,
             channel.gain.records,
@@ -139,24 +145,24 @@ function inverseMdctStage(context) {
 }
 
 /**
- * Add decoded tones and broadband noise after inverse MDCT/gain.
+ * Add decoded tone and broadband-noise components to synthesized subbands.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Post-MDCT signal stage.
+ * @returns {function(DecoderFrame): DecoderFrame} Component synthesis application.
  */
-function postMdctStage(context) {
+function synthesizeComponents(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
     for (let unit = 0; unit < topology.codingUnitCount; unit++) {
       const channels = topology.codingUnitChannels[unit]
-      const shared = decoder.frame.sharedCodingUnits[unit]
-      const primary = decoder.frame.channelBlocks[channels.at(0)]
+      const shared = frame.sharedCodingUnits[unit]
+      const primary = frame.channelBlocks[channels.at(0)]
       for (let ordinal = 0; ordinal < channels.length; ordinal++) {
         const channelIndex = channels.at(ordinal)
-        const subbands = decoder.frame.subbandSamples[channelIndex]
+        const subbands = frame.subbandSamples[channelIndex]
         addDecodedTones(
-          decoder.frame.channelBlocks[channelIndex],
+          frame.channelBlocks[channelIndex],
           primary,
           subbands,
           ordinal,
@@ -173,9 +179,9 @@ function postMdctStage(context) {
  * Fold every detached channel's subbands into pool-owned PCM.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} QMF synthesis stage.
+ * @returns {function(DecoderFrame): DecoderFrame} PCM synthesis application.
  */
-function qmfSynthesisStage(context) {
+function synthesizePcm(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
@@ -184,7 +190,7 @@ function qmfSynthesisStage(context) {
       for (let ordinal = 0; ordinal < channels.length; ordinal++) {
         const channelIndex = channels.at(ordinal)
         synthesizeQmfChannel(
-          decoder.frame.subbandSamples[channelIndex],
+          frame.subbandSamples[channelIndex],
           decoder.frame.synthesisCodingUnits[unit][ordinal],
           decoder.frame.outputChannels[channelIndex]
         )
@@ -201,7 +207,7 @@ function qmfSynthesisStage(context) {
  * @param {DecoderContext} context Pipeline ownership context.
  * @returns {function(DecoderFrame): DecoderFrame} History rotation stage.
  */
-function historyRotationStage(context) {
+function rotateHistory(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return (frame) => {
@@ -221,7 +227,7 @@ function historyRotationStage(context) {
  * @param {DecoderContext} context Pipeline ownership context.
  * @returns {function(DecoderFrame): Float32Array[]} Atomic commit stage.
  */
-function decodeCommitStage(context) {
+function commitFrame(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
   return () => {
@@ -251,48 +257,13 @@ function createDecoderContext(options, bufferPool) {
 }
 
 /**
- * Compose the detached ATRAC3plus syntax prefix of the eventual frame decoder.
- * No persistent state or PCM is published until reconstruction stages land.
+ * Reconstruct PCM from the dequantized coding-unit spectra.
  *
- * @param {CodecProfileOptions} [options] Maintained profile options.
- * @param {BufferPool} [bufferPool] Reusable state, frame, and scratch storage.
- * @returns {function(Uint8Array): DecoderFrame} Syntax-only decoder.
+ * @param {DecoderContext} context Pipeline ownership context.
+ * @returns {function(DecoderFrame): DecoderFrame} Synthesis stage.
  */
-export function createFrameSyntaxDecoder(
-  options = {},
-  bufferPool = new BufferPool()
-) {
-  const context = createDecoderContext(options, bufferPool)
-  return pipe(
-    context,
-    validateDecodeFrameStage,
-    decodeTransactionStage,
-    frameSyntaxStage
-  )
-}
-
-/**
- * Compose complete detached signal reconstruction without committing state.
- *
- * @param {CodecProfileOptions} [options] Maintained profile options.
- * @param {BufferPool} [bufferPool] Reusable state, frame, and scratch storage.
- * @returns {function(Uint8Array): DecoderFrame} Detached PCM decoder.
- */
-export function createPcmFrameDecoder(
-  options = {},
-  bufferPool = new BufferPool()
-) {
-  const context = createDecoderContext(options, bufferPool)
-  return pipe(
-    context,
-    validateDecodeFrameStage,
-    decodeTransactionStage,
-    frameSyntaxStage,
-    spectrumReconstructionStage,
-    inverseMdctStage,
-    postMdctStage,
-    qmfSynthesisStage
-  )
+export function synthesize(context) {
+  return pipe(context, synthesizeSpectrum, synthesizeComponents, synthesizePcm)
 }
 
 /**
@@ -306,15 +277,13 @@ export function decode(options = {}, bufferPool = new BufferPool()) {
   const context = createDecoderContext(options, bufferPool)
   const decodeFrame = pipe(
     context,
-    validateDecodeFrameStage,
-    decodeTransactionStage,
-    frameSyntaxStage,
-    spectrumReconstructionStage,
-    inverseMdctStage,
-    postMdctStage,
-    qmfSynthesisStage,
-    historyRotationStage,
-    decodeCommitStage
+    validateFrame,
+    beginTransaction,
+    unpack,
+    dequantize,
+    synthesize,
+    rotateHistory,
+    commitFrame
   )
   return (frame) => normalizePcm(decodeFrame(frame))
 }

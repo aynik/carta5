@@ -1,16 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createHash } from 'node:crypto'
 
-const packFrameControl = vi.hoisted(() => ({ intercept: null }))
+const measureFrameControl = vi.hoisted(() => ({ intercept: null }))
 
 vi.mock('../codec/io/frame.js', async (importOriginal) => {
   const original = await importOriginal()
   return {
     ...original,
-    packFrame(...args) {
-      return packFrameControl.intercept
-        ? packFrameControl.intercept(original.packFrame, args)
-        : original.packFrame(...args)
+    measureFrame(...args) {
+      return measureFrameControl.intercept
+        ? measureFrameControl.intercept(original.measureFrame, args)
+        : original.measureFrame(...args)
     },
   }
 })
@@ -20,16 +20,17 @@ import { flushTailFramesForSampleCount } from '../codec/core/timing.js'
 import { BitCounter } from '../codec/io/bitstream.js'
 import { packCodingUnit } from '../codec/io/coding-unit.js'
 import { FramePackError } from '../codec/io/frame.js'
-import { createFrameEncoder } from '../codec/pipeline/encoder.js'
-import { createPcmFrameDecoder, decode } from '../codec/pipeline/decoder.js'
-import { createStreamingEncoder } from '../codec/io/stream-encoder.js'
+import { encode } from '../codec/pipeline/encoder.js'
+import { decode } from '../codec/pipeline/decoder.js'
+import { StreamingEncoder } from '../codec/io/stream-encoder.js'
 import { SpectrumSyntaxScratch } from '../codec/state/spectrum.js'
 import { PCM_SCALE } from '../codec/io/pcm.js'
 
 function referencePcm(frameIndex = 0) {
   return Float32Array.from(
     { length: 2048 },
-    (_, sample) => (((sample * 37 + frameIndex * 19 + 11) % 257) - 128) / 32
+    (_, sample) =>
+      (((sample * 37 + frameIndex * 19 + 11) % 257) - 128) / 32 / PCM_SCALE
   )
 }
 
@@ -40,7 +41,7 @@ function frameHash(frames) {
 }
 
 afterEach(() => {
-  packFrameControl.intercept = null
+  measureFrameControl.intercept = null
 })
 
 describe('ATRAC3plus detached streaming frame encoder', () => {
@@ -57,7 +58,7 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
 
   it('commits seven delayed frames before publishing a bounded frame', () => {
     const pool = new BufferPool()
-    const encodeFrame = createFrameEncoder(
+    const encodeFrame = encode(
       { bitrateKbps: 128, channels: 1, sampleRate: 44100 },
       pool
     )
@@ -86,40 +87,6 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     expect(output[0] & 0x80).toBe(0)
     expect(pool.encoder.state.analysisToStreamDelay.remainingFrames).toBe(0)
 
-    pool.decoder.state.channelBlocks[0].syntax.wordLengths[0] = 7
-    pool.decoder.state.synthesisCodingUnits[0][0].inverseTransformOverlap[0] = 19
-    pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex = 7
-    const decodePcm = createPcmFrameDecoder(
-      { bitrateKbps: 128, channels: 1, sampleRate: 44100 },
-      pool
-    )
-    const parsed = decodePcm(output)
-    expect(parsed.parsedBits).toBeGreaterThan(3)
-    expect(parsed.parsedBits).toBeLessThanOrEqual(output.length * 8)
-    expect(pool.decoder.state.channelBlocks[0].syntax.wordLengths[0]).toBe(7)
-    expect(parsed.channelBlocks[0]).toBe(pool.decoder.frame.channelBlocks[0])
-    expect(parsed.spectra).toBe(pool.decoder.frame.spectra)
-    expect(parsed.spectra[0].some((value) => value !== 0)).toBe(true)
-    expect(parsed.spectra[0].every(Number.isFinite)).toBe(true)
-    expect(parsed.subbandSamples).toBe(pool.decoder.frame.subbandSamples)
-    expect(parsed.subbandSamples[0].some((value) => value !== 0)).toBe(true)
-    expect(parsed.subbandSamples[0].every(Number.isFinite)).toBe(true)
-    expect(
-      pool.decoder.state.synthesisCodingUnits[0][0].inverseTransformOverlap[0]
-    ).toBe(19)
-    expect(
-      pool.decoder.frame.synthesisCodingUnits[0][0].inverseTransformOverlap
-    ).not.toBe(
-      pool.decoder.state.synthesisCodingUnits[0][0].inverseTransformOverlap
-    )
-    expect(parsed.outputChannels).toBe(pool.decoder.frame.outputChannels)
-    expect(parsed.outputChannels[0].some((value) => value !== 0)).toBe(true)
-    expect(parsed.outputChannels[0].every(Number.isFinite)).toBe(true)
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(7)
-    expect(pool.decoder.frame.synthesisCodingUnits[0][0].delayRingIndex).toBe(
-      23
-    )
-
     const decodeCommitted = decode(
       { bitrateKbps: 128, channels: 1, sampleRate: 44100 },
       pool
@@ -130,23 +97,16 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     expect(pcm[0]).toHaveLength(2048)
     expect(pcm[0].buffer).not.toBe(pool.decoder.frame.outputChannels[0].buffer)
     expect(pcm[0].every(Number.isFinite)).toBe(true)
-    expect(pool.decoder.state.channelBlocks[0].syntax.wordLengths[0]).not.toBe(
-      7
-    )
     expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(
-      23
+      16
     )
     const secondPcm = decodeCommitted(output)
     expect(secondPcm[0].buffer).not.toBe(pcm[0].buffer)
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(
-      15
-    )
+    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(8)
     const malformed = output.slice()
     malformed[0] |= 0x80
     expect(() => decodeCommitted(malformed)).toThrow('frame header is invalid')
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(
-      15
-    )
+    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(8)
   })
 
   it('is invariant to arbitrary chunk boundaries and drains exactly once', () => {
@@ -155,11 +115,11 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
       (_, sample) => (((sample * 31 + 17) % 251) - 125) / 16 / PCM_SCALE
     )
     const options = { bitrateKbps: 128, channels: 1, sampleRate: 44100 }
-    const contiguous = createStreamingEncoder(options)
+    const contiguous = new StreamingEncoder(options)
     const contiguousFrames = contiguous.write([source])
     contiguousFrames.push(...contiguous.finish())
 
-    const partitioned = createStreamingEncoder(options)
+    const partitioned = new StreamingEncoder(options)
     const partitionedFrames = []
     for (const [start, end] of [
       [0, 13],
@@ -184,7 +144,7 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
   })
 
   it('lazily emits frames without collecting a complete input chunk', () => {
-    const encoder = createStreamingEncoder({
+    const encoder = new StreamingEncoder({
       bitrateKbps: 128,
       channels: 1,
       sampleRate: 44100,
@@ -206,21 +166,21 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     expect(encoder.sampleCount).toBe(2048 * 3)
   })
 
-  it('retries packing on the 32-bit grid without repeating analysis', () => {
+  it('retries exact frame fitting without repeating analysis', () => {
     const options = { bitrateKbps: 128, channels: 1, sampleRate: 44100 }
     const retryPool = new BufferPool()
-    let packCalls = 0
-    packFrameControl.intercept = (packFrame, args) => {
-      packCalls++
-      if (packCalls === 1) {
+    let measureCalls = 0
+    measureFrameControl.intercept = (measureFrame, args) => {
+      measureCalls++
+      if (measureCalls === 1) {
         throw new FramePackError('coding-unit overflow', 0)
       }
-      packFrameControl.intercept = null
-      return packFrame(...args)
+      measureFrameControl.intercept = null
+      return measureFrame(...args)
     }
-    const retryEncoder = createFrameEncoder(options, retryPool)
+    const retryEncoder = encode(options, retryPool)
     const controlPool = new BufferPool()
-    const controlEncoder = createFrameEncoder(options, controlPool)
+    const controlEncoder = encode(options, controlPool)
     let retriedOutput = null
     let controlOutput = null
     for (let frame = 0; frame < 8; frame++) {
@@ -231,7 +191,7 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
 
     expect(retriedOutput).toHaveLength(744)
     expect(controlOutput).toHaveLength(744)
-    expect(packCalls).toBe(2)
+    expect(measureCalls).toBe(2)
     expect(retryPool.encoder.state.lastAllocationAttempts).toBe(2)
     expect(retryPool.encoder.frame.allocationCheckpoint.channelCount).toBe(1)
     expect(retryPool.encoder.frame.allocationCheckpoint.codingUnitCount).toBe(1)
@@ -250,10 +210,10 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     const pool = new BufferPool()
     const syntaxScratch = new SpectrumSyntaxScratch()
     let checkedUnits = 0
-    const encode = createFrameEncoder(options, pool)
+    const encodeFrame = encode(options, pool)
     const silence = Array.from({ length: 6 }, () => new Float32Array(2048))
     let output = null
-    for (let frame = 0; frame < 8; frame++) output = encode(silence)
+    for (let frame = 0; frame < 8; frame++) output = encodeFrame(silence)
 
     const { topology } = pool.encoder.state
     const transactions = pool.encoder.frame.allocationTransactions

@@ -1,9 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
-import { createFrameEncoder } from '../codec/pipeline/encoder.js'
-import { createFrameSyntaxDecoder } from '../codec/pipeline/decoder.js'
+import { resolveProfile } from '../codec/core/profiles.js'
+import { encode } from '../codec/pipeline/encoder.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/io/bitstream.js'
+import {
+  FrameDecodeScratch,
+  unpackFrameSyntax,
+} from '../codec/io/frame-decoder.js'
 import {
   applyStereoToneFixes,
   unpackToneSection,
@@ -18,6 +22,11 @@ import {
   TONE_HEADER_SWAP_ARRAY_WORD,
 } from '../codec/core/constants.js'
 import { ToneDecodeScratch } from '../codec/state/decoder-syntax.js'
+import {
+  copyDecoderState,
+  initializeDecoderStream,
+} from '../codec/state/decoder.js'
+import { PCM_SCALE } from '../codec/io/pcm.js'
 
 const MASK = 0xffffffffffffffffn
 
@@ -239,7 +248,7 @@ describe('ATRAC3plus tone syntax planning and emission', () => {
       channels: 6,
       sampleRate: 44100,
     }
-    const encode = createFrameEncoder(options, new BufferPool())
+    const encodeFrame = encode(options, new BufferPool())
     let encoded = null
     for (let frame = 0; frame < 10; frame++) {
       const channels = Array.from({ length: 6 }, (_, channel) =>
@@ -249,20 +258,33 @@ describe('ATRAC3plus tone syntax planning and emission', () => {
           const frequency = pair === 0 ? 440 : pair === 1 ? 880 : 110
           const sign = channel === 4 ? -1 : 1
           return (
-            sign *
-            (12000 * Math.sin((2 * Math.PI * frequency * time) / 44100) +
-              2500 * Math.sin((2 * Math.PI * frequency * 2 * time) / 44100))
+            (sign *
+              (12000 * Math.sin((2 * Math.PI * frequency * time) / 44100) +
+                2500 *
+                  Math.sin((2 * Math.PI * frequency * 2 * time) / 44100))) /
+            PCM_SCALE
           )
         })
       )
-      encoded = encode(channels) ?? encoded
+      encoded = encodeFrame(channels) ?? encoded
     }
 
+    const profile = resolveProfile(options)
     const pool = new BufferPool()
+    initializeDecoderStream(profile, pool.decoder)
     pool.decoder.frame.spectra[0][0] = 17
     pool.decoder.frame.subbandSamples[0][0] = 19
-    const frame = createFrameSyntaxDecoder(options, pool)(encoded)
+    copyDecoderState(pool.decoder.state, pool.decoder.frame)
     const topology = pool.decoder.state.topology
+    unpackFrameSyntax(
+      encoded,
+      profile.bytesPerFrame,
+      topology.codingUnitCount,
+      topology.codingUnitChannels,
+      pool.decoder.frame,
+      new FrameDecodeScratch(pool.decoder.scratch.syntax)
+    )
+    const frame = pool.decoder.frame
     for (const unit of [0, 2]) {
       const channels = topology.codingUnitChannels[unit]
       const primary = frame.channelBlocks[channels.at(0)]

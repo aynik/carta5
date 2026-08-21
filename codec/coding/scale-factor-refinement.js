@@ -81,10 +81,10 @@ function validateRefinement(transaction, shared, plan) {
     const block = transaction.channelBlocks[channel]
     if (
       !block?.syntax ||
-      !(block.quantizedSpectrum instanceof Int16Array) ||
+      !(transaction.trialSpectra[channel] instanceof Int16Array) ||
       !(transaction.normalizedSpectra[channel] instanceof Float32Array) ||
       required === undefined ||
-      required > block.quantizedSpectrum.length ||
+      required > transaction.trialSpectra[channel].length ||
       required > transaction.normalizedSpectra[channel].length
     ) {
       throw new RangeError(
@@ -187,7 +187,7 @@ function measureBand(
   length,
   noiseActive
 ) {
-  const symbols = transaction.channelBlocks[sourceChannel].quantizedSpectrum
+  const symbols = transaction.trialSpectra[sourceChannel]
   const reference = transaction.normalizedSpectra[channel]
   let reconstructedEnergy = 0
   let referenceEnergy = 0
