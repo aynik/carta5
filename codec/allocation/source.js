@@ -1,6 +1,7 @@
 /** Candidate-invariant ATRAC3plus allocation measurement from detached MDCTs. */
 
 import {
+  QUANTIZATION_UNIT_BOUNDARIES,
   QUANTIZATION_UNIT_OFFSETS,
   SCALE_FACTOR_VALUES,
 } from '../core/tables.js'
@@ -9,7 +10,10 @@ import {
   SCALE_FACTOR_TARGET,
 } from '../core/constants.js'
 import { CodingUnitAllocationTransaction } from '../state/allocation.js'
+import { codedSubbandCount } from '../core/geometry.js'
+import { planAllocationBandOrder } from './order.js'
 import { bitAllocationModeFromRatios } from './policy.js'
+import { deriveAllocationSeed, prepareIntensityStereoMask } from './seed.js'
 
 /**
  * Reference four-at-a-time float32 absolute sum.
@@ -238,4 +242,65 @@ export function measureCodingUnitAllocationSource(
     }
   }
   return maximumQuantizationUnits
+}
+
+/**
+ * Measure one bound coding unit and derive every candidate-invariant policy object consumed by allocation.
+ *
+ * @param {CodingUnitAllocationTransaction} transaction Bound allocation transaction.
+ * @param {number} bandCount Active quantization bands.
+ * @param {number} channelMode Coding-unit channel mode.
+ * @param {number} sampleRateHz Stream sample rate.
+ */
+export function prepareAllocationSource(
+  transaction,
+  bandCount,
+  channelMode,
+  sampleRateHz
+) {
+  const maximumQuantizationUnits = measureCodingUnitAllocationSource(
+    transaction,
+    bandCount,
+    channelMode
+  )
+  const intensityBandLimit =
+    transaction.channelBlocks[0]?.intensityHistory?.intensityBandLimit
+  if (
+    !(transaction instanceof CodingUnitAllocationTransaction) ||
+    !transaction.bindingComplete ||
+    !Number.isInteger(transaction.bandCount) ||
+    transaction.bandCount < 1 ||
+    transaction.bandCount > QUANTIZATION_UNIT_COUNT ||
+    !Number.isInteger(sampleRateHz) ||
+    sampleRateHz < 1 ||
+    !Number.isInteger(intensityBandLimit) ||
+    intensityBandLimit < 0 ||
+    intensityBandLimit >= QUANTIZATION_UNIT_BOUNDARIES.length
+  ) {
+    throw new RangeError('ATRAC3plus allocation seed preparation is invalid')
+  }
+  const { channelCount, coreMode } = transaction
+  transaction.sampleRateHz = sampleRateHz
+  planAllocationBandOrder(
+    transaction.channelBlocks,
+    transaction.sourceChannels,
+    bandCount,
+    transaction.allocationBandOrder
+  )
+  if (channelMode === 3 && channelCount === 2) {
+    prepareIntensityStereoMask(
+      transaction.channelBlocks,
+      transaction.sourceChannels,
+      transaction.initialWordLengths,
+      coreMode,
+      bandCount,
+      codedSubbandCount(bandCount),
+      transaction.intensityStereoBandMask
+    )
+  }
+  deriveAllocationSeed(
+    transaction,
+    Math.min(QUANTIZATION_UNIT_BOUNDARIES[intensityBandLimit], bandCount),
+    maximumQuantizationUnits
+  )
 }

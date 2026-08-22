@@ -7,7 +7,7 @@ import { reduceCommittedAllocationToBudget } from './refine.js'
 import { fillBudget } from './residual.js'
 import { refineScaleFactors } from './scales.js'
 import { searchAllocation } from './search.js'
-import { prepareAllocationSource } from './seed.js'
+import { prepareAllocationSource } from './source.js'
 import { quantizeTrial } from '../quantization/symbols.js'
 
 /**

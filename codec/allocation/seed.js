@@ -12,9 +12,7 @@ import {
   intensityStereoToneCorrelationThreshold,
   quantCapBandLevelBonus,
 } from './policy.js'
-import { planAllocationBandOrder } from './order.js'
-import { codedSubbandCount, effectiveAllocationBand } from '../core/geometry.js'
-import { measureCodingUnitAllocationSource } from './source.js'
+import { effectiveAllocationBand } from '../core/geometry.js'
 import { CodingUnitAllocationTransaction } from '../state/allocation.js'
 
 /**
@@ -341,55 +339,3 @@ export function prepareIntensityStereoMask(
  * @param {number} channelMode Coding-unit channel mode.
  * @param {number} sampleRateHz Stream sample rate.
  */
-export function prepareAllocationSource(
-  transaction,
-  bandCount,
-  channelMode,
-  sampleRateHz
-) {
-  const maximumQuantizationUnits = measureCodingUnitAllocationSource(
-    transaction,
-    bandCount,
-    channelMode
-  )
-  const intensityBandLimit =
-    transaction.channelBlocks[0]?.intensityHistory?.intensityBandLimit
-  if (
-    !(transaction instanceof CodingUnitAllocationTransaction) ||
-    !transaction.bindingComplete ||
-    !Number.isInteger(transaction.bandCount) ||
-    transaction.bandCount < 1 ||
-    transaction.bandCount > QUANTIZATION_UNIT_COUNT ||
-    !Number.isInteger(sampleRateHz) ||
-    sampleRateHz < 1 ||
-    !Number.isInteger(intensityBandLimit) ||
-    intensityBandLimit < 0 ||
-    intensityBandLimit >= QUANTIZATION_UNIT_BOUNDARIES.length
-  ) {
-    throw new RangeError('ATRAC3plus allocation seed preparation is invalid')
-  }
-  const { channelCount, coreMode } = transaction
-  transaction.sampleRateHz = sampleRateHz
-  planAllocationBandOrder(
-    transaction.channelBlocks,
-    transaction.sourceChannels,
-    bandCount,
-    transaction.allocationBandOrder
-  )
-  if (channelMode === 3 && channelCount === 2) {
-    prepareIntensityStereoMask(
-      transaction.channelBlocks,
-      transaction.sourceChannels,
-      transaction.initialWordLengths,
-      coreMode,
-      bandCount,
-      codedSubbandCount(bandCount),
-      transaction.intensityStereoBandMask
-    )
-  }
-  deriveAllocationSeed(
-    transaction,
-    Math.min(QUANTIZATION_UNIT_BOUNDARIES[intensityBandLimit], bandCount),
-    maximumQuantizationUnits
-  )
-}
