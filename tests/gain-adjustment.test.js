@@ -12,7 +12,7 @@ import {
   EncodeAnalysisState,
   EncodeChannelState,
 } from '../codec/state/encoder.js'
-import { LowRateGainScratch } from '../codec/state/gain-analysis.js'
+import { LowRateGainScratch } from '../codec/state/gain/analysis.js'
 import { float32ToBits, float64ToBits } from '../codec/utils.js'
 
 function fixedWidthHex(bits, width) {

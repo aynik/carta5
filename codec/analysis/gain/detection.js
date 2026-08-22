@@ -17,7 +17,7 @@ import { planLowModeGainAdjustment } from './adjustment.js'
 import {
   GainPointWorkArena,
   lowRateGainScratchDepth,
-} from '../../state/gain-analysis.js'
+} from '../../state/gain/analysis.js'
 import { saturatingInt32FromFloat } from '../../utils.js'
 import {
   BOUNDARY_END,

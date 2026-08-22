@@ -1,7 +1,7 @@
 /** Typed-array ownership for one reusable ATRAC3plus codec instance. */
 
 import { IntensityScratch } from './analysis.js'
-import { GainAnalysisScratch } from './gain-analysis.js'
+import { GainAnalysisScratch } from './gain/analysis.js'
 import { ToneAnalysisScratch, ToneSwapGate } from './tone.js'
 import { SpectrumSyntaxScratch } from './spectrum.js'
 import { EncoderFrameState, EncoderState } from './encoder.js'

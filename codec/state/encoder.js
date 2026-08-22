@@ -34,7 +34,7 @@ import {
 } from './code-table.js'
 import { ScaleFactorEncodeState } from './scale-factor.js'
 import { GainCodingPlan } from './gain/coding.js'
-import { lowRateGainScratchDepth } from './gain-analysis.js'
+import { lowRateGainScratchDepth } from './gain/analysis.js'
 import { ScaleFactorCodingPlan } from './scale-factor.js'
 import { ChannelSyntaxState, SharedState, StreamTopology } from './shared.js'
 import { ToneCodingPlan, ToneSlot } from './tone.js'
