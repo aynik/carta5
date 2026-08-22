@@ -5,8 +5,11 @@ import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
 import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
-import { measureCodingUnit, packCodingUnit } from '../codec/io/coding-unit.js'
-import { unpackCodingUnit } from '../codec/io/coding-unit-decoder.js'
+import {
+  measureCodingUnit,
+  packCodingUnit,
+} from '../codec/syntax/unit/writer.js'
+import { unpackCodingUnit } from '../codec/syntax/unit/reader.js'
 
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { DecodeChannelState } from '../codec/state/decoder.js'

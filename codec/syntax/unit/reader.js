@@ -1,15 +1,15 @@
 /** Detached ATRAC3plus coding-unit wire traversal in reference section order. */
 
-import { DecodeChannelState } from '../state/decoder.js'
-import { CodingUnitDecodeScratch } from '../state/decoder-syntax.js'
-import { SharedState } from '../state/shared.js'
-import { BitReader } from '../syntax/bitstream.js'
-import { unpackCodeTableSection } from '../syntax/code-table/reader.js'
-import { unpackGainChannel } from '../syntax/gain/reader.js'
-import { unpackScaleFactorChannel } from '../syntax/scale-factor/reader.js'
-import { unpackChannelSpectrum } from '../syntax/spectrum/reader.js'
-import { unpackToneSection } from '../syntax/tone/reader.js'
-import { unpackWordLengthChannel } from '../syntax/word-length/reader.js'
+import { DecodeChannelState } from '../../state/decoder.js'
+import { CodingUnitDecodeScratch } from '../../state/decoder-syntax.js'
+import { SharedState } from '../../state/shared.js'
+import { BitReader } from '../bitstream.js'
+import { unpackCodeTableSection } from '../code-table/reader.js'
+import { unpackGainChannel } from '../gain/reader.js'
+import { unpackScaleFactorChannel } from '../scale-factor/reader.js'
+import { unpackChannelSpectrum } from '../spectrum/reader.js'
+import { unpackToneSection } from '../tone/reader.js'
+import { unpackWordLengthChannel } from '../word-length/reader.js'
 
 /**
  * Error raised when coding unit decode input violates the decoder or bitstream contract.

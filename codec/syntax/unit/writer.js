@@ -1,22 +1,18 @@
 /** Exact ATRAC3plus coding-unit sidechain finalization and immutable emission. */
 
-import { packGainSection } from '../syntax/gain/writer.js'
-import { GainCodingPlan } from '../state/gain.js'
-import { packWordLengthSection } from '../syntax/word-length/writer.js'
-import { WordLengthAccountingTransaction } from '../state/word-length.js'
-import { packScaleFactorSection } from '../syntax/scale-factor/writer.js'
-import { ScaleFactorCodingPlan } from '../state/scale-factor.js'
-import { packCodeTableSection } from '../syntax/code-table/writer.js'
-import { CodeTableAccountingTransaction } from '../state/code-table.js'
-import { packChannelSpectrum } from '../syntax/spectrum/coding.js'
-import { SpectrumSyntaxScratch } from '../state/spectrum.js'
-import { packToneSection } from '../syntax/tone/writer.js'
-import { ToneCodingPlan } from '../state/tone.js'
-import {
-  BlockHeaderSyntax,
-  NoiseSyntax,
-  PresenceSyntax,
-} from '../syntax/records.js'
+import { packGainSection } from '../gain/writer.js'
+import { GainCodingPlan } from '../../state/gain.js'
+import { packWordLengthSection } from '../word-length/writer.js'
+import { WordLengthAccountingTransaction } from '../../state/word-length.js'
+import { packScaleFactorSection } from '../scale-factor/writer.js'
+import { ScaleFactorCodingPlan } from '../../state/scale-factor.js'
+import { packCodeTableSection } from '../code-table/writer.js'
+import { CodeTableAccountingTransaction } from '../../state/code-table.js'
+import { packChannelSpectrum } from '../spectrum/coding.js'
+import { SpectrumSyntaxScratch } from '../../state/spectrum.js'
+import { packToneSection } from '../tone/writer.js'
+import { ToneCodingPlan } from '../../state/tone.js'
+import { BlockHeaderSyntax, NoiseSyntax, PresenceSyntax } from '../records.js'
 
 /**
  * Verify that every planned sidechain and accounting owner is bound to a valid mono or stereo transaction.

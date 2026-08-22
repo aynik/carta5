@@ -21,7 +21,7 @@ import {
   delayEncoderFrame,
 } from '../codec/state/stream.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'
-import { packCodingUnit } from '../codec/io/coding-unit.js'
+import { packCodingUnit } from '../codec/syntax/unit/writer.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'
 
 function referencePcm() {

@@ -17,7 +17,7 @@ import {
   frameTagFromWire,
 } from '../syntax/records.js'
 
-import { unpackCodingUnit } from './coding-unit-decoder.js'
+import { unpackCodingUnit } from '../syntax/unit/reader.js'
 import { applyStereoToneFixes } from '../syntax/tone/reader.js'
 import { FrameDecodeStorage } from '../state/decoder-syntax.js'
 

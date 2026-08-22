@@ -18,7 +18,7 @@ vi.mock('../codec/io/frame.js', async (importOriginal) => {
 import { BufferPool } from '../codec/core/buffers.js'
 import { flushTailFramesForSampleCount } from '../codec/core/timing.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'
-import { packCodingUnit } from '../codec/io/coding-unit.js'
+import { packCodingUnit } from '../codec/syntax/unit/writer.js'
 import { FramePackError } from '../codec/io/frame.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
