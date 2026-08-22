@@ -1,12 +1,12 @@
 /** ATRAC3plus tone planning, exact pricing, and canonical emission. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../entropy.js'
 import {
   TONE_BAND_COUNT_CODE_LENGTHS,
   TONE_SCALE_FACTOR_CODEBOOK_B_CODE_LENGTHS,
   TONE_HEADER_ARRAYS,
   TONE_HEADER_PACK_ORDER,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 import {
   CODING_UNIT_MAX_CHANNELS,
   FREQUENCY_BASE_BITS,
@@ -20,8 +20,12 @@ import {
   TONE_HEADER_JOINT_ARRAY_WORD,
   TONE_HEADER_SWAP_ARRAY_WORD,
   TONE_RECORD_COUNT,
-} from '../core/constants.js'
-import { ToneCodingPlan, ToneSwapGate, activeToneSlot } from '../state/tone.js'
+} from '../../core/constants.js'
+import {
+  ToneCodingPlan,
+  ToneSwapGate,
+  activeToneSlot,
+} from '../../state/tone.js'
 
 /**
  * Return the active tone-entry count for a nullable tone record.

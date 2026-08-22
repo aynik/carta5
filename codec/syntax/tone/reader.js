@@ -1,6 +1,6 @@
 /** ATRAC3plus tone wire decoding into fixed current-slot storage. */
 
-import { readCanonicalSymbol } from '../syntax/entropy.js'
+import { readCanonicalSymbol } from '../entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   TONE_AMPLITUDE_CODEBOOK_AA_CODE_LENGTHS,
@@ -13,12 +13,12 @@ import {
   TONE_SCALE_FACTOR_CODEBOOK_AA_CODE_LENGTHS,
   TONE_SCALE_FACTOR_CODEBOOK_AB_CODE_LENGTHS,
   TONE_SCALE_FACTOR_CODEBOOK_B_CODE_LENGTHS,
-} from '../core/tables.js'
-import { ChannelSyntaxState } from '../state/shared.js'
-import { ToneDecodeScratch } from '../state/decoder-syntax.js'
-import { ToneSlot } from '../state/tone.js'
-import { BitReader } from '../syntax/bitstream.js'
-import { buildToneItemMap } from './tone-syntax.js'
+} from '../../core/tables.js'
+import { ChannelSyntaxState } from '../../state/shared.js'
+import { ToneDecodeScratch } from '../../state/decoder-syntax.js'
+import { ToneSlot } from '../../state/tone.js'
+import { BitReader } from '../bitstream.js'
+import { buildToneItemMap } from './writer.js'
 import {
   TONE_HEADER_ALLOCATION_POINTER_WORD,
   TONE_HEADER_BAND_COUNT_WORD,
@@ -26,7 +26,7 @@ import {
   TONE_HEADER_JOINT_ARRAY_WORD,
   TONE_HEADER_MODE_WORD,
   TONE_HEADER_SWAP_ARRAY_WORD,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Error raised when tone decode input violates the decoder or bitstream contract.

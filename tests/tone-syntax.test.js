@@ -11,8 +11,11 @@ import {
 import {
   applyStereoToneFixes,
   unpackToneSection,
-} from '../codec/io/tone-decoder.js'
-import { packToneSection, planToneSection } from '../codec/io/tone-syntax.js'
+} from '../codec/syntax/tone/reader.js'
+import {
+  packToneSection,
+  planToneSection,
+} from '../codec/syntax/tone/writer.js'
 import { ChannelSyntaxState } from '../codec/state/shared.js'
 import { ToneSlot } from '../codec/state/tone.js'
 import {

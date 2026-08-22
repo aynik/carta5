@@ -8,7 +8,7 @@ import { unpackCodeTableSection } from '../syntax/code-table/reader.js'
 import { unpackGainChannel } from '../syntax/gain/reader.js'
 import { unpackScaleFactorChannel } from '../syntax/scale-factor/reader.js'
 import { unpackChannelSpectrum } from '../syntax/spectrum/reader.js'
-import { unpackToneSection } from './tone-decoder.js'
+import { unpackToneSection } from '../syntax/tone/reader.js'
 import { unpackWordLengthChannel } from './word-length-decoder.js'
 
 /**

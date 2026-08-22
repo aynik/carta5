@@ -10,7 +10,7 @@ import { packCodeTableSection } from '../syntax/code-table/writer.js'
 import { CodeTableAccountingTransaction } from '../state/code-table.js'
 import { packChannelSpectrum } from '../syntax/spectrum/coding.js'
 import { SpectrumSyntaxScratch } from '../state/spectrum.js'
-import { packToneSection } from './tone-syntax.js'
+import { packToneSection } from '../syntax/tone/writer.js'
 import { ToneCodingPlan } from '../state/tone.js'
 import {
   BlockHeaderSyntax,
