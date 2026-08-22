@@ -1,10 +1,40 @@
 /** Arbitrary-chunk and flush-tail owner for the detached ATRAC3plus encoder. */
 
 import { BufferPool } from '../state/storage.js'
-import { FRAME_SAMPLES, DONE, DRAINING, FEEDING } from '../core/constants.js'
+import {
+  ANALYSIS_RESIDUAL_OVERLAP_SAMPLES,
+  ANALYSIS_TO_STREAM_DELAY_FRAMES,
+  DONE,
+  DRAINING,
+  FEEDING,
+  FRAME_SAMPLES,
+  FULL_FRAME_FLUSH_TAIL_FRAMES,
+} from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
-import { flushTailFramesForSampleCount } from '../core/timing.js'
 import { encode } from '../pipeline/encoder.js'
+
+// The first QMF evaluation skips 16 samples of the persisted 384-sample carry.
+
+/**
+ * Return the silent frames required after one successful nonempty submission.
+ * A full or late partial frame needs nine; an early partial frame needs eight.
+ *
+ * @param {number} sampleCount Valid PCM samples in the submitted frame.
+ * @returns {number|null} Required silent tail frames, or `null` when empty.
+ */
+export function flushTailFramesForSampleCount(sampleCount) {
+  if (!Number.isInteger(sampleCount) || sampleCount > FRAME_SAMPLES) {
+    throw new RangeError('ATRAC3plus flush-tail sample count is invalid')
+  }
+  if (sampleCount <= 0) return null
+  const analysisTailSamples = sampleCount + ANALYSIS_RESIDUAL_OVERLAP_SAMPLES
+  const analysisTailFrames = Math.ceil(analysisTailSamples / FRAME_SAMPLES)
+  const frames = ANALYSIS_TO_STREAM_DELAY_FRAMES + analysisTailFrames
+  if (frames > FULL_FRAME_FLUSH_TAIL_FRAMES) {
+    throw new RangeError('ATRAC3plus flush tail exceeds its fixed bound')
+  }
+  return frames
+}
 
 /**
  * Validate planar PCM channel count and equal lengths, returning the chunk's sample count.

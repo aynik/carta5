@@ -16,13 +16,13 @@ vi.mock('../codec/syntax/frame/writer.js', async (importOriginal) => {
 })
 
 import { BufferPool } from '../codec/state/storage.js'
-import { flushTailFramesForSampleCount } from '../codec/core/timing.js'
+import { flushTailFramesForSampleCount } from '../codec/boundary/stream.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'
 import { packCodingUnit } from '../codec/syntax/unit/writer.js'
 import { FramePackError } from '../codec/syntax/frame/writer.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
-import { StreamingEncoder } from '../codec/io/stream-encoder.js'
+import { StreamingEncoder } from '../codec/boundary/stream.js'
 import { SpectrumSyntaxScratch } from '../codec/state/spectrum/syntax.js'
 import { PCM_SCALE } from '../codec/boundary/pcm.js'
 

@@ -1,6 +1,6 @@
 /** Streaming PCM-to-ATRACX WAVE timeline adapter. */
 
-import { StreamingEncoder } from './stream-encoder.js'
+import { StreamingEncoder } from '../boundary/stream.js'
 import { createWave } from '../boundary/container.js'
 
 /**
