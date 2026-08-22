@@ -97,15 +97,16 @@ export function beginDecoderFrame(context) {
 }
 
 /**
- * Atomically publish frame history and detach planar PCM.
+ * Atomically publish the accepted decoder frame into persistent state.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): Float32Array[]} Atomic commit stage.
+ * @returns {function(DecoderFrame): DecoderFrame} State publication stage.
  */
 export function commitDecoderFrame(context) {
   const decoder = context.bufferPool.decoder
+  const rotateHistory = rotateDecoderHistory(context)
   return (frame) => {
-    rotateDecoderHistory(context)(frame)
+    rotateHistory(frame)
     copyDecoderState(decoder.frame, decoder.state)
     return frame
   }
