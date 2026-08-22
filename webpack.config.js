@@ -14,7 +14,7 @@ const builds = [
     },
   },
   {
-    entry: './codec/browser/worker.js',
+    entry: './codec/boundary/worker.js',
     output: {
       path: path.resolve('dist'),
       filename: 'carta5-worker.min.js',

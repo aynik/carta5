@@ -13,7 +13,7 @@ describe('ATRAC3plus browser worker boundaries', () => {
         messages.push(message)
       },
     }
-    await import('../codec/browser/worker.js')
+    await import('../codec/boundary/worker.js')
   })
 
   afterAll(() => {
