@@ -11,7 +11,8 @@ import {
   createSignalComparison,
   loadPeakEnvelopeReference,
 } from '../codec/analysis/perceptual.js'
-import { GainRecord, normalizeGainRecord } from '../codec/coding/gain.js'
+import { normalizeGainRecord } from '../codec/analysis/gain/records.js'
+import { GainRecord } from '../codec/state/gain/coding.js'
 import { LowRateGainScratch } from '../codec/state/gain-analysis.js'
 
 const bitsView = new DataView(new ArrayBuffer(8))

@@ -5,7 +5,7 @@ import {
   reconstructGainDeltaLevels,
   scoreGainLevelAdjustment,
   writeGainRecordDeltaEnvelope,
-} from '../coding/gain.js'
+} from './gain/records.js'
 import {
   gainBlock4IsActive,
   buildSortedIndexOrder,

@@ -1,6 +1,6 @@
 /** Fixed-capacity storage for adaptive ATRAC3plus gain analysis. */
 
-import { GainRecord, GainRecordPlan } from '../coding/gain.js'
+import { GainRecord, GainRecordPlan } from './gain/coding.js'
 import {
   GAIN_SLOT_COUNT,
   GAIN_WINDOW_BLOCKS,
@@ -24,7 +24,7 @@ import {
   PeakEnvelopeComparison,
   SignalComparison,
 } from './analysis.js'
-import { GainCodingPlan, GainSyntaxModeProfile } from './gain.js'
+import { GainCodingPlan, GainSyntaxModeProfile } from './gain/coding.js'
 import { GainScaleScratch } from './transform.js'
 
 import { PERSISTED_POINT_FIELDS } from '../core/tables.js'

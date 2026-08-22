@@ -1,7 +1,7 @@
 /** Exact ATRAC3plus coding-unit sidechain finalization and immutable emission. */
 
 import { packGainSection } from '../gain/writer.js'
-import { GainCodingPlan } from '../../state/gain.js'
+import { GainCodingPlan } from '../../state/gain/coding.js'
 import { packWordLengthSection } from '../word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../../state/word-length.js'
 import { packScaleFactorSection } from '../scale-factor/writer.js'

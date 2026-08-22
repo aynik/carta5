@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { packableSymbolBits } from '../codec/syntax/entropy.js'
-import { GainRecord } from '../codec/coding/gain.js'
+import { GainRecord } from '../codec/state/gain/coding.js'
 import { GAIN_LEVEL_CODEBOOK_B_CODE_LENGTHS } from '../codec/core/tables.js'
 import {
   captureGainSyntaxModes,
@@ -12,7 +12,10 @@ import { unpackGainChannel } from '../codec/syntax/gain/reader.js'
 import { BitReader, BitCounter, BitWriter } from '../codec/syntax/bitstream.js'
 import { DecodeGainFrame } from '../codec/state/decoder.js'
 import { GAIN_MODE_FORBIDDEN_BITS } from '../codec/core/constants.js'
-import { GainCodingPlan, GainSyntaxModeProfile } from '../codec/state/gain.js'
+import {
+  GainCodingPlan,
+  GainSyntaxModeProfile,
+} from '../codec/state/gain/coding.js'
 
 const U64_MASK = 0xffffffffffffffffn
 const FNV_OFFSET = 0xcbf29ce484222325n

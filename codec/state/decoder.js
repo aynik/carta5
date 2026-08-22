@@ -5,7 +5,7 @@ import {
   MAX_CHANNELS,
   MAX_CODING_UNITS,
 } from '../core/constants.js'
-import { GainRecord } from '../coding/gain.js'
+import { GainRecord } from './gain/coding.js'
 import { ChannelSyntaxState, SharedState, StreamTopology } from './shared.js'
 import { ToneSlot } from './tone.js'
 

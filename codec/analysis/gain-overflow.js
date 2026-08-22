@@ -1,6 +1,6 @@
 /** Fixed-frontier ATRAC3plus low-rate gain-overflow reduction mechanics. */
 
-import { normalizeGainRecord } from '../coding/gain.js'
+import { normalizeGainRecord } from './gain/records.js'
 import {
   GAIN_LEVEL_DEFAULT,
   GAIN_SLOT_COUNT,

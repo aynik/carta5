@@ -12,7 +12,7 @@ import {
   mergeGainRecordMinLocationMaxLevel,
   mergeGainRecordPairMinLocationMaxLevel,
   normalizeGainRecord,
-} from '../coding/gain.js'
+} from './gain/records.js'
 import {
   GAIN_LEVEL_DEFAULT,
   GAIN_LEVEL_MAX,

@@ -35,7 +35,10 @@ import {
   GainMeasurementScratch,
   IntensityScratch,
 } from '../codec/state/analysis.js'
-import { GainCodingPlan, GainSyntaxModeProfile } from '../codec/state/gain.js'
+import {
+  GainCodingPlan,
+  GainSyntaxModeProfile,
+} from '../codec/state/gain/coding.js'
 import {
   GainAnalysisScratch,
   GainDetectionScratch,

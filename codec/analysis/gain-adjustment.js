@@ -1,10 +1,7 @@
 /** ATRAC3plus low-rate gain adjustment, exact lowering, and publication. */
 
-import {
-  GainRecordPlan,
-  gainRecordIsActive,
-  gainRecordPairIsActive,
-} from '../coding/gain.js'
+import { gainRecordIsActive, gainRecordPairIsActive } from './gain/records.js'
+import { GainRecordPlan } from '../state/gain/coding.js'
 import {
   captureGainSyntaxModes,
   measureGainSyntaxBitsWithModes,

@@ -19,7 +19,10 @@ import {
   LOCATION_CODEBOOK,
   GAIN_RECORDS,
 } from '../../core/constants.js'
-import { GainCodingPlan, GainSyntaxModeProfile } from '../../state/gain.js'
+import {
+  GainCodingPlan,
+  GainSyntaxModeProfile,
+} from '../../state/gain/coding.js'
 
 /**
  * Translate an unavailable entropy symbol to the shared forbidden-cost sentinel.

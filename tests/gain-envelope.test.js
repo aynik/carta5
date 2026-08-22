@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
-  GainRecord,
   prepareGainEnvelopeReference,
   reconstructGainDeltaLevels,
   scoreGainLevelAdjustment,
   writeGainRecordDeltaEnvelope,
-} from '../codec/coding/gain.js'
+} from '../codec/analysis/gain/records.js'
+import { GainRecord } from '../codec/state/gain/coding.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { GainEnvelopeScratch } from '../codec/state/analysis.js'
 

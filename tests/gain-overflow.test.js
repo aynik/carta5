@@ -6,7 +6,7 @@ import {
   loadGainOverflowState,
   selectOverflowPathCandidate,
 } from '../codec/analysis/gain-overflow.js'
-import { GainRecord } from '../codec/coding/gain.js'
+import { GainRecord } from '../codec/state/gain/coding.js'
 import { GainOverflowScratch } from '../codec/state/gain-analysis.js'
 
 const HASH_OFFSET = 1469598103934665603n

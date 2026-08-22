@@ -23,7 +23,7 @@ import {
   GAIN_HISTORY_INITIAL_VALUE,
   GAIN_POINT_FIELDS,
 } from '../core/tables.js'
-import { GainRecord } from '../coding/gain.js'
+import { GainRecord } from './gain/coding.js'
 import {
   CodingUnitAllocationTransaction,
   CodingUnitAllocationWorkspace,
@@ -33,7 +33,7 @@ import {
   CodeTablePricingWorkspace,
 } from './code-table.js'
 import { ScaleFactorEncodeState } from './encoder-syntax.js'
-import { GainCodingPlan } from './gain.js'
+import { GainCodingPlan } from './gain/coding.js'
 import { lowRateGainScratchDepth } from './gain-analysis.js'
 import { ScaleFactorCodingPlan } from './scale-factor.js'
 import { ChannelSyntaxState, SharedState, StreamTopology } from './shared.js'

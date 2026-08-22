@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { GainRecord } from '../codec/coding/gain.js'
+import { GainRecord } from '../codec/state/gain/coding.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import {
