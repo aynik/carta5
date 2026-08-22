@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
-import { unpackScaleFactorChannel } from '../codec/io/scale-factor-decoder.js'
+import { unpackScaleFactorChannel } from '../codec/syntax/scale-factor/reader.js'
 import {
   packScaleFactorSection,
   planScaleFactorSection,
-} from '../codec/io/scale-factor-syntax.js'
+} from '../codec/syntax/scale-factor/writer.js'
 
 import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'
 import { ScaleFactorDecodeScratch } from '../codec/state/decoder-syntax.js'

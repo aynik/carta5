@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
 import { selectGainSyntax } from '../codec/syntax/gain/writer.js'
-import { planScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
+import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
 import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'

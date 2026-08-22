@@ -1,24 +1,24 @@
 /** ATRAC3plus scale-factor wire decoding into detached channel syntax. */
 
-import { readCanonicalSymbol } from '../syntax/entropy.js'
+import { readCanonicalSymbol } from '../entropy.js'
 import {
   SCALE_FACTOR_MODE_2_DELTAS,
   SCALE_FACTOR_SHAPE_CODEBOOK,
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,
   SCALE_FACTOR_DIRECT_CODEBOOKS,
   SCALE_FACTOR_GROUP_CODEBOOKS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 
-import { ChannelSyntaxState } from '../state/shared.js'
-import { ScaleFactorDecodeScratch } from '../state/decoder-syntax.js'
-import { BitReader } from '../syntax/bitstream.js'
+import { ChannelSyntaxState } from '../../state/shared.js'
+import { ScaleFactorDecodeScratch } from '../../state/decoder-syntax.js'
+import { BitReader } from '../bitstream.js'
 import {
   IO_SCALE_FACTOR_DECODER_GROUP_FIRST_BIAS,
   IO_SCALE_FACTOR_DECODER_GROUP_MASK,
   IO_SCALE_FACTOR_DECODER_MASK,
   IO_SCALE_FACTOR_DECODER_SHAPE_BIAS,
   IO_SCALE_FACTOR_DECODER_SHAPE_CODEBOOK_STRIDE,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Error raised when scale factor decode input violates the decoder or bitstream contract.

@@ -1,6 +1,6 @@
 /** ATRAC3plus scale-factor representation pricing and wire emission. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../entropy.js'
 import {
   SCALE_FACTOR_DIRECT_CODEBOOKS,
   SCALE_FACTOR_GROUP_CODEBOOKS,
@@ -8,7 +8,7 @@ import {
   SCALE_FACTOR_SHAPE_CODEBOOK,
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,
   SQUARED_DELTAS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 
 import {
   QUANTIZATION_UNIT_COUNT,
@@ -28,11 +28,11 @@ import {
   IO_SCALE_FACTOR_SYNTAX_SHAPE_BIAS,
   SHAPE_CODEBOOK_COUNT,
   IO_SCALE_FACTOR_SYNTAX_SHAPE_CODEBOOK_STRIDE,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 import {
   ScaleFactorCodingPlan,
   validateScaleFactorChannels,
-} from '../state/scale-factor.js'
+} from '../../state/scale-factor.js'
 
 /**
  * Validate active scale-factor and shape counts and return the coded band count.

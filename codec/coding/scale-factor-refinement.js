@@ -19,7 +19,7 @@ import {
   WIDE_OVERSHOOT,
   WIDE_UNDERSHOOT,
 } from '../core/constants.js'
-import { planScaleFactorSection } from '../io/scale-factor-syntax.js'
+import { planScaleFactorSection } from '../syntax/scale-factor/writer.js'
 import { ScaleFactorCodingPlan } from '../state/scale-factor.js'
 import {
   fillSpectralNoise,
