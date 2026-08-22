@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createWave, parseWave } from '../codec/boundary/container.js'
-import { encodeWavePcm } from '../codec/io/wave-encoder.js'
-import { decodeWavePcm } from '../codec/io/wave-decoder.js'
+import { decodeWavePcm, encodeWavePcm } from '../codec/boundary/stream.js'
 import { PCM_SCALE } from '../codec/boundary/pcm.js'
 import { WAVE_HEADER_BYTES } from '../codec/core/constants.js'
 

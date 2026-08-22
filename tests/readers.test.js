@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { encodeWavePcm } from '../codec/io/wave-encoder.js'
+import { encodeWavePcm } from '../codec/boundary/stream.js'
 import { WaveReader } from '../codec/boundary/reader.js'
 import { PCM_SCALE } from '../codec/boundary/pcm.js'
 

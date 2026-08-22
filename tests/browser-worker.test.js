@@ -1,7 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { decodeWavePcm } from '../codec/io/wave-decoder.js'
-import { encodeWavePcm } from '../codec/io/wave-encoder.js'
+import { decodeWavePcm, encodeWavePcm } from '../codec/boundary/stream.js'
 import { createPcmWave, PCM_SCALE } from '../codec/boundary/pcm.js'
 
 describe('ATRAC3plus browser worker boundaries', () => {

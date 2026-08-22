@@ -7,8 +7,10 @@ import {
 } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { PROFILE_ROWS } from '../core/tables.js'
-import { createWaveStreamingDecoder } from '../io/wave-decoder.js'
-import { createWaveStreamingEncoder } from '../io/wave-encoder.js'
+import {
+  createWaveStreamingDecoder,
+  createWaveStreamingEncoder,
+} from '../boundary/stream.js'
 import { createWaveHeader, parseWave } from '../boundary/container.js'
 import { createPcmWaveHeader, interleavePcm16 } from '../boundary/pcm.js'
 
