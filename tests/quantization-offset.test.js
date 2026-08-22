@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { initializeQuantizationOffsets } from '../codec/allocation/offset.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { CodingUnitAllocationTransaction } from '../codec/state/allocation.js'
-import { SpectrumPricingState } from '../codec/state/spectrum-pricing.js'
+import { SpectrumPricingState } from '../codec/state/spectrum/pricing.js'
 import { MONO_QUANTIZATION_OFFSET_BASE_BY_MODE_AND_BAND } from '../codec/core/tables.js'
 
 function fnv32Words(words) {

@@ -22,7 +22,7 @@ import { priceSpectrumBand, selectSpectrumCodeTable } from './pricing.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../state/spectrum-pricing.js'
+} from '../state/spectrum/pricing.js'
 
 /**
  * Verify that the incumbent ordering, exact accounting, and per-channel rollback work are ready to spend spare bits.

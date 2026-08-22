@@ -19,7 +19,7 @@ import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'
 import {
   SpectrumSymbolScratch,
   SpectrumSyntaxScratch,
-} from '../codec/state/spectrum.js'
+} from '../codec/state/spectrum/syntax.js'
 
 const payloads = [
   {

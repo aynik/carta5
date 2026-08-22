@@ -1,6 +1,6 @@
 /** Fixed ownership for allocation-time spectrum pricing and memoization. */
 
-import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
+import { QUANTIZATION_UNIT_OFFSETS } from '../../core/tables.js'
 import {
   FRAME_SAMPLES,
   SPECTRUM_PRICING_BAND_COUNT,
@@ -10,7 +10,7 @@ import {
   SPECTRUM_PRICING_EMPTY_KEY,
   SPECTRUM_PRICING_MODE_COUNT,
   SPECTRUM_PRICING_MAX_BAND_LENGTH,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Translate a pricing context and band into flat selected-value storage.

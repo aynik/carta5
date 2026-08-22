@@ -15,7 +15,7 @@ import {
 import {
   SpectrumSymbolScratch,
   SpectrumSyntaxScratch,
-} from '../../state/spectrum.js'
+} from '../../state/spectrum/syntax.js'
 import {
   CODE_TABLE_CONTEXT_STRIDE,
   CODE_TABLE_MODE_STRIDE,

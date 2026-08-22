@@ -23,7 +23,7 @@ import { FramePackError } from '../codec/syntax/frame/writer.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
 import { StreamingEncoder } from '../codec/io/stream-encoder.js'
-import { SpectrumSyntaxScratch } from '../codec/state/spectrum.js'
+import { SpectrumSyntaxScratch } from '../codec/state/spectrum/syntax.js'
 import { PCM_SCALE } from '../codec/io/pcm.js'
 
 function referencePcm(frameIndex = 0) {

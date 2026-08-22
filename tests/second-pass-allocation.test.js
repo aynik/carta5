@@ -24,7 +24,7 @@ import { ScaleFactorCodingPlan } from '../codec/state/scale-factor.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../codec/state/spectrum-pricing.js'
+} from '../codec/state/spectrum/pricing.js'
 import { WordLengthAccountingTransaction } from '../codec/state/word-length.js'
 
 const OFFSETS = Object.freeze([0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1])

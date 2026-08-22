@@ -22,7 +22,7 @@ import { WordLengthAccountingTransaction } from '../state/word-length.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../state/spectrum-pricing.js'
+} from '../state/spectrum/pricing.js'
 
 /**
  * Verify the raw incumbent, offset plans, budget, and paired pricing snapshots required by the directional second pass.

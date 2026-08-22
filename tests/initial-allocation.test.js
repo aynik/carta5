@@ -20,7 +20,7 @@ import { SharedState } from '../codec/state/shared.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../codec/state/spectrum-pricing.js'
+} from '../codec/state/spectrum/pricing.js'
 
 function fnv32Words(words) {
   let hash = 0xcbf29ce484222325n

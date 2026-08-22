@@ -32,7 +32,7 @@ import { CodingUnitAllocationTransaction } from '../codec/state/allocation.js'
 import { CodeTableAccountingTransaction } from '../codec/state/code-table.js'
 import { GainCodingPlan } from '../codec/state/gain/coding.js'
 import { ScaleFactorCodingPlan } from '../codec/state/scale-factor.js'
-import { SpectrumSyntaxScratch } from '../codec/state/spectrum.js'
+import { SpectrumSyntaxScratch } from '../codec/state/spectrum/syntax.js'
 import { ToneCodingPlan } from '../codec/state/tone.js'
 import { WordLengthAccountingTransaction } from '../codec/state/word-length.js'
 

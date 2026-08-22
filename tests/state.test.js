@@ -46,7 +46,7 @@ import {
 } from '../codec/state/gain/analysis.js'
 import { ScaleFactorCodingPlan } from '../codec/state/scale-factor.js'
 import { configureCodingUnitChannels } from '../codec/state/shared.js'
-import { SpectrumSyntaxScratch } from '../codec/state/spectrum.js'
+import { SpectrumSyntaxScratch } from '../codec/state/spectrum/syntax.js'
 import {
   ToneAnalysisScratch,
   ToneCodingPlan,

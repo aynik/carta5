@@ -7,7 +7,7 @@ import {
 import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
 import { quantizeSpectrumBand } from './spectrum.js'
 
-import { SpectrumPricingState } from '../state/spectrum-pricing.js'
+import { SpectrumPricingState } from '../state/spectrum/pricing.js'
 
 /**
  * Verify active syntax, source samples, pricing, and destination rows.

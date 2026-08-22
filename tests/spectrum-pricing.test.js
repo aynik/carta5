@@ -8,7 +8,7 @@ import { CODING_UNIT_MAX_CHANNELS } from '../codec/core/constants.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../codec/state/spectrum-pricing.js'
+} from '../codec/state/spectrum/pricing.js'
 
 function createSource() {
   const spectrum = new Float32Array(2048)

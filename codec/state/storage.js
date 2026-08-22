@@ -3,7 +3,7 @@
 import { IntensityScratch } from './analysis.js'
 import { GainAnalysisScratch } from './gain/analysis.js'
 import { ToneAnalysisScratch, ToneSwapGate } from './tone.js'
-import { SpectrumSyntaxScratch } from './spectrum.js'
+import { SpectrumSyntaxScratch } from './spectrum/syntax.js'
 import { EncoderFrameState, EncoderState } from './encoder.js'
 import { DecoderFrameState, DecoderState } from './decoder.js'
 import { FrameDecodeStorage } from './decoder-syntax.js'

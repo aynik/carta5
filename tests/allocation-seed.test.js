@@ -16,7 +16,7 @@ import { SharedState } from '../codec/state/shared.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../codec/state/spectrum-pricing.js'
+} from '../codec/state/spectrum/pricing.js'
 import {
   AllocationSourceChannel,
   CodingUnitAllocationTransaction,

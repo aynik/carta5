@@ -7,7 +7,7 @@ import {
 } from '../core/constants.js'
 import { AllocationBandOrder } from '../allocation/order.js'
 import { ReconstructionRefinementScratch } from './reconstruction.js'
-import { PricedSpectrumBand, SpectrumPricingState } from './spectrum-pricing.js'
+import { PricedSpectrumBand, SpectrumPricingState } from './spectrum/pricing.js'
 
 /**
  * Candidate-invariant measurement and policy rows for one channel.

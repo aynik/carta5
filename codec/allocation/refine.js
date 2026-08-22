@@ -11,7 +11,7 @@ import { priceSpectrumBand, selectSpectrumCodeTable } from './pricing.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
-} from '../state/spectrum-pricing.js'
+} from '../state/spectrum/pricing.js'
 
 /**
  * Verify the coding-unit geometry and per-channel pricing work required by speculative offset refinement.

@@ -5,7 +5,7 @@ import {
   spectrumCostCodeTableIndex,
   spectrumDescriptor,
 } from '../syntax/spectrum/coding.js'
-import { spectrumQuantizedKey } from '../state/spectrum-pricing.js'
+import { spectrumQuantizedKey } from '../state/spectrum/pricing.js'
 
 import { quantizeSpectrumCoefficients } from '../quantization/spectrum.js'
 import {
