@@ -1,6 +1,6 @@
 /** ATRAC3plus word-length sidechain pricing, transactions, and emission. */
 
-import { writeCanonicalSymbol } from '../coding/entropy.js'
+import { writeCanonicalSymbol } from '../syntax/entropy.js'
 import {
   WORD_LENGTH_CODEBOOKS,
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,

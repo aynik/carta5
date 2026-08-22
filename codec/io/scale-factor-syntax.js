@@ -1,6 +1,6 @@
 /** ATRAC3plus scale-factor representation pricing and wire emission. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../coding/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
 import {
   SCALE_FACTOR_DIRECT_CODEBOOKS,
   SCALE_FACTOR_GROUP_CODEBOOKS,

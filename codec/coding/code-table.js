@@ -1,6 +1,6 @@
 /** ATRAC3plus spectral code-table pricing and incremental cost state. */
 
-import { packableSymbolBits } from './entropy.js'
+import { packableSymbolBits } from '../syntax/entropy.js'
 import {
   CODE_TABLE_CODEBOOKS,
   CODE_TABLE_FIXED_WIDTHS,

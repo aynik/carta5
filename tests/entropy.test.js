@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   readCanonicalSymbol,
   writeCanonicalSymbol,
-} from '../codec/coding/entropy.js'
+} from '../codec/syntax/entropy.js'
 import { BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 
 describe('ATRAC3plus canonical entropy tables', () => {

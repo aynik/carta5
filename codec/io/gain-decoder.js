@@ -1,6 +1,6 @@
 /** ATRAC3plus gain-record bitstream decoding into fixed frame storage. */
 
-import { readCanonicalSymbol } from '../coding/entropy.js'
+import { readCanonicalSymbol } from '../syntax/entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   GAIN_POINT_COUNT_CODEBOOK_B_CODE_LENGTHS,

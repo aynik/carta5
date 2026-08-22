@@ -1,6 +1,6 @@
 /** ATRAC3plus word-length wire decoding into detached channel syntax. */
 
-import { readCanonicalSymbol } from '../coding/entropy.js'
+import { readCanonicalSymbol } from '../syntax/entropy.js'
 import {
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,
   WORD_LENGTH_DELTA_CURVES,

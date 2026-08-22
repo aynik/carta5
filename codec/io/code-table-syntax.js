@@ -1,6 +1,6 @@
 /** ATRAC3plus spectral code-table pricing, transactions, and emission. */
 
-import { writeCanonicalSymbol } from '../coding/entropy.js'
+import { writeCanonicalSymbol } from '../syntax/entropy.js'
 import {
   codeTableBandType,
   maskedCodeTableDelta,

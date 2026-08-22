@@ -1,6 +1,6 @@
 /** ATRAC3plus gain syntax capture, exact pricing, and mode selection. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../coding/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   GAIN_POINT_COUNT_CODEBOOK_B_CODE_LENGTHS,

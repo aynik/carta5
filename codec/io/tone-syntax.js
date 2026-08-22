@@ -1,6 +1,6 @@
 /** ATRAC3plus tone planning, exact pricing, and canonical emission. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../coding/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
 import {
   TONE_BAND_COUNT_CODE_LENGTHS,
   TONE_SCALE_FACTOR_CODEBOOK_B_CODE_LENGTHS,

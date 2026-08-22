@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { packableSymbolBits } from '../codec/coding/entropy.js'
+import { packableSymbolBits } from '../codec/syntax/entropy.js'
 import { GainRecord } from '../codec/coding/gain.js'
 import { GAIN_LEVEL_CODEBOOK_B_CODE_LENGTHS } from '../codec/core/tables.js'
 import {

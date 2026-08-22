@@ -1,6 +1,6 @@
 /** ATRAC3plus tone wire decoding into fixed current-slot storage. */
 
-import { readCanonicalSymbol } from '../coding/entropy.js'
+import { readCanonicalSymbol } from '../syntax/entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   TONE_AMPLITUDE_CODEBOOK_AA_CODE_LENGTHS,

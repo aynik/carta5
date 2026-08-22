@@ -1,6 +1,6 @@
 /** ATRAC3plus scale-factor wire decoding into detached channel syntax. */
 
-import { readCanonicalSymbol } from '../coding/entropy.js'
+import { readCanonicalSymbol } from '../syntax/entropy.js'
 import {
   SCALE_FACTOR_MODE_2_DELTAS,
   SCALE_FACTOR_SHAPE_CODEBOOK,

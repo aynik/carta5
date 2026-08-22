@@ -1,6 +1,6 @@
 /** ATRAC3plus spectral code-table wire decoding. */
 
-import { readCanonicalSymbol } from '../coding/entropy.js'
+import { readCanonicalSymbol } from '../syntax/entropy.js'
 import {
   CODE_TABLE_CODEBOOKS,
   CODE_TABLE_FIXED_WIDTHS,
