@@ -20,7 +20,7 @@ import {
   applyForwardGainScale,
   applyInverseGainScale,
   gainPairIsActive,
-} from '../signal/gain.js'
+} from './gain.js'
 import {
   float32Add,
   float32Multiply,

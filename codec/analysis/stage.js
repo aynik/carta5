@@ -13,7 +13,7 @@ import { applyIntensityStereo } from './intensity.js'
 import { analyzeTones } from './tone-analysis.js'
 import { channelCorrelationTwoSegments } from './perceptual.js'
 import { rotateEncoderFrameHistories } from '../state/encoder.js'
-import { writeMdctOutputs } from '../transforms/mdct.js'
+import { writeMdctOutputs } from '../signal/spectrum.js'
 import { analyzeQmfFrame } from '../transforms/qmf.js'
 import { pipe } from '../utils.js'
 

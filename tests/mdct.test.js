@@ -13,7 +13,7 @@ import {
   forwardMdct128,
   inverseMdctFrame,
   writeMdctOutputs,
-} from '../codec/transforms/mdct.js'
+} from '../codec/signal/spectrum.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
 const U64_MASK = 0xffffffffffffffffn
