@@ -9,7 +9,7 @@ import {
   selectGainSyntax,
 } from '../codec/io/gain-syntax.js'
 import { unpackGainChannel } from '../codec/io/gain-decoder.js'
-import { BitReader, BitCounter, BitWriter } from '../codec/io/bitstream.js'
+import { BitReader, BitCounter, BitWriter } from '../codec/syntax/bitstream.js'
 import { DecodeGainFrame } from '../codec/state/decoder.js'
 import { GAIN_MODE_FORBIDDEN_BITS } from '../codec/core/constants.js'
 import { GainCodingPlan, GainSyntaxModeProfile } from '../codec/state/gain.js'

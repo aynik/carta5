@@ -11,7 +11,7 @@ import {
   FrameDecodeScratch,
   unpackFrameSyntax,
 } from '../codec/io/frame-decoder.js'
-import { BitWriter } from '../codec/io/bitstream.js'
+import { BitWriter } from '../codec/syntax/bitstream.js'
 
 import {
   bindDecoderChannelStates,

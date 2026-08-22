@@ -6,7 +6,7 @@ import {
   CODE_TABLE_FIXED_WIDTHS,
 } from '../core/tables.js'
 import { ChannelSyntaxState, SharedState } from '../state/shared.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import {
   MODE_DIFF,
   MODE_DIRECT,

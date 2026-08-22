@@ -3,7 +3,7 @@
 import { DecodeChannelState } from '../state/decoder.js'
 import { CodingUnitDecodeScratch } from '../state/decoder-syntax.js'
 import { SharedState } from '../state/shared.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import { unpackCodeTableSection } from './code-table-decoder.js'
 import { unpackGainChannel } from './gain-decoder.js'
 import { unpackScaleFactorChannel } from './scale-factor-decoder.js'

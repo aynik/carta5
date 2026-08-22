@@ -8,7 +8,7 @@ import {
 import { BufferPool } from '../codec/core/buffers.js'
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../codec/core/tables.js'
-import { BitCounter } from '../codec/io/bitstream.js'
+import { BitCounter } from '../codec/syntax/bitstream.js'
 import { packScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
 import {
   packWordLengthSection,

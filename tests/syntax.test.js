@@ -4,7 +4,7 @@ import {
   BitCounter,
   BitWriter,
   peekBits,
-} from '../codec/io/bitstream.js'
+} from '../codec/syntax/bitstream.js'
 import {
   BlockHeaderSyntax,
   FrameHeader,

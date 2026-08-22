@@ -4,7 +4,7 @@ import {
   readCanonicalSymbol,
   writeCanonicalSymbol,
 } from '../codec/coding/entropy.js'
-import { BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 
 describe('ATRAC3plus canonical entropy tables', () => {
   it('writes and reads the exact canonical bit sequence', () => {

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
 import { MAX_CODING_UNITS } from '../codec/core/constants.js'
-import { BitCounter, BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { unpackWordLengthChannel } from '../codec/io/word-length-decoder.js'
 import {
   packWordLengthSection,

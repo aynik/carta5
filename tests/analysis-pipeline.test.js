@@ -22,7 +22,7 @@ import {
 } from '../codec/state/stream.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'
 import { packCodingUnit } from '../codec/io/coding-unit.js'
-import { BitCounter } from '../codec/io/bitstream.js'
+import { BitCounter } from '../codec/syntax/bitstream.js'
 
 function referencePcm() {
   return Float32Array.from(

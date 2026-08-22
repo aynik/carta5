@@ -10,7 +10,7 @@ import {
 
 import { ChannelSyntaxState } from '../state/shared.js'
 import { WordLengthDecodeScratch } from '../state/decoder-syntax.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import {
   IO_WORD_LENGTH_DECODER_MASK,
   IO_WORD_LENGTH_DECODER_SHAPE_BASE_STRIDE,

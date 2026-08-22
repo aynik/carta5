@@ -1,7 +1,7 @@
 /** ATRAC3plus spectral descriptor selection and entropy payload traversal. */
 
 import { readCanonicalSymbol, writeCanonicalSymbol } from './entropy.js'
-import { BitReader } from '../io/bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import {
   SPECTRUM_CODE_TABLE_INDICES,
   SPECTRAL_CODEBOOK_CODE_LENGTHS,

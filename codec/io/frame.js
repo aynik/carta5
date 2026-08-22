@@ -6,7 +6,7 @@ import {
   FRAME_TAG,
 } from '../core/constants.js'
 import { framePayloadCapacityBits } from '../core/geometry.js'
-import { BitCounter, BitWriter } from './bitstream.js'
+import { BitCounter, BitWriter } from '../syntax/bitstream.js'
 import { measureCodingUnit, packCodingUnit } from './coding-unit.js'
 import { FrameHeader, frameTagForChannelCount, packFrameTag } from './syntax.js'
 

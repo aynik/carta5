@@ -8,7 +8,7 @@ import {
   repriceCodeTableSection,
 } from '../codec/io/code-table-syntax.js'
 import { unpackCodeTableSection } from '../codec/io/code-table-decoder.js'
-import { BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'
 import { CodeTableAccountingTransaction } from '../codec/state/code-table.js'

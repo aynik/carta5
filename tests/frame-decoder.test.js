@@ -14,7 +14,7 @@ import {
   validateFrameSource,
 } from '../codec/io/frame-decoder.js'
 
-import { BitWriter } from '../codec/io/bitstream.js'
+import { BitWriter } from '../codec/syntax/bitstream.js'
 import { FRAME_ITEM_KIND, FRAME_TAG } from '../codec/core/constants.js'
 
 function frameSyntax(fields, bytes = 16) {

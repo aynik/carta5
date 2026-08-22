@@ -11,7 +11,7 @@ import {
 
 import { ChannelSyntaxState } from '../state/shared.js'
 import { ScaleFactorDecodeScratch } from '../state/decoder-syntax.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import {
   IO_SCALE_FACTOR_DECODER_GROUP_FIRST_BIAS,
   IO_SCALE_FACTOR_DECODER_GROUP_MASK,

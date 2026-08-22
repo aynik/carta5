@@ -7,7 +7,7 @@ import {
 } from '../coding/spectrum.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
 import { ChannelSyntaxState, SharedState } from '../state/shared.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import { spectralNoiseLevelFieldCount } from './spectrum-syntax.js'
 
 /**

@@ -8,7 +8,7 @@ import { planCodeTableSection } from '../codec/io/code-table-syntax.js'
 import { measureCodingUnit, packCodingUnit } from '../codec/io/coding-unit.js'
 import { unpackCodingUnit } from '../codec/io/coding-unit-decoder.js'
 
-import { BitCounter, BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { DecodeChannelState } from '../codec/state/decoder.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { SharedState } from '../codec/state/shared.js'

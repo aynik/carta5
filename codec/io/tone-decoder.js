@@ -17,7 +17,7 @@ import {
 import { ChannelSyntaxState } from '../state/shared.js'
 import { ToneDecodeScratch } from '../state/decoder-syntax.js'
 import { ToneSlot } from '../state/tone.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 import { buildToneItemMap } from './tone-syntax.js'
 import {
   TONE_HEADER_ALLOCATION_POINTER_WORD,

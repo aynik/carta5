@@ -14,7 +14,7 @@ import {
   LOCATION_MASK,
 } from '../core/constants.js'
 import { DecodeGainFrame } from '../state/decoder.js'
-import { BitReader } from './bitstream.js'
+import { BitReader } from '../syntax/bitstream.js'
 
 /**
  * Error raised when gain decode input violates the decoder or bitstream contract.

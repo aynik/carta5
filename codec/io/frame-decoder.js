@@ -10,7 +10,7 @@ import {
   FRAME_ITEM_KIND,
   FRAME_TAG,
 } from '../core/constants.js'
-import { peekBits, BitReader } from './bitstream.js'
+import { peekBits, BitReader } from '../syntax/bitstream.js'
 import {
   FrameHeader,
   channelCountForFrameTag,

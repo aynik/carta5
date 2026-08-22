@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { encode } from '../codec/pipeline/encoder.js'
-import { BitCounter, BitReader, BitWriter } from '../codec/io/bitstream.js'
+import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import {
   FrameDecodeScratch,
   unpackFrameSyntax,
