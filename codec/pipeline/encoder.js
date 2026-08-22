@@ -7,7 +7,6 @@
  */
 
 import { allocate } from '../allocation/stage.js'
-import { quantizeSymbols } from '../coding/active-quantization.js'
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
 import { FRAME_SAMPLES } from '../core/constants.js'
@@ -15,6 +14,7 @@ import { copyEncoderState, initializeEncoderStream } from '../state/encoder.js'
 import { packFrame } from '../io/frame.js'
 import { createPcmScaler } from '../io/pcm.js'
 import { analyze } from '../analysis/stage.js'
+import { quantize } from '../quantization/stage.js'
 import { pipe } from '../utils.js'
 
 /**
@@ -173,22 +173,6 @@ function createEncoderContext(options, bufferPool) {
   if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
   initializeEncoderStream(profile, bufferPool.encoder)
   return { profile, bufferPool }
-}
-
-/**
- * Materialize final symbols for every retained coding unit.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Quantization stage.
- */
-export function quantize(context) {
-  const { codingUnitCount } = context.bufferPool.encoder.state.topology
-  return (frame) => {
-    for (let unit = 0; unit < codingUnitCount; unit++) {
-      quantizeSymbols(frame.allocationTransactions[unit])
-    }
-    return frame
-  }
 }
 
 /**

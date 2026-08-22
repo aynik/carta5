@@ -5,7 +5,7 @@ import {
   QUANTIZATION_UNIT_COUNT,
 } from '../core/constants.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
-import { quantizeSpectrumBand } from './spectrum-quantization.js'
+import { quantizeSpectrumBand } from './spectrum.js'
 
 import { SpectrumPricingState } from '../state/spectrum-pricing.js'
 

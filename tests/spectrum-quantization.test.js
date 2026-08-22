@@ -6,7 +6,7 @@ import {
   quantizeSpectrumCoefficients,
   reconstructSpectrumSymbol,
   writeQuantizedBand,
-} from '../codec/coding/spectrum-quantization.js'
+} from '../codec/quantization/spectrum.js'
 import { reconstructCodingUnitSpectra } from '../codec/transforms/spectral-reconstruction.js'
 import { DecodeChannelState } from '../codec/state/decoder.js'
 import { CodingUnitChannels, SharedState } from '../codec/state/shared.js'

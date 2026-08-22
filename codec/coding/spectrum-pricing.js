@@ -4,7 +4,7 @@ import { groupSpectrumCoefficients } from './spectrum.js'
 import { spectrumPricingPlan } from './spectrum-pricing-plan.js'
 import { spectrumQuantizedKey } from '../state/spectrum-pricing.js'
 
-import { quantizeSpectrumCoefficients } from './spectrum-quantization.js'
+import { quantizeSpectrumCoefficients } from '../quantization/spectrum.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
 import {
   SPECTRUM_PRICING_BAND_COUNT,
