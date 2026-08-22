@@ -6,7 +6,7 @@ import {
   QUANTIZATION_UNIT_COUNT,
 } from '../core/constants.js'
 import { AllocationBandOrder } from '../allocation/order.js'
-import { ReconstructionRefinementScratch } from '../coding/reconstruction-noise.js'
+import { ReconstructionRefinementScratch } from './reconstruction.js'
 import { PricedSpectrumBand, SpectrumPricingState } from './spectrum-pricing.js'
 
 /**

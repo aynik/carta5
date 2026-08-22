@@ -28,7 +28,7 @@ import { float32Add } from '../utils.js'
 import {
   prepareReconstructionNoiseSeeds,
   ReconstructionRefinementScratch,
-} from './reconstruction-noise.js'
+} from '../state/reconstruction.js'
 
 /**
  * Index flat spectral-noise evidence storage by channel and quantization band.

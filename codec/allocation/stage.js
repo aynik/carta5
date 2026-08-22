@@ -6,9 +6,9 @@ import { fillBudget } from './residual.js'
 import { initializeAllocation } from './initial.js'
 import { reduceCommittedAllocationToBudget } from './refine.js'
 import { quantizeTrial } from '../quantization/symbols.js'
-import { refineScaleFactors } from '../coding/scale-factor-refinement.js'
+import { refineScaleFactors } from './scales.js'
 import { searchAllocation } from './search.js'
-import { refineSpectralNoiseLevels } from '../coding/spectral-noise-refinement.js'
+import { refineSpectralNoiseLevels } from './noise.js'
 import {
   BUDGET_RETRY_LIMIT,
   BUDGET_RETRY_STEP_BITS,

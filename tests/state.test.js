@@ -58,7 +58,7 @@ import {
 } from '../codec/state/transform.js'
 import { WordLengthAccountingTransaction } from '../codec/state/word-length.js'
 import { resolveProfile } from '../codec/core/profiles.js'
-import { ReconstructionRefinementScratch } from '../codec/coding/reconstruction-noise.js'
+import { ReconstructionRefinementScratch } from '../codec/state/reconstruction.js'
 
 describe('ATRAC3plus shared topology', () => {
   it('folds maintained stream modes into contiguous mono/stereo coding units', () => {

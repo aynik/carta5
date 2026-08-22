@@ -7,8 +7,8 @@ import {
   quantizeSymbols,
   quantizeTrial,
 } from '../codec/quantization/symbols.js'
-import { refineSpectralNoiseLevels } from '../codec/coding/spectral-noise-refinement.js'
-import { refineScaleFactors } from '../codec/coding/scale-factor-refinement.js'
+import { refineSpectralNoiseLevels } from '../codec/allocation/noise.js'
+import { refineScaleFactors } from '../codec/allocation/scales.js'
 import { planAllocationBandOrder } from '../codec/allocation/order.js'
 
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'

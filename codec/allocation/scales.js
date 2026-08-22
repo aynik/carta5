@@ -28,7 +28,7 @@ import {
 import {
   prepareReconstructionNoiseSeeds,
   ReconstructionRefinementScratch,
-} from './reconstruction-noise.js'
+} from '../state/reconstruction.js'
 
 /**
  * Perform a less-than-or-equal comparison that treats NaN as an already satisfied bound.
