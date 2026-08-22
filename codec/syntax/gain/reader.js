@@ -1,20 +1,20 @@
 /** ATRAC3plus gain-record bitstream decoding into fixed frame storage. */
 
-import { readCanonicalSymbol } from '../syntax/entropy.js'
+import { readCanonicalSymbol } from '../entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   GAIN_POINT_COUNT_CODEBOOK_B_CODE_LENGTHS,
   LEVEL_CODE_LENGTHS,
   LOCATION_CODE_LENGTHS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 import {
   GAIN_LEVEL_DEFAULT,
   COUNT_MASK,
   LEVEL_MASK,
   LOCATION_MASK,
-} from '../core/constants.js'
-import { DecodeGainFrame } from '../state/decoder.js'
-import { BitReader } from '../syntax/bitstream.js'
+} from '../../core/constants.js'
+import { DecodeGainFrame } from '../../state/decoder.js'
+import { BitReader } from '../bitstream.js'
 
 /**
  * Error raised when gain decode input violates the decoder or bitstream contract.

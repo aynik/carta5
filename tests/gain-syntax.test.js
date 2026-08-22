@@ -7,8 +7,8 @@ import {
   measureGainSyntaxBitsWithModes,
   packGainSection,
   selectGainSyntax,
-} from '../codec/io/gain-syntax.js'
-import { unpackGainChannel } from '../codec/io/gain-decoder.js'
+} from '../codec/syntax/gain/writer.js'
+import { unpackGainChannel } from '../codec/syntax/gain/reader.js'
 import { BitReader, BitCounter, BitWriter } from '../codec/syntax/bitstream.js'
 import { DecodeGainFrame } from '../codec/state/decoder.js'
 import { GAIN_MODE_FORBIDDEN_BITS } from '../codec/core/constants.js'

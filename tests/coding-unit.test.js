@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { selectGainSyntax } from '../codec/io/gain-syntax.js'
+import { selectGainSyntax } from '../codec/syntax/gain/writer.js'
 import { planScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
 
 import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'

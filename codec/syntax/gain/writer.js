@@ -1,12 +1,12 @@
 /** ATRAC3plus gain syntax capture, exact pricing, and mode selection. */
 
-import { packableSymbolBits, writeCanonicalSymbol } from '../syntax/entropy.js'
+import { packableSymbolBits, writeCanonicalSymbol } from '../entropy.js'
 import {
   GAIN_POINT_COUNT_CODEBOOK_A_CODE_LENGTHS,
   GAIN_POINT_COUNT_CODEBOOK_B_CODE_LENGTHS,
   LEVEL_CODE_LENGTHS,
   LOCATION_CODE_LENGTHS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 import {
   CODING_UNIT_MAX_CHANNELS,
   GAIN_LEVEL_DEFAULT,
@@ -18,8 +18,8 @@ import {
   GAIN_ROLE,
   LOCATION_CODEBOOK,
   GAIN_RECORDS,
-} from '../core/constants.js'
-import { GainCodingPlan, GainSyntaxModeProfile } from '../state/gain.js'
+} from '../../core/constants.js'
+import { GainCodingPlan, GainSyntaxModeProfile } from '../../state/gain.js'
 
 /**
  * Translate an unavailable entropy symbol to the shared forbidden-cost sentinel.

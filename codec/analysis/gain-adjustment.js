@@ -9,7 +9,7 @@ import {
   captureGainSyntaxModes,
   measureGainSyntaxBitsWithModes,
   selectGainSyntax,
-} from '../io/gain-syntax.js'
+} from '../syntax/gain/writer.js'
 import {
   applyForwardGainScale,
   reconstructForwardGainScale,
