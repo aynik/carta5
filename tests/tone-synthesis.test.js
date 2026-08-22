@@ -8,7 +8,7 @@ import {
   addDecodedTones,
   synthesizeTonePair,
   writeToneResidual,
-} from '../codec/transforms/tone.js'
+} from '../codec/signal/tone.js'
 import { addSubbandNoise } from '../codec/transforms/subband-noise.js'
 import {
   TONE_ACCUMULATE_FUSED,

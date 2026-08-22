@@ -14,7 +14,7 @@ import {
   writeToneWindowedSpectrum,
 } from './tone-detection.js'
 import { powerSpectrum256 } from '../signal/dft.js'
-import { synthesizeTonePair, writeToneResidual } from '../transforms/tone.js'
+import { synthesizeTonePair, writeToneResidual } from '../signal/tone.js'
 import {
   ANALYSIS_TONE_ANALYSIS_BANDS,
   CHANNELS,
