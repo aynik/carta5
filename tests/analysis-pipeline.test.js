@@ -4,6 +4,7 @@ import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { allocate } from '../codec/allocation/stage.js'
 import { quantize } from '../codec/quantization/stage.js'
+import { pack } from '../codec/packing.js'
 import {
   analyze,
   analyzeBands,
@@ -17,7 +18,6 @@ import {
   applyDelay,
   beginTransaction,
   commitFrame,
-  pack,
   validateFrame,
 } from '../codec/pipeline/encoder.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'

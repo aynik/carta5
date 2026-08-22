@@ -11,9 +11,9 @@ import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
 import { FRAME_SAMPLES } from '../core/constants.js'
 import { copyEncoderState, initializeEncoderStream } from '../state/encoder.js'
-import { packFrame } from '../io/frame.js'
 import { createPcmScaler } from '../io/pcm.js'
 import { analyze } from '../analysis/stage.js'
+import { pack } from '../packing.js'
 import { quantize } from '../quantization/stage.js'
 import { pipe } from '../utils.js'
 
@@ -96,37 +96,6 @@ export function applyDelay(context) {
   const delay = context.bufferPool.encoder.state.analysisToStreamDelay
   return (frame) => {
     frame.analysisDelayed = delay.consumeAfterAllocation()
-    return frame
-  }
-}
-
-/**
- * Serialize the detached frame into bounded scratch without publishing state.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Packing stage.
- */
-export function pack(context) {
-  const encoder = context.bufferPool.encoder
-  return (frame) => {
-    if (frame.analysisDelayed) {
-      frame.packedPayloadBits = 0
-      frame.output = null
-      return frame
-    }
-    const payloadBits = packFrame(
-      frame.allocationTransactions,
-      frame.sharedCodingUnits,
-      encoder.state.topology.codingUnitCount,
-      context.profile.bytesPerFrame,
-      encoder.scratch.packedFrame,
-      encoder.scratch.spectrumSyntax
-    )
-    frame.packedPayloadBits = payloadBits
-    frame.output = encoder.scratch.packedFrame.subarray(
-      0,
-      context.profile.bytesPerFrame
-    )
     return frame
   }
 }
