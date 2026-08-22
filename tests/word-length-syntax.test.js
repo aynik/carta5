@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { MAX_CODING_UNITS } from '../codec/core/constants.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
-import { unpackWordLengthChannel } from '../codec/io/word-length-decoder.js'
+import { unpackWordLengthChannel } from '../codec/syntax/word-length/reader.js'
 import {
   packWordLengthSection,
   planWordLengthSection,
   repriceWordLengthSection,
-} from '../codec/io/word-length-syntax.js'
+} from '../codec/syntax/word-length/writer.js'
 
 import { ChannelSyntaxState } from '../codec/state/shared.js'
 import { WordLengthDecodeScratch } from '../codec/state/decoder-syntax.js'

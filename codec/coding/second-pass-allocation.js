@@ -17,7 +17,7 @@ import { secondPassOffsetWeight } from './allocation-policy.js'
 import { initializeQuantizationOffsets } from './quantization-offset.js'
 import { priceSpectrumBand } from './spectrum-pricing.js'
 import { raisePrecommitOffsetsToBudget } from './offset-refinement.js'
-import { planWordLengthSection } from '../io/word-length-syntax.js'
+import { planWordLengthSection } from '../syntax/word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../state/word-length.js'
 import {
   PricedSpectrumBand,

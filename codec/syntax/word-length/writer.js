@@ -1,13 +1,13 @@
 /** ATRAC3plus word-length sidechain pricing, transactions, and emission. */
 
-import { writeCanonicalSymbol } from '../syntax/entropy.js'
+import { writeCanonicalSymbol } from '../entropy.js'
 import {
   WORD_LENGTH_CODEBOOKS,
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,
   SQUARED_DELTAS,
   WORD_LENGTH_DELTA_CURVES,
   WORD_LENGTH_SHAPE_CODEBOOK,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 
 import {
   QUANTIZATION_UNIT_COUNT,
@@ -26,11 +26,11 @@ import {
   TAIL_MODE_RUN,
   WORD_LENGTH_FORBIDDEN_BITS,
   WORD_MASK,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 import {
   WordLengthAccountingTransaction,
   validateWordLengthChannels,
-} from '../state/word-length.js'
+} from '../../state/word-length.js'
 
 /**
  * Map a channel and delta-mode variant into the flat cost table.

@@ -13,7 +13,7 @@ import { packScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 import {
   packWordLengthSection,
   repriceWordLengthSection,
-} from '../codec/io/word-length-syntax.js'
+} from '../codec/syntax/word-length/writer.js'
 
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { SharedState } from '../codec/state/shared.js'

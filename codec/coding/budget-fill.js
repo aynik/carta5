@@ -16,7 +16,7 @@ import { CodeTableAccountingTransaction } from '../state/code-table.js'
 import {
   planWordLengthSection,
   repriceWordLengthSection,
-} from '../io/word-length-syntax.js'
+} from '../syntax/word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../state/word-length.js'
 import {
   priceSpectrumBand,

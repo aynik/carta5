@@ -1,16 +1,16 @@
 /** ATRAC3plus word-length wire decoding into detached channel syntax. */
 
-import { readCanonicalSymbol } from '../syntax/entropy.js'
+import { readCanonicalSymbol } from '../entropy.js'
 import {
   SHAPE_INDEX_BY_QUANTIZATION_UNIT,
   WORD_LENGTH_DELTA_CURVES,
   WORD_LENGTH_SHAPE_CODEBOOK,
   WORD_LENGTH_CODEBOOKS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 
-import { ChannelSyntaxState } from '../state/shared.js'
-import { WordLengthDecodeScratch } from '../state/decoder-syntax.js'
-import { BitReader } from '../syntax/bitstream.js'
+import { ChannelSyntaxState } from '../../state/shared.js'
+import { WordLengthDecodeScratch } from '../../state/decoder-syntax.js'
+import { BitReader } from '../bitstream.js'
 import {
   IO_WORD_LENGTH_DECODER_MASK,
   IO_WORD_LENGTH_DECODER_SHAPE_BASE_STRIDE,
@@ -19,7 +19,7 @@ import {
   TAIL_ONES_OR_BITS,
   TAIL_RUN,
   TAIL_ZERO,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Error raised when word length decode input violates the decoder or bitstream contract.

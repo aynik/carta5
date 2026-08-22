@@ -14,7 +14,7 @@ import { planAllocationBandOrder } from '../codec/coding/allocation-order.js'
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'
 import { priceSpectrumBand } from '../codec/coding/spectrum-pricing.js'
 
-import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
+import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { SharedState } from '../codec/state/shared.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../codec/core/tables.js'

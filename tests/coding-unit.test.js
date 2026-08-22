@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { selectGainSyntax } from '../codec/syntax/gain/writer.js'
 import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
-import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
+import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
 import { measureCodingUnit, packCodingUnit } from '../codec/io/coding-unit.js'
 import { unpackCodingUnit } from '../codec/io/coding-unit-decoder.js'

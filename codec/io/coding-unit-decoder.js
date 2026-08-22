@@ -9,7 +9,7 @@ import { unpackGainChannel } from '../syntax/gain/reader.js'
 import { unpackScaleFactorChannel } from '../syntax/scale-factor/reader.js'
 import { unpackChannelSpectrum } from '../syntax/spectrum/reader.js'
 import { unpackToneSection } from '../syntax/tone/reader.js'
-import { unpackWordLengthChannel } from './word-length-decoder.js'
+import { unpackWordLengthChannel } from '../syntax/word-length/reader.js'
 
 /**
  * Error raised when coding unit decode input violates the decoder or bitstream contract.

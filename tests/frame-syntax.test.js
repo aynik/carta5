@@ -4,7 +4,7 @@ import { BufferPool } from '../codec/core/buffers.js'
 import { selectGainSyntax } from '../codec/syntax/gain/writer.js'
 import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
-import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
+import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
 import { FramePackError, measureFrame, packFrame } from '../codec/io/frame.js'
 import {
