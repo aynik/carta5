@@ -13,7 +13,7 @@ import {
 import {
   applyForwardGainScale,
   reconstructForwardGainScale,
-} from '../transforms/gain-scale.js'
+} from '../signal/gain.js'
 import {
   compareSignalsExact,
   comparePeakEnvelopeCandidate,

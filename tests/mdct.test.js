@@ -7,7 +7,7 @@ import {
   applyForwardGainScale,
   reconstructForwardGainScale,
   reconstructInverseGainScale,
-} from '../codec/transforms/gain-scale.js'
+} from '../codec/signal/gain.js'
 import {
   mdctWindow,
   forwardMdct128,
