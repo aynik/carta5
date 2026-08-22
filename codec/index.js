@@ -20,4 +20,4 @@ export {
   encodeWavePcm,
 } from './boundary/stream.js'
 export { createWave, parseWave } from './boundary/container.js'
-export { AudioProcessor } from './io/processor.js'
+export { AudioProcessor } from './boundary/processor.js'

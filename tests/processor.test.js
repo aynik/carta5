@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AudioProcessor } from '../codec/io/processor.js'
+import { AudioProcessor } from '../codec/boundary/processor.js'
 import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 function signal(sampleCount = 1500) {

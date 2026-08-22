@@ -12,9 +12,9 @@ import {
   createWaveStreamingEncoder,
   decodeWavePcm,
   encodeWavePcm,
-} from '../boundary/stream.js'
-import { createWaveHeader, parseWave } from '../boundary/container.js'
-import { createPcmWave } from '../boundary/pcm.js'
+} from './stream.js'
+import { createWaveHeader, parseWave } from './container.js'
+import { createPcmWave } from './pcm.js'
 
 /**
  * High-level streaming audio processor facade.
