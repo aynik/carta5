@@ -7,7 +7,7 @@ import { BitReader } from '../syntax/bitstream.js'
 import { unpackCodeTableSection } from '../syntax/code-table/reader.js'
 import { unpackGainChannel } from '../syntax/gain/reader.js'
 import { unpackScaleFactorChannel } from '../syntax/scale-factor/reader.js'
-import { unpackChannelSpectrum } from './spectrum-decoder.js'
+import { unpackChannelSpectrum } from '../syntax/spectrum/reader.js'
 import { unpackToneSection } from './tone-decoder.js'
 import { unpackWordLengthChannel } from './word-length-decoder.js'
 

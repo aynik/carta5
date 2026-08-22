@@ -1,6 +1,6 @@
 /** Allocation-owned ATRAC3plus spectral codebook pricing and memoization. */
 
-import { groupSpectrumCoefficients } from './spectrum.js'
+import { groupSpectrumCoefficients } from '../syntax/spectrum/coding.js'
 import { spectrumPricingPlan } from './spectrum-pricing-plan.js'
 import { spectrumQuantizedKey } from '../state/spectrum-pricing.js'
 

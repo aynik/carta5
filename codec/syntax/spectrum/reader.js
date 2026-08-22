@@ -4,11 +4,11 @@ import {
   spectrumBitstreamCodeTableIndex,
   spectrumDescriptor,
   unpackSpectrumPayload,
-} from '../coding/spectrum.js'
-import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
-import { ChannelSyntaxState, SharedState } from '../state/shared.js'
-import { BitReader } from '../syntax/bitstream.js'
-import { spectralNoiseLevelFieldCount } from './spectrum-syntax.js'
+} from './coding.js'
+import { QUANTIZATION_UNIT_OFFSETS } from '../../core/tables.js'
+import { ChannelSyntaxState, SharedState } from '../../state/shared.js'
+import { BitReader } from '../bitstream.js'
+import { spectralNoiseLevelFieldCount } from './coding.js'
 
 /**
  * Error raised when spectrum decode input violates the decoder or bitstream contract.

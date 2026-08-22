@@ -6,13 +6,13 @@ import {
   groupSpectrumCoefficients,
   packSpectrumPayload,
   unpackSpectrumPayload,
-} from '../codec/coding/spectrum.js'
+} from '../codec/syntax/spectrum/coding.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import {
   spectralNoiseLevelFieldCount,
   packChannelSpectrum,
-} from '../codec/io/spectrum-syntax.js'
-import { unpackChannelSpectrum } from '../codec/io/spectrum-decoder.js'
+} from '../codec/syntax/spectrum/coding.js'
+import { unpackChannelSpectrum } from '../codec/syntax/spectrum/reader.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'

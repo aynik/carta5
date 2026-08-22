@@ -1,6 +1,9 @@
 /** Module-owned symbol-preparation plans for ATRAC3plus spectrum pricing. */
 
-import { spectrumCostCodeTableIndex, spectrumDescriptor } from './spectrum.js'
+import {
+  spectrumCostCodeTableIndex,
+  spectrumDescriptor,
+} from '../syntax/spectrum/coding.js'
 import { SPECTRUM_GROUP_VALUE_BITS_BY_MODE } from '../core/tables.js'
 import {
   SPECTRUM_PRICING_CANDIDATE_COUNT,
