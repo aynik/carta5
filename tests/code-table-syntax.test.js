@@ -6,8 +6,8 @@ import {
   packCodeTableSection,
   planCodeTableSection,
   repriceCodeTableSection,
-} from '../codec/io/code-table-syntax.js'
-import { unpackCodeTableSection } from '../codec/io/code-table-decoder.js'
+} from '../codec/syntax/code-table/writer.js'
+import { unpackCodeTableSection } from '../codec/syntax/code-table/reader.js'
 import { BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'

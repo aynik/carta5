@@ -5,7 +5,7 @@ import { selectGainSyntax } from '../codec/io/gain-syntax.js'
 import { planScaleFactorSection } from '../codec/io/scale-factor-syntax.js'
 
 import { planRawWordLengthSection } from '../codec/io/word-length-syntax.js'
-import { planCodeTableSection } from '../codec/io/code-table-syntax.js'
+import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
 import { FramePackError, measureFrame, packFrame } from '../codec/io/frame.js'
 import {
   FrameDecodeScratch,

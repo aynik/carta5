@@ -1,10 +1,10 @@
 /** ATRAC3plus spectral code-table pricing and incremental cost state. */
 
-import { packableSymbolBits } from '../syntax/entropy.js'
+import { packableSymbolBits } from '../entropy.js'
 import {
   CODE_TABLE_CODEBOOKS,
   CODE_TABLE_FIXED_WIDTHS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 import {
   CODE_TABLE_COUNT_FLAG_BITS,
   CODE_TABLE_EXPLICIT_COUNT_BITS,
@@ -15,7 +15,7 @@ import {
   CODE_TABLE_MODE_PAIR,
   CODE_TABLE_TYPE_ONE_BIT,
   CODE_TABLE_TYPE_VALUE,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Create a low-bit mask without overflowing JavaScript's 32-bit shift semantics.

@@ -1,6 +1,6 @@
 /** Reusable state for transactional ATRAC3plus code-table planning. */
 
-import { CodeTableCodingCostState } from '../coding/code-table.js'
+import { CodeTableCodingCostState } from '../syntax/code-table/cost.js'
 import { CODING_UNIT_MAX_CHANNELS } from '../core/constants.js'
 import { CodeTableCodingSyntax } from './encoder-syntax.js'
 

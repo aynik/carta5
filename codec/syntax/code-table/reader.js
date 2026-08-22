@@ -1,12 +1,12 @@
 /** ATRAC3plus spectral code-table wire decoding. */
 
-import { readCanonicalSymbol } from '../syntax/entropy.js'
+import { readCanonicalSymbol } from '../entropy.js'
 import {
   CODE_TABLE_CODEBOOKS,
   CODE_TABLE_FIXED_WIDTHS,
-} from '../core/tables.js'
-import { ChannelSyntaxState, SharedState } from '../state/shared.js'
-import { BitReader } from '../syntax/bitstream.js'
+} from '../../core/tables.js'
+import { ChannelSyntaxState, SharedState } from '../../state/shared.js'
+import { BitReader } from '../bitstream.js'
 import {
   MODE_DIFF,
   MODE_DIRECT,
@@ -15,7 +15,7 @@ import {
   TYPE_NONE,
   TYPE_ONE_BIT,
   TYPE_VALUE,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Error raised when code table decode input violates the decoder or bitstream contract.

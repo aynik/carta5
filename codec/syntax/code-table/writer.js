@@ -1,14 +1,11 @@
 /** ATRAC3plus spectral code-table pricing, transactions, and emission. */
 
-import { writeCanonicalSymbol } from '../syntax/entropy.js'
-import {
-  codeTableBandType,
-  maskedCodeTableDelta,
-} from '../coding/code-table.js'
+import { writeCanonicalSymbol } from '../entropy.js'
+import { codeTableBandType, maskedCodeTableDelta } from './cost.js'
 import {
   CODE_TABLE_FIXED_WIDTHS,
   CODE_TABLE_CODEBOOKS,
-} from '../core/tables.js'
+} from '../../core/tables.js'
 import {
   CODE_TABLE_CONTEXT_BITS,
   CODE_TABLE_COUNT_FLAG_BITS,
@@ -23,11 +20,11 @@ import {
   CODE_TABLE_MODE_PAIR,
   CODE_TABLE_TYPE_ONE_BIT,
   CODE_TABLE_TYPE_VALUE,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 import {
   CodeTableAccountingTransaction,
   validateCodeTableChannels,
-} from '../state/code-table.js'
+} from '../../state/code-table.js'
 
 /**
  * Capture one channel's values, classify its active bands, and initialize its exact cost state.

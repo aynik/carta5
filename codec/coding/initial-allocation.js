@@ -13,7 +13,7 @@ import {
 } from '../core/constants.js'
 import { priceSpectrumBand } from './spectrum-pricing.js'
 import { measureInvariantAllocationBits } from '../syntax/allocation.js'
-import { planCodeTableSection } from '../io/code-table-syntax.js'
+import { planCodeTableSection } from '../syntax/code-table/writer.js'
 import { selectGainSyntax } from '../io/gain-syntax.js'
 import { planScaleFactorSection } from '../io/scale-factor-syntax.js'
 import { planToneSection } from '../io/tone-syntax.js'

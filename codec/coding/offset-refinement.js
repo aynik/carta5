@@ -5,7 +5,7 @@ import {
   QUANTIZATION_UNIT_COUNT,
 } from '../core/constants.js'
 
-import { planCodeTableSection } from '../io/code-table-syntax.js'
+import { planCodeTableSection } from '../syntax/code-table/writer.js'
 import { CodeTableAccountingTransaction } from '../state/code-table.js'
 import {
   priceSpectrumBand,

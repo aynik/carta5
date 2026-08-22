@@ -13,7 +13,7 @@ import {
   SPECTRUM_PRICING_EMPTY_KEY,
   SPECTRUM_PRICING_MODE_COUNT,
 } from '../core/constants.js'
-import { repriceCodeTableSection } from '../io/code-table-syntax.js'
+import { repriceCodeTableSection } from '../syntax/code-table/writer.js'
 
 /**
  * Map a context, band, and mode to its first pricing-cache entry.

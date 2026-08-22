@@ -11,7 +11,7 @@ import {
   WORD_LENGTH_MODE_BITS,
 } from '../core/constants.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../core/tables.js'
-import { planCodeTableSection } from '../io/code-table-syntax.js'
+import { planCodeTableSection } from '../syntax/code-table/writer.js'
 import { CodeTableAccountingTransaction } from '../state/code-table.js'
 import {
   planWordLengthSection,
