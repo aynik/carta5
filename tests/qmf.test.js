@@ -10,7 +10,7 @@ import {
   analyzeQmfChannel,
   analyzeQmfFrame,
   synthesizeQmfChannel,
-} from '../codec/transforms/qmf.js'
+} from '../codec/signal/bands.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
 const U64_MASK = 0xffffffffffffffffn

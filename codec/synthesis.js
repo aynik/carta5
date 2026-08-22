@@ -1,7 +1,7 @@
 /** ATRAC3plus synthesis stage. */
 
 import { inverseMdctFrame } from './signal/spectrum.js'
-import { synthesizeQmfChannel } from './transforms/qmf.js'
+import { synthesizeQmfChannel } from './signal/bands.js'
 import { addDecodedTones } from './transforms/tone.js'
 import { addSubbandNoise } from './transforms/subband-noise.js'
 import { pipe } from './utils.js'
