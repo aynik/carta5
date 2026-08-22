@@ -3,12 +3,12 @@ import { BufferPool } from '../codec/core/buffers.js'
 import { FRAME_SAMPLES } from '../codec/core/constants.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { FrameDecodeScratch } from '../codec/io/frame-decoder.js'
+import { unpack } from '../codec/unpacking.js'
 import {
   beginTransaction,
   decode,
   dequantize,
   synthesize,
-  unpack,
   validateFrame,
 } from '../codec/pipeline/decoder.js'
 import { encode } from '../codec/pipeline/encoder.js'

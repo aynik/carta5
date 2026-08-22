@@ -9,16 +9,13 @@
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
 import { copyDecoderState, initializeDecoderStream } from '../state/decoder.js'
-import {
-  FrameDecodeScratch,
-  unpackFrameSyntax,
-  validateFrameSource,
-} from '../io/frame-decoder.js'
+import { FrameDecodeScratch, validateFrameSource } from '../io/frame-decoder.js'
 import { inverseMdctFrame } from '../transforms/mdct.js'
 import { synthesizeQmfChannel } from '../transforms/qmf.js'
 import { reconstructCodingUnitSpectra } from '../transforms/spectral-reconstruction.js'
 import { addDecodedTones } from '../transforms/tone.js'
 import { addSubbandNoise } from '../transforms/subband-noise.js'
+import { unpack } from '../unpacking.js'
 import { pipe } from '../utils.js'
 import { normalizePcm } from '../io/pcm.js'
 
@@ -53,30 +50,6 @@ export function beginTransaction(context) {
       context.bufferPool.decoder.state,
       context.bufferPool.decoder.frame
     )
-    return frame
-  }
-}
-
-/**
- * Traverse every configured coding unit into detached decoder blocks.
- *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Unpacking stage.
- */
-export function unpack(context) {
-  const decoder = context.bufferPool.decoder
-  const { topology } = decoder.state
-  return (frame) => {
-    frame.parsedBits = unpackFrameSyntax(
-      frame.input,
-      context.profile.bytesPerFrame,
-      topology.codingUnitCount,
-      topology.codingUnitChannels,
-      decoder.frame,
-      context.frameDecode
-    )
-    frame.channelBlocks = decoder.frame.channelBlocks
-    frame.sharedCodingUnits = decoder.frame.sharedCodingUnits
     return frame
   }
 }
