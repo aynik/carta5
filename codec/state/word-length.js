@@ -6,7 +6,62 @@ import {
   WORD_LENGTH_MODE_BITS,
   WORD_LENGTH_SIDE_DATA_BANDS,
 } from '../core/constants.js'
-import { WordLengthCodingPlan } from './encoder-syntax.js'
+
+/**
+ * Fixed field image for the selected word-length plan; kind 0 is raw.
+ */
+export class WordLengthCodingPlan {
+  /**
+   * Allocate fixed-size word-length fields for every supported syntax mode and quantization band.
+   */
+  constructor() {
+    this.clear()
+  }
+
+  /**
+   * Reset the reusable word length coding plan to its empty state without reallocating its storage.
+   *
+   * @returns {WordLengthCodingPlan}
+   */
+  clear() {
+    this.bits = 0
+    this.kind = 0
+    this.delta = 0
+    this.tailMode = 0
+    this.tailCount = 0
+    this.tailExtra = 0
+    this.lead = 0
+    this.width = 0
+    this.base = 0
+    this.pairFlag = 0
+    this.codebook = 0
+    this.shapeBase = 0
+    this.shapeShift = 0
+    this.first = 0
+    this.channelMode = 0
+    return this
+  }
+
+  /**
+   * Return the word-length packing mode selected for one channel.
+   *
+   * @returns {number|string}
+   */
+  get packMode() {
+    return this.kind === 4 ? this.channelMode + 1 : this.kind
+  }
+
+  /**
+   * Copy all active word length coding plan fields into caller-owned destination storage.
+   *
+   * @param {WordLengthCodingPlan} destination
+   * @returns {WordLengthCodingPlan}
+   */
+  copyTo(destination) {
+    Object.assign(destination, this)
+    return destination
+  }
+}
 
 /**
  * Allocation-private caches for one channel's candidate word-length plan.

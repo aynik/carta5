@@ -7,6 +7,54 @@ import {
 } from '../core/constants.js'
 
 /**
+ * Encoder-selected scale-factor representation and derived mode rows.
+ */
+export class ScaleFactorEncodeState {
+  /**
+   * Allocate scale-factor values and predictor metadata for one channel's selected syntax plan.
+   */
+  constructor() {
+    this.mode2Values = new Uint32Array(4 * QUANTIZATION_UNIT_COUNT)
+    this.clear()
+  }
+
+  /**
+   * Reset the reusable scale factor encode state to its empty state without reallocating its storage.
+   *
+   * @returns {ScaleFactorEncodeState}
+   */
+  clear() {
+    this.modeSelect = 0
+    this.lead = 0
+    this.width = 0
+    this.base = 0
+    this.mode = 0
+    this.mode2 = 0
+    this.codebookIndex = 0
+    this.baseValue = 0
+    this.mode2Values.fill(0)
+    return this
+  }
+
+  /**
+   * Copy all active scale factor encode state fields into caller-owned destination storage.
+   *
+   * @param {ScaleFactorEncodeState} destination
+   */
+  copyTo(destination) {
+    destination.modeSelect = this.modeSelect
+    destination.lead = this.lead
+    destination.width = this.width
+    destination.base = this.base
+    destination.mode = this.mode
+    destination.mode2 = this.mode2
+    destination.codebookIndex = this.codebookIndex
+    destination.baseValue = this.baseValue
+    destination.mode2Values.set(this.mode2Values)
+  }
+}
+
+/**
  * Validate the local mono/stereo channel view used by scale-factor syntax.
  *
  * @param {EncodeChannelState[]} blocks Coding-unit channels in ordinal order.

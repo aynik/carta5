@@ -2,7 +2,44 @@
 
 import { CodeTableCodingCostState } from '../syntax/code-table/cost.js'
 import { CODING_UNIT_MAX_CHANNELS } from '../core/constants.js'
-import { CodeTableCodingSyntax } from './encoder-syntax.js'
+
+/**
+ * Optional code-table classification and exact count/mode plan.
+ */
+export class CodeTableCodingSyntax {
+  /**
+   * Allocate code-table indices and mode fields for one channel's entropy syntax plan.
+   */
+  constructor() {
+    this.clear()
+  }
+
+  /**
+   * Reset the reusable code table coding syntax to its empty state without reallocating its storage.
+   *
+   * @returns {CodeTableCodingSyntax}
+   */
+  clear() {
+    this.valueMask = 0
+    this.oneBitMask = 0
+    this.mode = 0
+    this.count = 0
+    this.explicit = false
+    this.bits = 0
+    return this
+  }
+
+  /**
+   * Copy all active code table coding syntax fields into caller-owned destination storage.
+   *
+   * @param {CodeTableCodingSyntax} destination
+   * @returns {CodeTableCodingSyntax}
+   */
+  copyTo(destination) {
+    Object.assign(destination, this)
+    return destination
+  }
+}
 
 /**
  * Reusable speculative cost images shared by sequential code-table pricing.

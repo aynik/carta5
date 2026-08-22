@@ -32,7 +32,7 @@ import {
   CodeTableAccountingTransaction,
   CodeTablePricingWorkspace,
 } from './code-table.js'
-import { ScaleFactorEncodeState } from './encoder-syntax.js'
+import { ScaleFactorEncodeState } from './scale-factor.js'
 import { GainCodingPlan } from './gain/coding.js'
 import { lowRateGainScratchDepth } from './gain-analysis.js'
 import { ScaleFactorCodingPlan } from './scale-factor.js'
