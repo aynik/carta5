@@ -4,7 +4,7 @@ import {
   configureGainDetectionRequest,
   detectGainRecordsRaw,
   planGainRecords,
-} from '../codec/analysis/gain-detection.js'
+} from '../codec/analysis/gain/detection.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 

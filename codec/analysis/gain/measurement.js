@@ -1,6 +1,6 @@
 /** Numeric measurement primitives for ATRAC3plus gain-point detection. */
 
-import { magnitudeSpectrum16LowBins } from '../signal/dft.js'
+import { magnitudeSpectrum16LowBins } from '../../signal/dft.js'
 import {
   GAIN_WINDOW_BLOCKS,
   GAIN_WINDOW_FLOATS_PER_BLOCK,
@@ -8,10 +8,10 @@ import {
   GAIN_CONTROL_INITIAL_BITS_LOG2_E,
   GAIN_CONTROL_INVERSE_7,
   GAIN_CONTROL_SCALE,
-} from '../core/constants.js'
-import { float32Round } from '../utils.js'
+} from '../../core/constants.js'
+import { float32Round } from '../../utils.js'
 
-import { HALF_HANN_WINDOW } from '../core/tables.js'
+import { HALF_HANN_WINDOW } from '../../core/tables.js'
 
 /**
  * Whether a four-sample detector block contains a nonzero value or NaN.

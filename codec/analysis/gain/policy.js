@@ -12,13 +12,13 @@ import {
   mergeGainRecordMinLocationMaxLevel,
   mergeGainRecordPairMinLocationMaxLevel,
   normalizeGainRecord,
-} from './gain/records.js'
+} from './records.js'
 import {
   GAIN_LEVEL_DEFAULT,
   GAIN_LEVEL_MAX,
   BAND0_SOURCE_TAIL_LEVEL,
   ANALYSIS_GAIN_RECORD_POLICY_NORMALIZE_TAIL_LEVEL,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Sort, deduplicate, and clamp a gain record before policy decisions inspect it.

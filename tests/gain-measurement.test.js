@@ -5,7 +5,7 @@ import {
   computeGainFlatnessScale,
   measureGainBlockPeaks,
   requiredGainRangeBits,
-} from '../codec/analysis/gain-measurement.js'
+} from '../codec/analysis/gain/measurement.js'
 import {
   forwardRealDft16,
   magnitudeSpectrum16LowBins,

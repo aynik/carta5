@@ -5,20 +5,20 @@ import {
   reconstructGainDeltaLevels,
   scoreGainLevelAdjustment,
   writeGainRecordDeltaEnvelope,
-} from './gain/records.js'
+} from './records.js'
 import {
   gainBlock4IsActive,
   buildSortedIndexOrder,
   computeGainFlatnessScale,
   measureGainBlockPeaks,
   requiredGainRangeBits,
-} from './gain-measurement.js'
-import { planLowModeGainAdjustment } from './gain-adjustment.js'
+} from './measurement.js'
+import { planLowModeGainAdjustment } from './adjustment.js'
 import {
   GainPointWorkArena,
   lowRateGainScratchDepth,
-} from '../state/gain-analysis.js'
-import { saturatingInt32FromFloat } from '../utils.js'
+} from '../../state/gain-analysis.js'
+import { saturatingInt32FromFloat } from '../../utils.js'
 import {
   BOUNDARY_END,
   BOUNDARY_START,
@@ -41,7 +41,7 @@ import {
   REDUCTION_LEVEL_CEILING,
   REDUCTION_LEVEL_FLOOR,
   GAIN_WINDOW_BLOCKS,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Translate a history generation and point ordinal into the flat gain-point arena index.

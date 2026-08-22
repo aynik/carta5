@@ -5,7 +5,7 @@ import {
   maximumGainScaledMagnitude,
   maximumGainWindowMagnitude,
   planLowModeGainAdjustment,
-} from '../codec/analysis/gain-adjustment.js'
+} from '../codec/analysis/gain/adjustment.js'
 import { GainRecordPlan, GainRecord } from '../codec/state/gain/coding.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import {

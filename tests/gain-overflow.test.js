@@ -5,7 +5,7 @@ import {
   buildGainOverflowStateFrontier,
   loadGainOverflowState,
   selectOverflowPathCandidate,
-} from '../codec/analysis/gain-overflow.js'
+} from '../codec/analysis/gain/overflow.js'
 import { GainRecord } from '../codec/state/gain/coding.js'
 import { GainOverflowScratch } from '../codec/state/gain-analysis.js'
 

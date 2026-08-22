@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   adjustBand0RecordFromBand1,
   planCloseRecordsBetweenChannels,
-} from '../codec/analysis/gain-record-policy.js'
+} from '../codec/analysis/gain/policy.js'
 import {
   comparePeakEnvelopeCandidate,
   compareSignalsExact,

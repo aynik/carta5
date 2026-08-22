@@ -1,13 +1,13 @@
 /** Fixed-frontier ATRAC3plus low-rate gain-overflow reduction mechanics. */
 
-import { normalizeGainRecord } from './gain/records.js'
+import { normalizeGainRecord } from './records.js'
 import {
   GAIN_LEVEL_DEFAULT,
   GAIN_SLOT_COUNT,
   ANALYSIS_GAIN_OVERFLOW_NORMALIZE_TAIL_LEVEL,
   OVERFLOW_ABSOLUTE_LIMIT,
   OVERFLOW_RELATIVE_FACTOR,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Reference absolute-or-relative peak limit. NaN never overflows.

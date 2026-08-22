@@ -1,21 +1,21 @@
 /** ATRAC3plus low-rate gain adjustment, exact lowering, and publication. */
 
-import { gainRecordIsActive, gainRecordPairIsActive } from './gain/records.js'
-import { GainRecordPlan } from '../state/gain/coding.js'
+import { gainRecordIsActive, gainRecordPairIsActive } from './records.js'
+import { GainRecordPlan } from '../../state/gain/coding.js'
 import {
   captureGainSyntaxModes,
   measureGainSyntaxBitsWithModes,
   selectGainSyntax,
-} from '../syntax/gain/writer.js'
+} from '../../syntax/gain/writer.js'
 import {
   applyForwardGainScale,
   reconstructForwardGainScale,
-} from '../signal/gain.js'
+} from '../../signal/gain.js'
 import {
   compareSignalsExact,
   comparePeakEnvelopeCandidate,
   loadPeakEnvelopeReference,
-} from './perceptual.js'
+} from '../perceptual.js'
 import {
   gainPeakOverflows,
   buildGainOverflowStateFrontier,
@@ -23,13 +23,13 @@ import {
   loadGainOverflowState,
   normalizeOverflowGainRecord,
   selectOverflowPathCandidate,
-} from './gain-overflow.js'
+} from './overflow.js'
 import {
   adjustBand0RecordFromBand1,
   recordMergeHasTemporalSupport,
   planCloseRecordFromPeer,
   planCloseRecordsBetweenChannels,
-} from './gain-record-policy.js'
+} from './policy.js'
 import {
   BAND0_MAX_NO_EDIT_CHANGE_ENERGY_PER_BIT,
   GAIN_BAND_COUNT,
@@ -40,7 +40,7 @@ import {
   RECORD_MERGE_MAX_FINAL_CHANGE_ENERGY_RATIO,
   RECORD_MERGE_STRICT_SHAPE_ERROR,
   STEREO_MERGE_MAX_CHANGE_ENERGY_PER_BIT,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Ordered maximum magnitude across the fixed gain window.
