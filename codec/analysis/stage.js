@@ -28,6 +28,16 @@ function prepareAnalysis(context) {
 }
 
 /**
+ * Apply format decisions that depend on the analyzed QMF signal.
+ *
+ * @param {EncoderContext} context Pipeline ownership context.
+ * @returns {function(EncoderFrame): EncoderFrame} Signal decision recipe.
+ */
+function analyzeSignal(context) {
+  return pipe(context, applyIntensity, planTones, planGain)
+}
+
+/**
  * Refresh detached syntax geometry before current-frame signal analysis.
  *
  * @param {EncoderContext} context Pipeline ownership context.
@@ -271,9 +281,7 @@ export function analyze(context) {
     context,
     prepareAnalysis,
     analyzeBands,
-    applyIntensity,
-    planTones,
-    planGain,
+    analyzeSignal,
     transformSpectrum
   )
 }
