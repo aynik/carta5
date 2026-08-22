@@ -3,7 +3,7 @@
 import { inverseMdctFrame } from './signal/spectrum.js'
 import { synthesizeQmfChannel } from './signal/bands.js'
 import { addDecodedTones } from './signal/tone.js'
-import { addSubbandNoise } from './transforms/subband-noise.js'
+import { addSubbandNoise } from './signal/noise.js'
 import { pipe } from './utils.js'
 
 /**

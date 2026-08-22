@@ -9,7 +9,7 @@ import {
   synthesizeTonePair,
   writeToneResidual,
 } from '../codec/signal/tone.js'
-import { addSubbandNoise } from '../codec/transforms/subband-noise.js'
+import { addSubbandNoise } from '../codec/signal/noise.js'
 import {
   TONE_ACCUMULATE_FUSED,
   TONE_ACCUMULATE_SEPARATE,

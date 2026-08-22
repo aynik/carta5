@@ -23,7 +23,7 @@ import {
 import {
   fillSpectralNoise,
   quantizedSpectralNoiseScale,
-} from '../transforms/spectral-reconstruction.js'
+} from '../signal/noise.js'
 import { float32Add } from '../utils.js'
 import {
   prepareReconstructionNoiseSeeds,

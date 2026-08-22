@@ -24,7 +24,7 @@ import { ScaleFactorCodingPlan } from '../state/scale-factor.js'
 import {
   fillSpectralNoise,
   quantizedSpectralNoiseScale,
-} from '../transforms/spectral-reconstruction.js'
+} from '../signal/noise.js'
 import {
   prepareReconstructionNoiseSeeds,
   ReconstructionRefinementScratch,

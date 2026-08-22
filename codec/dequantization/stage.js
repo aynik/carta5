@@ -1,6 +1,6 @@
 /** ATRAC3plus spectral dequantization stage. */
 
-import { reconstructCodingUnitSpectra } from '../transforms/spectral-reconstruction.js'
+import { reconstructCodingUnitSpectra } from './spectrum.js'
 
 /**
  * Reconstruct every detached coding unit into fixed decoder spectra.
