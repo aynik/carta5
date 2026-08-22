@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { measureInvariantAllocationBits } from '../codec/io/allocation-syntax.js'
+import { measureInvariantAllocationBits } from '../codec/syntax/allocation.js'
 
 import { SharedState } from '../codec/state/shared.js'
 

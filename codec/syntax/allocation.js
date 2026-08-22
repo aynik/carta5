@@ -1,6 +1,6 @@
 /** Exact invariant sidechain accounting for ATRAC3plus allocation. */
 
-import { spectralNoiseLevelFieldCount } from './spectrum-syntax.js'
+import { spectralNoiseLevelFieldCount } from '../io/spectrum-syntax.js'
 
 /**
  * Measure every syntax cost that remains unchanged during allocation refinement.

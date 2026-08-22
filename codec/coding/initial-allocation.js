@@ -12,7 +12,7 @@ import {
   SPECTRUM_FORBIDDEN_BITS,
 } from '../core/constants.js'
 import { priceSpectrumBand } from './spectrum-pricing.js'
-import { measureInvariantAllocationBits } from '../io/allocation-syntax.js'
+import { measureInvariantAllocationBits } from '../syntax/allocation.js'
 import { planCodeTableSection } from '../io/code-table-syntax.js'
 import { selectGainSyntax } from '../io/gain-syntax.js'
 import { planScaleFactorSection } from '../io/scale-factor-syntax.js'
