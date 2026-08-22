@@ -8,7 +8,11 @@ import {
 import { framePayloadCapacityBits } from '../core/geometry.js'
 import { BitCounter, BitWriter } from '../syntax/bitstream.js'
 import { measureCodingUnit, packCodingUnit } from './coding-unit.js'
-import { FrameHeader, frameTagForChannelCount, packFrameTag } from './syntax.js'
+import {
+  FrameHeader,
+  frameTagForChannelCount,
+  packFrameTag,
+} from '../syntax/records.js'
 
 /**
  * Error raised when frame pack input violates the decoder or bitstream contract.

@@ -17,7 +17,7 @@ import {
   frameTagForChannelCount,
   frameTagFromWire,
   packFrameTag,
-} from '../codec/io/syntax.js'
+} from '../codec/syntax/records.js'
 import { FRAME_TAG } from '../codec/core/constants.js'
 
 function roundTrip(

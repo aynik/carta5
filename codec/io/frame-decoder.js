@@ -15,7 +15,7 @@ import {
   FrameHeader,
   channelCountForFrameTag,
   frameTagFromWire,
-} from './syntax.js'
+} from '../syntax/records.js'
 
 import { unpackCodingUnit } from './coding-unit-decoder.js'
 import { applyStereoToneFixes } from './tone-decoder.js'

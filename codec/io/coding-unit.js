@@ -12,7 +12,11 @@ import { packChannelSpectrum } from './spectrum-syntax.js'
 import { SpectrumSyntaxScratch } from '../state/spectrum.js'
 import { packToneSection } from './tone-syntax.js'
 import { ToneCodingPlan } from '../state/tone.js'
-import { BlockHeaderSyntax, NoiseSyntax, PresenceSyntax } from './syntax.js'
+import {
+  BlockHeaderSyntax,
+  NoiseSyntax,
+  PresenceSyntax,
+} from '../syntax/records.js'
 
 /**
  * Verify that every planned sidechain and accounting owner is bound to a valid mono or stereo transaction.
