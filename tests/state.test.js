@@ -27,8 +27,8 @@ import {
   DecoderState,
   DecoderStateImage,
   copyDecoderState,
-} from '../codec/state/decoder.js'
-import { FrameDecodeStorage } from '../codec/state/decoder-syntax.js'
+} from '../codec/state/decoder/image.js'
+import { FrameDecodeStorage } from '../codec/state/decoder/syntax.js'
 import { CodeTableAccountingTransaction } from '../codec/state/code-table.js'
 import {
   GainEnvelopeScratch,

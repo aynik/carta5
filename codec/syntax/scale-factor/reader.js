@@ -10,7 +10,7 @@ import {
 } from '../../core/tables.js'
 
 import { ChannelSyntaxState } from '../../state/shared.js'
-import { ScaleFactorDecodeScratch } from '../../state/decoder-syntax.js'
+import { ScaleFactorDecodeScratch } from '../../state/decoder/syntax.js'
 import { BitReader } from '../bitstream.js'
 import {
   IO_SCALE_FACTOR_DECODER_GROUP_FIRST_BIAS,

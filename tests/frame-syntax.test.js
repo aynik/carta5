@@ -20,7 +20,7 @@ import { BitWriter } from '../codec/syntax/bitstream.js'
 import {
   bindDecoderChannelStates,
   copyDecoderState,
-} from '../codec/state/decoder.js'
+} from '../codec/state/decoder/image.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import {
   SharedState,

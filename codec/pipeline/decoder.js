@@ -8,7 +8,7 @@
 
 import { BufferPool } from '../state/storage.js'
 import { resolveProfile } from '../core/profiles.js'
-import { initializeDecoderStream } from '../state/decoder.js'
+import { initializeDecoderStream } from '../state/decoder/image.js'
 import {
   FrameDecodeScratch,
   validateFrameSource,

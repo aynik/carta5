@@ -11,7 +11,7 @@ import {
 } from '../codec/syntax/word-length/writer.js'
 
 import { ChannelSyntaxState } from '../codec/state/shared.js'
-import { WordLengthDecodeScratch } from '../codec/state/decoder-syntax.js'
+import { WordLengthDecodeScratch } from '../codec/state/decoder/syntax.js'
 import { WordLengthAccountingTransaction } from '../codec/state/word-length.js'
 
 const MASK = 0xffffffffffffffffn

@@ -1,7 +1,7 @@
 /** Detached ATRAC3plus coding-unit wire traversal in reference section order. */
 
-import { DecodeChannelState } from '../../state/decoder.js'
-import { CodingUnitDecodeScratch } from '../../state/decoder-syntax.js'
+import { DecodeChannelState } from '../../state/decoder/image.js'
+import { CodingUnitDecodeScratch } from '../../state/decoder/syntax.js'
 import { SharedState } from '../../state/shared.js'
 import { BitReader } from '../bitstream.js'
 import { unpackCodeTableSection } from '../code-table/reader.js'

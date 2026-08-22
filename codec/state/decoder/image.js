@@ -4,10 +4,10 @@ import {
   FRAME_SAMPLES,
   MAX_CHANNELS,
   MAX_CODING_UNITS,
-} from '../core/constants.js'
-import { GainRecord } from './gain/coding.js'
-import { ChannelSyntaxState, SharedState, StreamTopology } from './shared.js'
-import { ToneSlot } from './tone.js'
+} from '../../core/constants.js'
+import { GainRecord } from '../gain/coding.js'
+import { ChannelSyntaxState, SharedState, StreamTopology } from '../shared.js'
+import { ToneSlot } from '../tone.js'
 
 /**
  * Persistent decoded gain records plus their channel-local wire header.

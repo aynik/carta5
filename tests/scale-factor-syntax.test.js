@@ -9,7 +9,7 @@ import {
 } from '../codec/syntax/scale-factor/writer.js'
 
 import { ChannelSyntaxState, SharedState } from '../codec/state/shared.js'
-import { ScaleFactorDecodeScratch } from '../codec/state/decoder-syntax.js'
+import { ScaleFactorDecodeScratch } from '../codec/state/decoder/syntax.js'
 import { ScaleFactorEncodeState } from '../codec/state/scale-factor.js'
 import { ScaleFactorCodingPlan } from '../codec/state/scale-factor.js'
 

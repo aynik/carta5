@@ -15,7 +15,7 @@ import {
   TONE_SCALE_FACTOR_CODEBOOK_B_CODE_LENGTHS,
 } from '../../core/tables.js'
 import { ChannelSyntaxState } from '../../state/shared.js'
-import { ToneDecodeScratch } from '../../state/decoder-syntax.js'
+import { ToneDecodeScratch } from '../../state/decoder/syntax.js'
 import { ToneSlot } from '../../state/tone.js'
 import { BitReader } from '../bitstream.js'
 import { buildToneItemMap } from './writer.js'

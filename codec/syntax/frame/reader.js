@@ -19,7 +19,7 @@ import {
 
 import { unpackCodingUnit } from '../unit/reader.js'
 import { applyStereoToneFixes } from '../tone/reader.js'
-import { FrameDecodeStorage } from '../../state/decoder-syntax.js'
+import { FrameDecodeStorage } from '../../state/decoder/syntax.js'
 
 /**
  * Error raised when frame traversal input violates the decoder or bitstream contract.

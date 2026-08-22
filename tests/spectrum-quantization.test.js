@@ -8,7 +8,7 @@ import {
   writeQuantizedBand,
 } from '../codec/quantization/spectrum.js'
 import { reconstructCodingUnitSpectra } from '../codec/dequantization/spectrum.js'
-import { DecodeChannelState } from '../codec/state/decoder.js'
+import { DecodeChannelState } from '../codec/state/decoder/image.js'
 import { CodingUnitChannels, SharedState } from '../codec/state/shared.js'
 import { SpectralReconstructionScratch } from '../codec/state/transform.js'
 

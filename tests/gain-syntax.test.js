@@ -10,7 +10,7 @@ import {
 } from '../codec/syntax/gain/writer.js'
 import { unpackGainChannel } from '../codec/syntax/gain/reader.js'
 import { BitReader, BitCounter, BitWriter } from '../codec/syntax/bitstream.js'
-import { DecodeGainFrame } from '../codec/state/decoder.js'
+import { DecodeGainFrame } from '../codec/state/decoder/image.js'
 import { GAIN_MODE_FORBIDDEN_BITS } from '../codec/core/constants.js'
 import {
   GainCodingPlan,

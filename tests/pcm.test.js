@@ -15,7 +15,7 @@ import {
   PCM_SCALE,
   scalePcmFrame,
 } from '../codec/io/pcm.js'
-import { initializeDecoderStream } from '../codec/state/decoder.js'
+import { initializeDecoderStream } from '../codec/state/decoder/image.js'
 import { pipe } from '../codec/utils.js'
 
 const OPTIONS = { bitrateKbps: 128, channels: 1, sampleRate: 44100 }

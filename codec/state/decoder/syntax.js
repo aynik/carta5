@@ -8,8 +8,8 @@ import {
   MAX_FRAME_BYTES,
   QUANTIZATION_UNIT_COUNT,
   TONE_ITEM_MAP_LENGTH,
-} from '../core/constants.js'
-import { ToneSynthesisRecord } from './tone.js'
+} from '../../core/constants.js'
+import { ToneSynthesisRecord } from '../tone.js'
 
 /** Fixed header fields reused by word-length channel decoding. */
 

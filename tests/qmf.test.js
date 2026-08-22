@@ -5,7 +5,7 @@ import { analyzeBands, rotateHistory } from '../codec/analysis/stage.js'
 import { validateFrame } from '../codec/pipeline/encoder.js'
 import { beginEncoderFrame } from '../codec/state/stream.js'
 import { EncodeAnalysisState } from '../codec/state/encoder.js'
-import { SynthesisState } from '../codec/state/decoder.js'
+import { SynthesisState } from '../codec/state/decoder/image.js'
 import {
   analyzeQmfChannel,
   analyzeQmfFrame,

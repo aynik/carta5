@@ -13,7 +13,7 @@ import {
   LEVEL_MASK,
   LOCATION_MASK,
 } from '../../core/constants.js'
-import { DecodeGainFrame } from '../../state/decoder.js'
+import { DecodeGainFrame } from '../../state/decoder/image.js'
 import { BitReader } from '../bitstream.js'
 
 /**

@@ -24,11 +24,11 @@ import {
   TONE_HEADER_JOINT_ARRAY_WORD,
   TONE_HEADER_SWAP_ARRAY_WORD,
 } from '../codec/core/constants.js'
-import { ToneDecodeScratch } from '../codec/state/decoder-syntax.js'
+import { ToneDecodeScratch } from '../codec/state/decoder/syntax.js'
 import {
   copyDecoderState,
   initializeDecoderStream,
-} from '../codec/state/decoder.js'
+} from '../codec/state/decoder/image.js'
 import { PCM_SCALE } from '../codec/io/pcm.js'
 
 const MASK = 0xffffffffffffffffn

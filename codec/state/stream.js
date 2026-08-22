@@ -1,6 +1,6 @@
 /** Directional ATRAC3plus frame-state publication. */
 
-import { copyDecoderState } from './decoder.js'
+import { copyDecoderState } from './decoder/image.js'
 import { copyEncoderState } from './encoder.js'
 
 /**
