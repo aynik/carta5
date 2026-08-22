@@ -1,7 +1,7 @@
 /** Streaming PCM-to-ATRACX WAVE timeline adapter. */
 
 import { StreamingEncoder } from './stream-encoder.js'
-import { createWave } from './wave.js'
+import { createWave } from '../boundary/container.js'
 
 /**
  * Container timeline owner around the arbitrary-chunk ATRAC3plus runtime.

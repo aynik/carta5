@@ -27,7 +27,7 @@ import { resolveProfile, resolveWaveProfile } from '../codec/core/profiles.js'
 import { ATRACX_GUID_BYTES } from '../codec/core/tables.js'
 import { createWaveStreamingDecoder } from '../codec/io/wave-decoder.js'
 import { createWaveStreamingEncoder } from '../codec/io/wave-encoder.js'
-import { createWaveHeader } from '../codec/io/wave.js'
+import { createWaveHeader } from '../codec/boundary/container.js'
 import {
   PCM_SCALE,
   createPcmWaveHeader,

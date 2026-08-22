@@ -1,6 +1,6 @@
 /** Iterable ATRACX WAVE reader over an in-memory byte image. */
 
-import { parseWave } from './wave.js'
+import { parseWave } from '../boundary/container.js'
 
 /**
  * Normalize supported in-memory binary inputs without unnecessary copying.

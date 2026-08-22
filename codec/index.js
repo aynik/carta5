@@ -21,5 +21,5 @@ export {
   createWaveStreamingEncoder,
   encodeWavePcm,
 } from './io/wave-encoder.js'
-export { createWave, parseWave } from './io/wave.js'
+export { createWave, parseWave } from './boundary/container.js'
 export { AudioProcessor } from './io/processor.js'

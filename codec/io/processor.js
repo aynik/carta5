@@ -9,7 +9,7 @@ import { resolveProfile } from '../core/profiles.js'
 import { decode } from '../pipeline/decoder.js'
 import { createWaveStreamingDecoder, decodeWavePcm } from './wave-decoder.js'
 import { createWaveStreamingEncoder, encodeWavePcm } from './wave-encoder.js'
-import { createWaveHeader, parseWave } from './wave.js'
+import { createWaveHeader, parseWave } from '../boundary/container.js'
 import { createPcmWave } from '../boundary/pcm.js'
 
 /**

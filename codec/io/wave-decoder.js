@@ -7,7 +7,7 @@ import {
 } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { decode } from '../pipeline/decoder.js'
-import { parseWave } from './wave.js'
+import { parseWave } from '../boundary/container.js'
 
 /** Apply ATRACX fact alignment and visible sample-count trimming per frame. */
 
