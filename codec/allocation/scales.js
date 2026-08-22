@@ -25,10 +25,8 @@ import {
   fillSpectralNoise,
   quantizedSpectralNoiseScale,
 } from '../signal/noise.js'
-import {
-  prepareReconstructionNoiseSeeds,
-  ReconstructionRefinementScratch,
-} from '../state/reconstruction.js'
+import { prepareReconstructionNoiseSeeds } from './noise.js'
+import { ReconstructionRefinementScratch } from '../state/reconstruction.js'
 
 /**
  * Perform a less-than-or-equal comparison that treats NaN as an already satisfied bound.

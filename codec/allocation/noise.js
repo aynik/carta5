@@ -19,16 +19,41 @@ import {
   GROUP_COUNT,
   INITIAL_LEVEL,
   SLOT_COUNT,
+  SPECTRAL_NOISE_SEED_MASK,
+  SPECTRAL_NOISE_SEED_STEP,
 } from '../core/constants.js'
 import {
   fillSpectralNoise,
   quantizedSpectralNoiseScale,
 } from '../signal/noise.js'
 import { float32Add } from '../utils.js'
-import {
-  prepareReconstructionNoiseSeeds,
-  ReconstructionRefinementScratch,
-} from '../state/reconstruction.js'
+import { ReconstructionRefinementScratch } from '../state/reconstruction.js'
+
+/**
+ * Derive the deterministic map seeds used by reconstruction-aware refinement.
+ *
+ * @param {CodingUnitAllocationTransaction} transaction Active allocation transaction.
+ * @param {SharedState} shared Shared coded-band and map geometry.
+ * @param {Uint16Array} seeds Destination seed workspace.
+ */
+export function prepareReconstructionNoiseSeeds(transaction, shared, seeds) {
+  let sum = 0
+  for (let channel = 0; channel < transaction.channelCount; channel++) {
+    const factors = transaction.channelBlocks[channel].syntax.scaleFactors
+    for (let band = 0; band < shared.scaleFactorCount; band++) {
+      const index = factors[band]
+      if (index < 0 || index >= 64) {
+        throw new RangeError('ATRAC3plus reconstruction-noise seed is invalid')
+      }
+      sum += index
+    }
+  }
+  let seed = sum & SPECTRAL_NOISE_SEED_MASK
+  for (let map = 0; map < shared.mapCount; map++) {
+    seeds[map] = seed
+    seed = (seed + SPECTRAL_NOISE_SEED_STEP) & SPECTRAL_NOISE_SEED_MASK
+  }
+}
 
 /**
  * Index flat spectral-noise evidence storage by channel and quantization band.
