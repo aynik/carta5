@@ -10,9 +10,14 @@ import { allocate } from '../allocation/stage.js'
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
 import { FRAME_SAMPLES } from '../core/constants.js'
-import { copyEncoderState, initializeEncoderStream } from '../state/encoder.js'
+import { initializeEncoderStream } from '../state/encoder.js'
 import { createPcmScaler } from '../io/pcm.js'
 import { analyze } from '../analysis/stage.js'
+import {
+  beginEncoderFrame,
+  commitEncoderFrame,
+  delayEncoderFrame,
+} from '../state/stream.js'
 import { pack } from '../packing.js'
 import { quantize } from '../quantization/stage.js'
 import { pipe } from '../utils.js'
@@ -65,63 +70,6 @@ export function validateFrame(context) {
 }
 
 /**
- * Capture all ported ATRAC3plus state into detached storage before analysis.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Transaction capture stage.
- */
-export function beginTransaction(context) {
-  return (frame) => {
-    copyEncoderState(
-      context.bufferPool.encoder.state,
-      context.bufferPool.encoder.frame,
-      context.bufferPool.encoder.state.topology
-    )
-    frame.analysisStates = context.bufferPool.encoder.frame.analysisChannels
-    frame.channelBlocks = context.bufferPool.encoder.frame.channelBlocks
-    frame.sharedCodingUnits = context.bufferPool.encoder.frame.sharedCodingUnits
-    frame.intensityCodingUnits =
-      context.bufferPool.encoder.frame.intensityCodingUnits
-    return frame
-  }
-}
-
-/**
- * Consume one successful analyzed frame before stream output becomes visible.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Analysis delay stage.
- */
-export function applyDelay(context) {
-  const delay = context.bufferPool.encoder.state.analysisToStreamDelay
-  return (frame) => {
-    frame.analysisDelayed = delay.consumeAfterAllocation()
-    return frame
-  }
-}
-
-/**
- * Publish frame histories only after delay acceptance or successful packing.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Atomic commit stage.
- */
-export function commitFrame(context) {
-  const encoder = context.bufferPool.encoder
-  return (frame) => {
-    if (!frame.analysisDelayed && !(frame.output instanceof Uint8Array)) {
-      throw new Error(
-        'ATRAC3plus frame cannot commit before successful packing'
-      )
-    }
-    copyEncoderState(encoder.frame, encoder.state, encoder.state.topology)
-    encoder.state.lastAllocationAttempts = frame.allocationAttempts
-    frame.committed = true
-    return frame
-  }
-}
-
-/**
  * Detach a packed frame; analysis-delay frames intentionally emit none.
  *
  * @returns {function(EncoderFrame): (Uint8Array|null)} Output stage.
@@ -159,13 +107,13 @@ export function encode(options = {}, bufferPool = new BufferPool()) {
   const encodeFrame = pipe(
     context,
     validateFrame,
-    beginTransaction,
+    beginEncoderFrame,
     analyze,
     allocate,
     quantize,
-    applyDelay,
+    delayEncoderFrame,
     pack,
-    commitFrame,
+    commitEncoderFrame,
     detachOutput
   )
   const scale = createPcmScaler(context.profile.channels)

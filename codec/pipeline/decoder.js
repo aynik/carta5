@@ -8,11 +8,12 @@
 
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
-import { copyDecoderState, initializeDecoderStream } from '../state/decoder.js'
+import { initializeDecoderStream } from '../state/decoder.js'
 import { FrameDecodeScratch, validateFrameSource } from '../io/frame-decoder.js'
 import { dequantize } from '../dequantization/stage.js'
 import { unpack } from '../unpacking.js'
 import { synthesize } from '../synthesis.js'
+import { beginDecoderFrame, commitDecoderFrame } from '../state/stream.js'
 import { pipe } from '../utils.js'
 import { normalizePcm } from '../io/pcm.js'
 
@@ -36,56 +37,18 @@ export function validateFrame(context) {
 }
 
 /**
- * Capture persistent syntax and history into the detached transaction.
+ * Detach pool-owned PCM only after decoder history is published.
  *
  * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Transaction capture stage.
+ * @returns {function(DecoderFrame): Float32Array[]} PCM detachment protocol.
  */
-export function beginTransaction(context) {
-  return (frame) => {
-    copyDecoderState(
-      context.bufferPool.decoder.state,
-      context.bufferPool.decoder.frame
-    )
-    return frame
-  }
-}
-
-/**
- * Rotate accepted frame syntax histories after all signal kernels succeed.
- *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} History rotation stage.
- */
-function rotateHistory(context) {
+function detachPcm(context) {
   const decoder = context.bufferPool.decoder
   const { topology } = decoder.state
-  return (frame) => {
-    for (let unit = 0; unit < topology.codingUnitCount; unit++) {
-      const channels = topology.codingUnitChannels[unit]
-      for (let ordinal = 0; ordinal < channels.length; ordinal++) {
-        decoder.frame.channelBlocks[channels.at(ordinal)].rotateAfterSynthesis()
-      }
-    }
-    return frame
-  }
-}
-
-/**
- * Atomically publish frame history and detach planar PCM.
- *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): Float32Array[]} Atomic commit stage.
- */
-function commitFrame(context) {
-  const decoder = context.bufferPool.decoder
-  const { topology } = decoder.state
-  return () => {
-    copyDecoderState(decoder.frame, decoder.state)
-    return Array.from({ length: topology.channelCount }, (_, channel) =>
+  return () =>
+    Array.from({ length: topology.channelCount }, (_, channel) =>
       decoder.frame.outputChannels[channel].slice()
     )
-  }
 }
 
 /**
@@ -118,12 +81,12 @@ export function decode(options = {}, bufferPool = new BufferPool()) {
   const decodeFrame = pipe(
     context,
     validateFrame,
-    beginTransaction,
+    beginDecoderFrame,
     unpack,
     dequantize,
     synthesize,
-    rotateHistory,
-    commitFrame
+    commitDecoderFrame,
+    detachPcm
   )
   return (frame) => normalizePcm(decodeFrame(frame))
 }

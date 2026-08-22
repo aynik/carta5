@@ -14,12 +14,12 @@ import {
   prepareGeometry,
   rotateHistory,
 } from '../codec/analysis/stage.js'
+import { validateFrame } from '../codec/pipeline/encoder.js'
 import {
-  applyDelay,
-  beginTransaction,
-  commitFrame,
-  validateFrame,
-} from '../codec/pipeline/encoder.js'
+  beginEncoderFrame,
+  commitEncoderFrame,
+  delayEncoderFrame,
+} from '../codec/state/stream.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'
 import { packCodingUnit } from '../codec/io/coding-unit.js'
 import { BitCounter } from '../codec/io/bitstream.js'
@@ -66,7 +66,7 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     const request = bufferPool.encoder.scratch.gain.detection.request
 
     let frame = validateFrame(context)([referencePcm()])
-    frame = beginTransaction(context)(frame)
+    frame = beginEncoderFrame(context)(frame)
     frame = analyze(context)(frame)
     frame = allocate(context)(frame)
     expect(frame.allocationTransactions[0].trialSpectra[0].some(Boolean)).toBe(
@@ -74,7 +74,7 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     )
     expect(frame.channelBlocks[0].quantizedSpectrum.some(Boolean)).toBe(false)
     frame = quantize(context)(frame)
-    frame = applyDelay(context)(frame)
+    frame = delayEncoderFrame(context)(frame)
     frame = pack(context)(frame)
 
     expect(frame.channels).toBe(pcmView)
@@ -178,7 +178,7 @@ describe('ATRAC3plus detached analysis stage chain', () => {
       sampleRate: 44100,
     })
     const context = { profile, bufferPool }
-    const frame = beginTransaction(context)(
+    const frame = beginEncoderFrame(context)(
       validateFrame(context)([referencePcm()])
     )
     expect(() => prepareGeometry(context)(frame)).toThrow(RangeError)
@@ -196,13 +196,13 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     })
     initializeEncoderStream(profile, bufferPool.encoder)
     const context = { profile, bufferPool }
-    let frame = beginTransaction(context)(
+    let frame = beginEncoderFrame(context)(
       validateFrame(context)([referencePcm()])
     )
     frame.sharedCodingUnits[0].scaleFactorCount = 9
     frame.allocationAttempts = 1
 
-    frame = applyDelay(context)(frame)
+    frame = delayEncoderFrame(context)(frame)
     expect(frame.analysisDelayed).toBe(true)
     expect(bufferPool.encoder.state.analysisToStreamDelay.remainingFrames).toBe(
       6
@@ -210,14 +210,14 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     frame = pack(context)(frame)
     expect(frame.output).toBeNull()
     expect(frame.packedPayloadBits).toBe(0)
-    frame = commitFrame(context)(frame)
+    frame = commitEncoderFrame(context)(frame)
     expect(frame.committed).toBe(true)
     expect(bufferPool.encoder.state.sharedCodingUnits[0].scaleFactorCount).toBe(
       9
     )
 
     expect(() =>
-      commitFrame(context)({ analysisDelayed: false, output: null })
+      commitEncoderFrame(context)({ analysisDelayed: false, output: null })
     ).toThrow('cannot commit before successful packing')
   })
 
@@ -237,7 +237,7 @@ describe('ATRAC3plus detached analysis stage chain', () => {
       Float32Array.from(referencePcm(), (value) => value + channel / 16)
     )
     let frame = validateFrame(context)(channels)
-    frame = beginTransaction(context)(frame)
+    frame = beginEncoderFrame(context)(frame)
     frame = prepareGeometry(context)(frame)
     frame = rotateHistory()(frame)
     frame = analyzeBands(context)(frame)

@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { analyzeBands, rotateHistory } from '../codec/analysis/stage.js'
-import { beginTransaction, validateFrame } from '../codec/pipeline/encoder.js'
+import { validateFrame } from '../codec/pipeline/encoder.js'
+import { beginEncoderFrame } from '../codec/state/stream.js'
 import { EncodeAnalysisState } from '../codec/state/encoder.js'
 import { SynthesisState } from '../codec/state/decoder.js'
 import {
@@ -227,7 +228,7 @@ describe('ATRAC3plus 16-band QMF analysis', () => {
 
     const frame = analyzeBands(context)(
       rotateHistory()(
-        beginTransaction(context)(
+        beginEncoderFrame(context)(
           validateFrame(context)({
             channels: source,
             sampleCount: 1000,

@@ -9,7 +9,8 @@ import {
 } from '../codec/analysis/stage.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
-import { beginTransaction, validateFrame } from '../codec/pipeline/encoder.js'
+import { validateFrame } from '../codec/pipeline/encoder.js'
+import { beginEncoderFrame } from '../codec/state/stream.js'
 import {
   EncodeAnalysisState,
   IntensityStereoState,
@@ -111,7 +112,7 @@ describe('ATRAC3plus intensity stereo', () => {
     initializeEncoderStream(profile, bufferPool.encoder)
     const context = { profile, bufferPool }
     let frame = validateFrame(context)([pcm(0), pcm(1)])
-    frame = beginTransaction(context)(frame)
+    frame = beginEncoderFrame(context)(frame)
     frame = prepareGeometry(context)(frame)
     frame = rotateHistory()(frame)
     frame = analyzeBands(context)(frame)

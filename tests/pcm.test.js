@@ -6,11 +6,8 @@ import { FrameDecodeScratch } from '../codec/io/frame-decoder.js'
 import { dequantize } from '../codec/dequantization/stage.js'
 import { synthesize } from '../codec/synthesis.js'
 import { unpack } from '../codec/unpacking.js'
-import {
-  beginTransaction,
-  decode,
-  validateFrame,
-} from '../codec/pipeline/decoder.js'
+import { decode, validateFrame } from '../codec/pipeline/decoder.js'
+import { beginDecoderFrame } from '../codec/state/stream.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import {
   createPcmScaler,
@@ -100,7 +97,7 @@ describe('ATRAC3plus normalized PCM boundaries', () => {
     const decodeFrame = pipe(
       context,
       validateFrame,
-      beginTransaction,
+      beginDecoderFrame,
       unpack,
       dequantize,
       synthesize
