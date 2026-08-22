@@ -22,7 +22,7 @@ const builds = [
     },
   },
   {
-    entry: './codec/browser/interface.js',
+    entry: './codec/boundary/browser.js',
     output: {
       path: path.resolve('dist'),
       filename: 'carta5-worker-interface.min.js',
