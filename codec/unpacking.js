@@ -2,6 +2,8 @@
 
 import { unpackFrameSyntax } from './syntax/frame/reader.js'
 
+/** @import {DecoderContext, DecoderFrame} from './pipeline/decoder.js' */
+
 /**
  * Traverse every configured coding unit into detached decoder blocks.
  *

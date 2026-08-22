@@ -2,6 +2,8 @@
 
 import { quantizeSymbols } from './symbols.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+
 /**
  * Materialize final symbols for every retained coding unit.
  *

@@ -2,6 +2,8 @@
  * Promise-based client for the Carta5 ATRAC3plus Web Worker.
  */
 
+/** @import {CodecProfileOptions} from '../core/profiles.js' */
+
 export class Carta5Worker {
   /**
    * Create a worker client and install job-resolution handlers.

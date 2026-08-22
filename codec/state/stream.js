@@ -3,6 +3,9 @@
 import { copyDecoderState } from './decoder/image.js'
 import { copyEncoderState } from './encoder.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+/** @import {DecoderContext, DecoderFrame} from '../pipeline/decoder.js' */
+
 /**
  * Rotate accepted frame syntax histories after all signal kernels succeed.
  *

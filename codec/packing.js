@@ -2,6 +2,8 @@
 
 import { packFrame } from './syntax/frame/writer.js'
 
+/** @import {EncoderContext, EncoderFrame} from './pipeline/encoder.js' */
+
 /**
  * Serialize the detached frame into bounded scratch without publishing state.
  *

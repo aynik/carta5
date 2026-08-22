@@ -22,6 +22,32 @@ import {
 } from './tables.js'
 
 /**
+ * Maintained ATRAC3plus profile selectors accepted at codec boundaries.
+ *
+ * @typedef {object} CodecProfileOptions
+ * @property {number} [bitrateKbps] Requested aggregate stream bitrate.
+ * @property {number} [channels] Requested maintained channel topology.
+ * @property {number} [sampleRate] Requested sample rate in hertz.
+ */
+
+/**
+ * Immutable resolved ATRAC3plus profile shared by one codec instance.
+ *
+ * @typedef {object} CodecProfile
+ * @property {number} bitrateKbps Aggregate stream bitrate.
+ * @property {number} bytesPerFrame Fixed encoded frame size.
+ * @property {number} sampleRate Sample rate in hertz.
+ * @property {number} streamChannelMode Packed stream topology selector.
+ * @property {number} bandwidthHz Maintained analysis bandwidth.
+ * @property {number} primaryCodingUnitChannelMode Primary coding-unit mode.
+ * @property {number} channels Maintained stream channel count.
+ * @property {number} frameSamples PCM samples per channel and frame.
+ * @property {number} channelMask WAVE speaker mask.
+ * @property {number} codecConfiguration Packed ATRACX configuration.
+ * @property {Uint8Array} codecInfoBytes Big-endian codec configuration bytes.
+ */
+
+/**
  * Quantize the reference coding-unit byte/rate product to a core mode.
  *
  * @param {number} scaled Reference sample-rate/byte product.

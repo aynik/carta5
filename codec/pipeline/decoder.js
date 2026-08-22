@@ -20,6 +20,30 @@ import { beginDecoderFrame, commitDecoderFrame } from '../state/stream.js'
 import { pipe } from '../utils.js'
 import { normalizePcm } from '../boundary/pcm.js'
 
+/** @import {CodecProfile, CodecProfileOptions} from '../core/profiles.js' */
+
+/**
+ * Stable ownership captured once by one frame-decoder closure.
+ *
+ * @typedef {object} DecoderContext
+ * @property {CodecProfile} profile Resolved immutable stream profile.
+ * @property {BufferPool} bufferPool Persistent, frame, and scratch storage.
+ * @property {FrameDecodeScratch} frameDecode Reusable detached syntax reader.
+ */
+
+/**
+ * Incrementally populated product passed through the decoder stages.
+ *
+ * @typedef {object} DecoderFrame
+ * @property {Uint8Array} input Complete encoded frame bytes.
+ * @property {number} parsedBits Number of syntax bits consumed.
+ * @property {import('../state/decoder/image.js').DecodeChannelState[]} [channelBlocks] Detached decoded channel state.
+ * @property {import('../state/shared.js').SharedState[]} [sharedCodingUnits] Detached coding-unit syntax.
+ * @property {Float32Array[]} [spectra] Dequantized channel spectra.
+ * @property {Float32Array[]} [subbandSamples] Synthesized subband samples by channel.
+ * @property {Float32Array[]} [outputChannels] Pool-owned PCM by channel.
+ */
+
 /**
  * Validate one complete internal ATRAC3plus frame before state capture.
  *

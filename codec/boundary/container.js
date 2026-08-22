@@ -11,8 +11,19 @@ import {
   WAVE_HEADER_BYTES,
 } from '../core/constants.js'
 import { resolveProfile, resolveWaveProfile } from '../core/profiles.js'
-
 import { ATRACX_GUID_BYTES } from '../core/tables.js'
+
+/** @import {CodecProfile, CodecProfileOptions} from '../core/profiles.js' */
+
+/**
+ * Container timeline fields added to maintained codec profile selectors.
+ *
+ * @typedef {object} WaveTimelineOptions
+ * @property {number} [sampleCount] Visible PCM samples per channel.
+ * @property {number} [alignmentSampleCount] Container alignment position.
+ */
+
+/** @typedef {CodecProfileOptions & WaveTimelineOptions} WaveCodecOptions */
 
 const textDecoder = new TextDecoder('ascii')
 

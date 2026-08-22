@@ -16,6 +16,8 @@ import {
 import { createWaveHeader, parseWave } from './container.js'
 import { createPcmWave } from './pcm.js'
 
+/** @import {WaveCodecOptions} from './container.js' */
+
 /**
  * High-level streaming audio processor facade.
  */

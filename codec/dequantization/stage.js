@@ -2,6 +2,8 @@
 
 import { reconstructCodingUnitSpectra } from './spectrum.js'
 
+/** @import {DecoderContext, DecoderFrame} from '../pipeline/decoder.js' */
+
 /**
  * Reconstruct every detached coding unit into fixed decoder spectra.
  *

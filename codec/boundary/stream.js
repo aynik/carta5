@@ -17,6 +17,9 @@ import { createWave, parseWave } from './container.js'
 import { decode } from '../pipeline/decoder.js'
 import { encode } from '../pipeline/encoder.js'
 
+/** @import {CodecProfileOptions} from '../core/profiles.js' */
+/** @import {WaveCodecOptions} from './container.js' */
+
 // The first QMF evaluation skips 16 samples of the persisted 384-sample carry.
 
 /**

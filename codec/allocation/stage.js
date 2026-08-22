@@ -3,6 +3,8 @@
 import { fit } from './fit.js'
 import { solve } from './solve.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+
 /**
  * Compose construction-selected solving and bounded exact-frame fitting.
  *

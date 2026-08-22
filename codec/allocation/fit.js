@@ -6,6 +6,8 @@ import {
 } from '../core/constants.js'
 import { FramePackError, measureFrame } from '../syntax/frame/writer.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+
 /**
  * Build exact frame measurement while preserving suppressed delay frames.
  *

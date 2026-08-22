@@ -22,6 +22,38 @@ import { pack } from '../packing.js'
 import { quantize } from '../quantization/stage.js'
 import { pipe } from '../utils.js'
 
+/** @import {CodecProfile, CodecProfileOptions} from '../core/profiles.js' */
+
+/**
+ * Stable ownership captured once by one frame-encoder closure.
+ *
+ * @typedef {object} EncoderContext
+ * @property {CodecProfile} profile Resolved immutable stream profile.
+ * @property {BufferPool} bufferPool Persistent, frame, and scratch storage.
+ */
+
+/**
+ * Incrementally populated product passed through the encoder stages.
+ *
+ * @typedef {object} EncoderFrame
+ * @property {Float32Array[]} channels Codec-domain planar PCM.
+ * @property {number} channelCount Active stream channel count.
+ * @property {number} sampleCount Valid source samples in this frame.
+ * @property {import('../state/encoder.js').EncodeAnalysisState[]} [analysisStates] Detached analysis histories.
+ * @property {import('../state/encoder.js').EncodeChannelState[]} [channelBlocks] Detached channel syntax and history.
+ * @property {import('../state/shared.js').SharedState[]} [sharedCodingUnits] Detached coding-unit syntax.
+ * @property {import('../state/stereo.js').IntensityStereoState[]} [intensityCodingUnits] Detached stereo histories.
+ * @property {Float32Array[][]} [qmfBands] Analyzed QMF bands by channel.
+ * @property {Float32Array[]} [gainScaledSpectra] Gain-scaled MDCT spectra.
+ * @property {Float32Array[]} [gainUnscaledSpectra] Unscaled MDCT spectra.
+ * @property {import('../state/allocation.js').CodingUnitAllocationTransaction[]} [allocationTransactions] Retained allocation transactions.
+ * @property {number} [allocationAttempts] Exact-fit attempt count.
+ * @property {boolean} [analysisDelayed] Whether the frame remains inside analysis delay.
+ * @property {number} [packedPayloadBits] Serialized payload width.
+ * @property {Uint8Array|null} [output] Pool-owned packed frame view, or no visible output during delay.
+ * @property {boolean} [committed] Whether detached state was published.
+ */
+
 /**
  * Validate and zero-pad one complete ATRAC3plus frame before state capture.
  * This preparatory stage accepts arbitrary valid sample counts while keeping

@@ -10,6 +10,8 @@ import { searchAllocation } from './search.js'
 import { prepareAllocationSource } from './source.js'
 import { quantizeTrial } from '../quantization/symbols.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+
 /**
  * Reduce an over-budget retained selection.
  *

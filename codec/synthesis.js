@@ -6,6 +6,8 @@ import { addDecodedTones } from './signal/tone.js'
 import { addSubbandNoise } from './signal/noise.js'
 import { pipe } from './utils.js'
 
+/** @import {DecoderContext, DecoderFrame} from './pipeline/decoder.js' */
+
 /**
  * Synthesize subbands through inverse MDCT, inverse gain, and frame overlap.
  *

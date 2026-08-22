@@ -17,6 +17,8 @@ import { writeMdctOutputs } from '../signal/spectrum.js'
 import { analyzeQmfFrame } from '../signal/bands.js'
 import { pipe } from '../utils.js'
 
+/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
+
 /**
  * Prepare detached format geometry and chronological histories for analysis.
  *
