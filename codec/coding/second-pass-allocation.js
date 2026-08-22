@@ -12,9 +12,9 @@ import {
   SECOND_PASS_TARGET_FACTOR,
 } from '../core/constants.js'
 import { effectiveAllocationBand } from '../core/geometry.js'
-import { secondPassOffsetWeight } from './allocation-policy.js'
+import { secondPassOffsetWeight } from '../allocation/policy.js'
 
-import { initializeQuantizationOffsets } from './quantization-offset.js'
+import { initializeQuantizationOffsets } from '../allocation/offset.js'
 import { priceSpectrumBand } from './spectrum-pricing.js'
 import { raisePrecommitOffsetsToBudget } from './offset-refinement.js'
 import { planWordLengthSection } from '../syntax/word-length/writer.js'

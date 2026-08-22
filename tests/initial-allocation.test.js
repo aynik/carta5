@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   initializeAllocation,
   normalizeAllocationSpectrum,
-} from '../codec/coding/initial-allocation.js'
+} from '../codec/allocation/initial.js'
 
 import { BufferPool } from '../codec/core/buffers.js'
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'

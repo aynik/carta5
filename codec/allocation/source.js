@@ -9,7 +9,7 @@ import {
   SCALE_FACTOR_TARGET,
 } from '../core/constants.js'
 import { CodingUnitAllocationTransaction } from '../state/allocation.js'
-import { bitAllocationModeFromRatios } from '../coding/allocation-policy.js'
+import { bitAllocationModeFromRatios } from './policy.js'
 
 /**
  * Reference four-at-a-time float32 absolute sum.

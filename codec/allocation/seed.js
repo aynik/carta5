@@ -11,10 +11,10 @@ import {
   intensityStereoSpreadThreshold,
   intensityStereoToneCorrelationThreshold,
   quantCapBandLevelBonus,
-} from './allocation-policy.js'
-import { planAllocationBandOrder } from './allocation-order.js'
+} from './policy.js'
+import { planAllocationBandOrder } from './order.js'
 import { codedSubbandCount, effectiveAllocationBand } from '../core/geometry.js'
-import { measureCodingUnitAllocationSource } from '../analysis/allocation-input.js'
+import { measureCodingUnitAllocationSource } from './source.js'
 import { CodingUnitAllocationTransaction } from '../state/allocation.js'
 
 /**

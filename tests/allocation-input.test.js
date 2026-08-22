@@ -4,7 +4,7 @@ import {
   alignedAbsoluteSum,
   scaleFactorIndexForPeak,
   measureCodingUnitAllocationSource,
-} from '../codec/analysis/allocation-input.js'
+} from '../codec/allocation/source.js'
 
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { CodingUnitAllocationTransaction } from '../codec/state/allocation.js'

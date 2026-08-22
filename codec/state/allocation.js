@@ -5,7 +5,7 @@ import {
   FRAME_SAMPLES,
   QUANTIZATION_UNIT_COUNT,
 } from '../core/constants.js'
-import { AllocationBandOrder } from '../coding/allocation-order.js'
+import { AllocationBandOrder } from '../allocation/order.js'
 import { ReconstructionRefinementScratch } from '../coding/reconstruction-noise.js'
 import { PricedSpectrumBand, SpectrumPricingState } from './spectrum-pricing.js'
 

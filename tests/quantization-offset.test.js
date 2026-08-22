@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { initializeQuantizationOffsets } from '../codec/coding/quantization-offset.js'
+import { initializeQuantizationOffsets } from '../codec/allocation/offset.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { CodingUnitAllocationTransaction } from '../codec/state/allocation.js'
 import { SpectrumPricingState } from '../codec/state/spectrum-pricing.js'

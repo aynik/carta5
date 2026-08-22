@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
   AllocationBandOrder,
   planAllocationBandOrder,
-} from '../codec/coding/allocation-order.js'
+} from '../codec/allocation/order.js'
 
 import { AllocationSourceChannel } from '../codec/state/allocation.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'

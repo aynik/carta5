@@ -9,8 +9,8 @@ import {
 import {
   deriveAllocationSeed,
   prepareIntensityStereoMask,
-} from '../codec/coding/allocation-seed.js'
-import { initializeAllocation } from '../codec/coding/initial-allocation.js'
+} from '../codec/allocation/seed.js'
+import { initializeAllocation } from '../codec/allocation/initial.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import { SharedState } from '../codec/state/shared.js'
 import {

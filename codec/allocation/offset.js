@@ -15,7 +15,7 @@ import {
 import {
   quantOffsetLowRateBaseBump,
   quantOffsetLowRateHighBandBump,
-} from './allocation-policy.js'
+} from './policy.js'
 import { effectiveAllocationBand } from '../core/geometry.js'
 
 /**

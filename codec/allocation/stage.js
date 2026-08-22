@@ -1,9 +1,9 @@
 /** Coding-unit allocation, exact frame fitting, and bounded retry. */
 
-import { prepareAllocationSource } from '../coding/allocation-seed.js'
-import { usesSinglePostScaleFactorFill } from '../coding/allocation-policy.js'
+import { prepareAllocationSource } from './seed.js'
+import { usesSinglePostScaleFactorFill } from './policy.js'
 import { fillRemainingBitBudget } from '../coding/budget-fill.js'
-import { initializeAllocation } from '../coding/initial-allocation.js'
+import { initializeAllocation } from './initial.js'
 import { reduceCommittedAllocationToBudget } from '../coding/offset-refinement.js'
 import { quantizeTrial } from '../quantization/symbols.js'
 import { refineScaleFactors } from '../coding/scale-factor-refinement.js'
