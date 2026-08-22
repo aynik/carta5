@@ -1,6 +1,6 @@
 /** Detached per-coding-unit ATRAC3plus tone analysis and residual planning. */
 
-import { channelCorrelationDb } from './perceptual.js'
+import { channelCorrelationDb } from '../perceptual.js'
 import {
   extractToneCandidates,
   applyToneBand0UpperMask,
@@ -12,9 +12,9 @@ import {
   selectToneMaskedPeakBin,
   writeToneJointRatioMask,
   writeToneWindowedSpectrum,
-} from './tone-detection.js'
-import { powerSpectrum256 } from '../signal/dft.js'
-import { synthesizeTonePair, writeToneResidual } from '../signal/tone.js'
+} from './detection.js'
+import { powerSpectrum256 } from '../../signal/dft.js'
+import { synthesizeTonePair, writeToneResidual } from '../../signal/tone.js'
 import {
   ANALYSIS_TONE_ANALYSIS_BANDS,
   CHANNELS,
@@ -32,7 +32,7 @@ import {
   TONE_SOURCE_SAMPLE,
   TONE_ACCUMULATE_FUSED,
   TONE_CROSSFADE_ENCODER_RESIDUAL,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Resolve a coding-unit-local channel ordinal to its stream channel index.

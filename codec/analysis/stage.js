@@ -10,7 +10,7 @@ import {
   planGainRecords,
 } from './gain/detection.js'
 import { applyIntensityStereo } from './intensity.js'
-import { analyzeTones } from './tone-analysis.js'
+import { analyzeTones } from './tones/planning.js'
 import { channelCorrelationTwoSegments } from './perceptual.js'
 import { rotateEncoderFrameHistories } from '../state/encoder.js'
 import { writeMdctOutputs } from '../signal/spectrum.js'

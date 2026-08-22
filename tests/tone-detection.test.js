@@ -11,7 +11,7 @@ import {
   selectToneMaskedPeakBin,
   writeToneJointRatioMask,
   writeToneWindowedSpectrum,
-} from '../codec/analysis/tone-detection.js'
+} from '../codec/analysis/tones/detection.js'
 import { BufferPool } from '../codec/core/buffers.js'
 
 import { TONE_SYNTHESIS_SINE } from '../codec/core/tables.js'

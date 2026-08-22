@@ -4,10 +4,10 @@ import {
   TONE_SCALE_FACTOR_VALUES,
   TONE_MAGNITUDE_LIMIT,
   TONE_SYNTHESIS_SINE,
-} from '../core/tables.js'
-import { powerSpectrum256 } from '../signal/dft.js'
+} from '../../core/tables.js'
+import { powerSpectrum256 } from '../../signal/dft.js'
 
-import { absoluteMaximum, float64MultiplyAdd } from '../utils.js'
+import { absoluteMaximum, float64MultiplyAdd } from '../../utils.js'
 import {
   ANALYSIS_TONE_DETECTION_BANDS,
   DFT_BINS,
@@ -19,7 +19,7 @@ import {
   TONE_PHASE_BUCKET_SCALE,
   TONE_PRE_GATE_PEAK_RATIO,
   TONE_RETENTION_RATIO,
-} from '../core/constants.js'
+} from '../../core/constants.js'
 
 /**
  * Compare floating-point candidates while treating NaN as unordered and therefore not greater.

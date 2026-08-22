@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { analyzeTones } from '../codec/analysis/tone-analysis.js'
+import { analyzeTones } from '../codec/analysis/tones/planning.js'
 import { BufferPool } from '../codec/core/buffers.js'
 
 import { TONE_SYNTHESIS_SINE } from '../codec/core/tables.js'
