@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
-import { powerSpectrum256, forwardRealDft256 } from '../codec/transforms/dft.js'
+import { powerSpectrum256, forwardRealDft256 } from '../codec/signal/dft.js'
 
 const bits = new DataView(new ArrayBuffer(4))
 const MASK = 0xffffffffffffffffn

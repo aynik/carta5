@@ -1,6 +1,6 @@
 /** Numeric measurement primitives for ATRAC3plus gain-point detection. */
 
-import { magnitudeSpectrum16LowBins } from '../transforms/dft.js'
+import { magnitudeSpectrum16LowBins } from '../signal/dft.js'
 import {
   GAIN_WINDOW_BLOCKS,
   GAIN_WINDOW_FLOATS_PER_BLOCK,

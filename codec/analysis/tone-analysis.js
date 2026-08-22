@@ -13,7 +13,7 @@ import {
   writeToneJointRatioMask,
   writeToneWindowedSpectrum,
 } from './tone-detection.js'
-import { powerSpectrum256 } from '../transforms/dft.js'
+import { powerSpectrum256 } from '../signal/dft.js'
 import { synthesizeTonePair, writeToneResidual } from '../transforms/tone.js'
 import {
   ANALYSIS_TONE_ANALYSIS_BANDS,

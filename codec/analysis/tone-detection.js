@@ -5,7 +5,7 @@ import {
   TONE_MAGNITUDE_LIMIT,
   TONE_SYNTHESIS_SINE,
 } from '../core/tables.js'
-import { powerSpectrum256 } from '../transforms/dft.js'
+import { powerSpectrum256 } from '../signal/dft.js'
 
 import { absoluteMaximum, float64MultiplyAdd } from '../utils.js'
 import {

@@ -9,7 +9,7 @@ import {
 import {
   forwardRealDft16,
   magnitudeSpectrum16LowBins,
-} from '../codec/transforms/dft.js'
+} from '../codec/signal/dft.js'
 import { GainMeasurementScratch } from '../codec/state/analysis.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
