@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { applyIntensityStereo } from '../codec/analysis/intensity.js'
+import { applyIntensityStereo } from '../codec/analysis/stereo.js'
 import {
   analyzeBands,
   applyIntensity,
@@ -13,10 +13,10 @@ import { validateFrame } from '../codec/pipeline/encoder.js'
 import { beginEncoderFrame } from '../codec/state/stream.js'
 import {
   EncodeAnalysisState,
-  IntensityStereoState,
   initializeEncoderStream,
 } from '../codec/state/encoder.js'
 import { IntensityScratch } from '../codec/state/analysis.js'
+import { IntensityStereoState } from '../codec/state/stereo.js'
 
 const bits = new DataView(new ArrayBuffer(4))
 const MASK = 0xffffffffffffffffn

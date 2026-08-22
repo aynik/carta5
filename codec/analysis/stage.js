@@ -9,7 +9,7 @@ import {
   configureGainDetectionRequest,
   planGainRecords,
 } from './gain/detection.js'
-import { applyIntensityStereo } from './intensity.js'
+import { applyIntensityStereo } from './stereo.js'
 import { analyzeTones } from './tones/planning.js'
 import { channelCorrelationTwoSegments } from './perceptual.js'
 import { rotateEncoderFrameHistories } from '../state/encoder.js'
