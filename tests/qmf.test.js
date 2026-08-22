@@ -1,12 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
-import {
-  analyzeBands,
-  beginTransaction,
-  rotateHistory,
-  validateFrame,
-} from '../codec/pipeline/encoder.js'
+import { analyzeBands, rotateHistory } from '../codec/analysis/stage.js'
+import { beginTransaction, validateFrame } from '../codec/pipeline/encoder.js'
 import { EncodeAnalysisState } from '../codec/state/encoder.js'
 import { SynthesisState } from '../codec/state/decoder.js'
 import {

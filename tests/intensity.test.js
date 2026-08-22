@@ -1,16 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import { applyIntensityStereo } from '../codec/analysis/intensity.js'
-import { BufferPool } from '../codec/core/buffers.js'
-import { resolveProfile } from '../codec/core/profiles.js'
 import {
   analyzeBands,
   applyIntensity,
-  beginTransaction,
   prepareGeometry,
   rotateHistory,
-  validateFrame,
-} from '../codec/pipeline/encoder.js'
+} from '../codec/analysis/stage.js'
+import { BufferPool } from '../codec/core/buffers.js'
+import { resolveProfile } from '../codec/core/profiles.js'
+import { beginTransaction, validateFrame } from '../codec/pipeline/encoder.js'
 import {
   EncodeAnalysisState,
   IntensityStereoState,

@@ -3,19 +3,21 @@ import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import {
-  allocate,
   analyze,
   analyzeBands,
-  applyDelay,
   applyIntensity,
-  beginTransaction,
-  commitFrame,
-  pack,
   planGain,
   planTones,
   prepareGeometry,
-  quantize,
   rotateHistory,
+} from '../codec/analysis/stage.js'
+import {
+  allocate,
+  applyDelay,
+  beginTransaction,
+  commitFrame,
+  pack,
+  quantize,
   validateFrame,
 } from '../codec/pipeline/encoder.js'
 import { initializeEncoderStream } from '../codec/state/encoder.js'
@@ -65,8 +67,6 @@ describe('ATRAC3plus detached analysis stage chain', () => {
 
     let frame = validateFrame(context)([referencePcm()])
     frame = beginTransaction(context)(frame)
-    frame = prepareGeometry(context)(frame)
-    frame = rotateHistory()(frame)
     frame = analyze(context)(frame)
     frame = allocate(context)(frame)
     expect(frame.allocationTransactions[0].trialSpectra[0].some(Boolean)).toBe(
