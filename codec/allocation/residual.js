@@ -18,10 +18,7 @@ import {
   repriceWordLengthSection,
 } from '../syntax/word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../state/word-length.js'
-import {
-  priceSpectrumBand,
-  selectSpectrumCodeTable,
-} from '../allocation/pricing.js'
+import { priceSpectrumBand, selectSpectrumCodeTable } from './pricing.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,
@@ -458,11 +455,7 @@ function fillRemainingBitBudgetBatched(transaction, shared) {
  * @param {boolean} batchCompleteRounds Whether complete rounds are large enough to amortize batching.
  * @returns {number}
  */
-export function fillRemainingBitBudget(
-  transaction,
-  shared,
-  batchCompleteRounds
-) {
+export function fillBudget(transaction, shared, batchCompleteRounds) {
   if (batchCompleteRounds) {
     return fillRemainingBitBudgetBatched(transaction, shared)
   }

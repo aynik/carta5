@@ -7,10 +7,7 @@ import {
 
 import { planCodeTableSection } from '../syntax/code-table/writer.js'
 import { CodeTableAccountingTransaction } from '../state/code-table.js'
-import {
-  priceSpectrumBand,
-  selectSpectrumCodeTable,
-} from '../allocation/pricing.js'
+import { priceSpectrumBand, selectSpectrumCodeTable } from './pricing.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,

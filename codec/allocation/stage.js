@@ -2,12 +2,12 @@
 
 import { prepareAllocationSource } from './seed.js'
 import { usesSinglePostScaleFactorFill } from './policy.js'
-import { fillRemainingBitBudget } from '../coding/budget-fill.js'
+import { fillBudget } from './residual.js'
 import { initializeAllocation } from './initial.js'
-import { reduceCommittedAllocationToBudget } from '../coding/offset-refinement.js'
+import { reduceCommittedAllocationToBudget } from './refine.js'
 import { quantizeTrial } from '../quantization/symbols.js'
 import { refineScaleFactors } from '../coding/scale-factor-refinement.js'
-import { searchAllocation } from '../coding/second-pass-allocation.js'
+import { searchAllocation } from './search.js'
 import { refineSpectralNoiseLevels } from '../coding/spectral-noise-refinement.js'
 import {
   BUDGET_RETRY_LIMIT,
@@ -46,7 +46,7 @@ function refresh(transaction) {
 function solveFull(transaction, shared, bitrateKbps) {
   initializeAllocation(transaction, shared)
   searchAllocation(transaction, shared)
-  fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
+  fillBudget(transaction, shared, bitrateKbps >= 256)
   quantizeTrial(transaction)
   refineSpectralNoiseLevels(
     transaction,
@@ -55,7 +55,7 @@ function solveFull(transaction, shared, bitrateKbps) {
   )
   refineScaleFactors(transaction, shared, transaction.reconstructionRefinement)
   reduce(transaction, shared)
-  fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
+  fillBudget(transaction, shared, bitrateKbps >= 256)
   reduce(transaction, shared)
   refresh(transaction)
 }
@@ -78,7 +78,7 @@ function solveSingle(transaction, shared, bitrateKbps) {
   )
   refineScaleFactors(transaction, shared, transaction.reconstructionRefinement)
   reduce(transaction, shared)
-  fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
+  fillBudget(transaction, shared, bitrateKbps >= 256)
   reduce(transaction, shared)
   refresh(transaction)
 }
@@ -93,7 +93,7 @@ function solveSingle(transaction, shared, bitrateKbps) {
 function solveLfeFull(transaction, shared, bitrateKbps) {
   initializeAllocation(transaction, shared)
   searchAllocation(transaction, shared)
-  fillRemainingBitBudget(transaction, shared, bitrateKbps >= 256)
+  fillBudget(transaction, shared, bitrateKbps >= 256)
   quantizeTrial(transaction)
   refineSpectralNoiseLevels(
     transaction,

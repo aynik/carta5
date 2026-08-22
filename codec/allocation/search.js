@@ -12,11 +12,11 @@ import {
   SECOND_PASS_TARGET_FACTOR,
 } from '../core/constants.js'
 import { effectiveAllocationBand } from '../core/geometry.js'
-import { secondPassOffsetWeight } from '../allocation/policy.js'
+import { secondPassOffsetWeight } from './policy.js'
 
-import { initializeQuantizationOffsets } from '../allocation/offset.js'
-import { priceSpectrumBand } from '../allocation/pricing.js'
-import { raisePrecommitOffsetsToBudget } from './offset-refinement.js'
+import { initializeQuantizationOffsets } from './offset.js'
+import { priceSpectrumBand } from './pricing.js'
+import { raisePrecommitOffsetsToBudget } from './refine.js'
 import { planWordLengthSection } from '../syntax/word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../state/word-length.js'
 import {

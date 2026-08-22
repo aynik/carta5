@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { searchAllocation } from '../codec/coding/second-pass-allocation.js'
-import { reduceCommittedAllocationToBudget } from '../codec/coding/offset-refinement.js'
-import { fillRemainingBitBudget } from '../codec/coding/budget-fill.js'
+import { searchAllocation } from '../codec/allocation/search.js'
+import { reduceCommittedAllocationToBudget } from '../codec/allocation/refine.js'
+import { fillBudget } from '../codec/allocation/residual.js'
 import {
   quantizeSymbols,
   quantizeTrial,
@@ -128,7 +128,7 @@ function createFilledFixture() {
   const fixture = createFixture()
   searchAllocation(fixture.transaction, fixture.shared)
   fixture.transaction.allocationBudgetBits = 2300
-  fillRemainingBitBudget(fixture.transaction, fixture.shared)
+  fillBudget(fixture.transaction, fixture.shared)
   return fixture
 }
 
@@ -216,7 +216,7 @@ describe('ATRAC3plus directional second allocation pass', () => {
     searchAllocation(transaction, shared)
     transaction.allocationBudgetBits = 2300
 
-    const total = fillRemainingBitBudget(transaction, shared)
+    const total = fillBudget(transaction, shared)
     expect({
       total,
       word: transaction.wordLengthBits,
@@ -257,8 +257,8 @@ describe('ATRAC3plus directional second allocation pass', () => {
       fixture.transaction.allocationBudgetBits = 3000
     }
 
-    fillRemainingBitBudget(exact.transaction, exact.shared, false)
-    fillRemainingBitBudget(batched.transaction, batched.shared, true)
+    fillBudget(exact.transaction, exact.shared, false)
+    fillBudget(batched.transaction, batched.shared, true)
 
     const allocation = ({ transaction }) => ({
       total: transaction.bitsTotal,
