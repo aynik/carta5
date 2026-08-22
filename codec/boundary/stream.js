@@ -273,8 +273,6 @@ export function encodeWavePcm(channels, options = {}) {
   })
 }
 
-/** Apply ATRACX fact alignment and visible sample-count trimming per frame. */
-
 /**
  * Apply ATRACX fact alignment and visible sample-count trimming per frame.
  */
