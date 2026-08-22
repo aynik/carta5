@@ -4,9 +4,8 @@ import path from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { createProgram, main } from '../bin/cli.js'
 import { decodeWavePcm } from '../codec/io/wave-decoder.js'
-import { createPcmWave } from '../codec/io/serialization.js'
+import { createPcmWave, PCM_SCALE } from '../codec/boundary/pcm.js'
 import { parseWave } from '../codec/io/wave.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
 
 /** Build a short normalized stereo PCM fixture. */
 function createInputWave(sampleCount = 2048) {

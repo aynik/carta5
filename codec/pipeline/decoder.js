@@ -18,7 +18,7 @@ import { unpack } from '../unpacking.js'
 import { synthesize } from '../synthesis.js'
 import { beginDecoderFrame, commitDecoderFrame } from '../state/stream.js'
 import { pipe } from '../utils.js'
-import { normalizePcm } from '../io/pcm.js'
+import { normalizePcm } from '../boundary/pcm.js'
 
 /**
  * Validate one complete internal ATRAC3plus frame before state capture.

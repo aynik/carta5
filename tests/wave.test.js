@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createWave, parseWave } from '../codec/io/wave.js'
 import { encodeWavePcm } from '../codec/io/wave-encoder.js'
 import { decodeWavePcm } from '../codec/io/wave-decoder.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 import { WAVE_HEADER_BYTES } from '../codec/core/constants.js'
 
 describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {

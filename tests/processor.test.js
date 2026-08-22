@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { AudioProcessor } from '../codec/io/processor.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 function signal(sampleCount = 1500) {
   const channels = [

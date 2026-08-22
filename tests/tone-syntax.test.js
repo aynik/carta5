@@ -29,7 +29,7 @@ import {
   copyDecoderState,
   initializeDecoderStream,
 } from '../codec/state/decoder/image.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 const MASK = 0xffffffffffffffffn
 

@@ -24,7 +24,7 @@ import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
 import { StreamingEncoder } from '../codec/io/stream-encoder.js'
 import { SpectrumSyntaxScratch } from '../codec/state/spectrum/syntax.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 function referencePcm(frameIndex = 0) {
   return Float32Array.from(

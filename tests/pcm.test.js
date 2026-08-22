@@ -14,7 +14,7 @@ import {
   normalizePcm,
   PCM_SCALE,
   scalePcmFrame,
-} from '../codec/io/pcm.js'
+} from '../codec/boundary/pcm.js'
 import { initializeDecoderStream } from '../codec/state/decoder/image.js'
 import { pipe } from '../codec/utils.js'
 

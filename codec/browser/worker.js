@@ -10,7 +10,7 @@ import { PROFILE_ROWS } from '../core/tables.js'
 import { createWaveStreamingDecoder } from '../io/wave-decoder.js'
 import { createWaveStreamingEncoder } from '../io/wave-encoder.js'
 import { createWaveHeader, parseWave } from '../io/wave.js'
-import { createPcmWaveHeader, interleavePcm16 } from '../io/serialization.js'
+import { createPcmWaveHeader, interleavePcm16 } from '../boundary/pcm.js'
 
 /**
  * Normalize browser binary inputs to a byte view.

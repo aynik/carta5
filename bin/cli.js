@@ -29,10 +29,10 @@ import { createWaveStreamingDecoder } from '../codec/io/wave-decoder.js'
 import { createWaveStreamingEncoder } from '../codec/io/wave-encoder.js'
 import { createWaveHeader } from '../codec/io/wave.js'
 import {
+  PCM_SCALE,
   createPcmWaveHeader,
   interleavePcm16,
-} from '../codec/io/serialization.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+} from '../codec/boundary/pcm.js'
 
 /**
  * Format a duration in seconds as MM:SS.

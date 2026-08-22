@@ -10,7 +10,7 @@ import { decode } from '../pipeline/decoder.js'
 import { createWaveStreamingDecoder, decodeWavePcm } from './wave-decoder.js'
 import { createWaveStreamingEncoder, encodeWavePcm } from './wave-encoder.js'
 import { createWaveHeader, parseWave } from './wave.js'
-import { createPcmWave } from './serialization.js'
+import { createPcmWave } from '../boundary/pcm.js'
 
 /**
  * High-level streaming audio processor facade.

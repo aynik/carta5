@@ -11,7 +11,7 @@ import { BufferPool } from '../state/storage.js'
 import { resolveProfile } from '../core/profiles.js'
 import { FRAME_SAMPLES } from '../core/constants.js'
 import { initializeEncoderStream } from '../state/encoder.js'
-import { createPcmScaler } from '../io/pcm.js'
+import { createPcmScaler } from '../boundary/pcm.js'
 import { analyze } from '../analysis/stage.js'
 import {
   beginEncoderFrame,

@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  PCM_SCALE,
   floatToPcm16,
   createPcmWave,
   createPcmWaveHeader,
   interleavePcm16,
-} from '../codec/io/serialization.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+} from '../codec/boundary/pcm.js'
 
 describe('ATRAC3plus PCM serialization', () => {
   it('matches the codec float-to-PCM saturation and rounding contract', () => {

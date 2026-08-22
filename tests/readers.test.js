@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { encodeWavePcm } from '../codec/io/wave-encoder.js'
 import { WaveReader } from '../codec/io/readers.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 function fixture() {
   const channels = [new Float32Array(1500), new Float32Array(1500)]

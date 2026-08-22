@@ -37,7 +37,7 @@ import {
 } from '../codec/core/tables.js'
 import { CORE_MODE_MIN_INCLUSIVE_THRESHOLD } from '../codec/core/constants.js'
 import { CORE_MODE_EXCLUSIVE_THRESHOLDS } from '../codec/core/tables.js'
-import { PCM_SCALE } from '../codec/io/pcm.js'
+import { PCM_SCALE } from '../codec/boundary/pcm.js'
 
 describe('ATRAC3plus foundation geometry', () => {
   it('pins frame, QMF, analysis, and stream geometry', () => {
