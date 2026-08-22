@@ -6,7 +6,7 @@
  * surround that semantic recipe.
  */
 
-import { createAllocation } from '../coding/allocation.js'
+import { allocate } from '../allocation/stage.js'
 import { quantizeSymbols } from '../coding/active-quantization.js'
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
@@ -173,16 +173,6 @@ function createEncoderContext(options, bufferPool) {
   if (!profile) throw new RangeError('Unsupported ATRAC3plus encoder profile')
   initializeEncoderStream(profile, bufferPool.encoder)
   return { profile, bufferPool }
-}
-
-/**
- * Compose retained allocation and exact frame fitting.
- *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Allocation stage.
- */
-export function allocate(context) {
-  return createAllocation(context)
 }
 
 /**

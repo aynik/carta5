@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { BufferPool } from '../codec/core/buffers.js'
 import { resolveProfile } from '../codec/core/profiles.js'
+import { allocate } from '../codec/allocation/stage.js'
 import {
   analyze,
   analyzeBands,
@@ -12,7 +13,6 @@ import {
   rotateHistory,
 } from '../codec/analysis/stage.js'
 import {
-  allocate,
   applyDelay,
   beginTransaction,
   commitFrame,

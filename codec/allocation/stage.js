@@ -1,14 +1,14 @@
 /** Coding-unit allocation, exact frame fitting, and bounded retry. */
 
-import { prepareAllocationSource } from './allocation-seed.js'
-import { usesSinglePostScaleFactorFill } from './allocation-policy.js'
-import { fillRemainingBitBudget } from './budget-fill.js'
-import { initializeAllocation } from './initial-allocation.js'
-import { reduceCommittedAllocationToBudget } from './offset-refinement.js'
-import { quantizeTrial } from './active-quantization.js'
-import { refineScaleFactors } from './scale-factor-refinement.js'
-import { searchAllocation } from './second-pass-allocation.js'
-import { refineSpectralNoiseLevels } from './spectral-noise-refinement.js'
+import { prepareAllocationSource } from '../coding/allocation-seed.js'
+import { usesSinglePostScaleFactorFill } from '../coding/allocation-policy.js'
+import { fillRemainingBitBudget } from '../coding/budget-fill.js'
+import { initializeAllocation } from '../coding/initial-allocation.js'
+import { reduceCommittedAllocationToBudget } from '../coding/offset-refinement.js'
+import { quantizeTrial } from '../coding/active-quantization.js'
+import { refineScaleFactors } from '../coding/scale-factor-refinement.js'
+import { searchAllocation } from '../coding/second-pass-allocation.js'
+import { refineSpectralNoiseLevels } from '../coding/spectral-noise-refinement.js'
 import {
   BUDGET_RETRY_LIMIT,
   BUDGET_RETRY_STEP_BITS,
@@ -270,7 +270,7 @@ function boundedRetry(context, allocate, measure) {
  * @param {EncoderContext} context Pipeline ownership context.
  * @returns {function(EncoderFrame): EncoderFrame} Allocation application.
  */
-export function createAllocation(context) {
+export function allocate(context) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
   const allocators = Array.from(
