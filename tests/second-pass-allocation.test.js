@@ -12,7 +12,7 @@ import { refineScaleFactors } from '../codec/coding/scale-factor-refinement.js'
 import { planAllocationBandOrder } from '../codec/allocation/order.js'
 
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'
-import { priceSpectrumBand } from '../codec/coding/spectrum-pricing.js'
+import { priceSpectrumBand } from '../codec/allocation/pricing.js'
 
 import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'

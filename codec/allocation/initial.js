@@ -11,7 +11,7 @@ import {
   NORMALIZATION_CLAMP_LOW,
   SPECTRUM_FORBIDDEN_BITS,
 } from '../core/constants.js'
-import { priceSpectrumBand } from '../coding/spectrum-pricing.js'
+import { priceSpectrumBand } from './pricing.js'
 import { measureInvariantAllocationBits } from '../syntax/allocation.js'
 import { planCodeTableSection } from '../syntax/code-table/writer.js'
 import { selectGainSyntax } from '../syntax/gain/writer.js'

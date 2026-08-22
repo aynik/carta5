@@ -21,7 +21,7 @@ import { WordLengthAccountingTransaction } from '../state/word-length.js'
 import {
   priceSpectrumBand,
   selectSpectrumCodeTable,
-} from './spectrum-pricing.js'
+} from '../allocation/pricing.js'
 import {
   PricedSpectrumBand,
   SpectrumPricingState,

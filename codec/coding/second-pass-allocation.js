@@ -15,7 +15,7 @@ import { effectiveAllocationBand } from '../core/geometry.js'
 import { secondPassOffsetWeight } from '../allocation/policy.js'
 
 import { initializeQuantizationOffsets } from '../allocation/offset.js'
-import { priceSpectrumBand } from './spectrum-pricing.js'
+import { priceSpectrumBand } from '../allocation/pricing.js'
 import { raisePrecommitOffsetsToBudget } from './offset-refinement.js'
 import { planWordLengthSection } from '../syntax/word-length/writer.js'
 import { WordLengthAccountingTransaction } from '../state/word-length.js'

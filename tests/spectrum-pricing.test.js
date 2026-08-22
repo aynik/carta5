@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import { describe, expect, it } from 'vitest'
 
-import { priceSpectrumBand } from '../codec/coding/spectrum-pricing.js'
-import { spectrumPricingPlan } from '../codec/coding/spectrum-pricing-plan.js'
+import { priceSpectrumBand } from '../codec/allocation/pricing.js'
+import { spectrumPricingPlan } from '../codec/allocation/pricing.js'
 import { BufferPool } from '../codec/core/buffers.js'
 import { CODING_UNIT_MAX_CHANNELS } from '../codec/core/constants.js'
 import {
