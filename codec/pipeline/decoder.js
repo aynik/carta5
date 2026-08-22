@@ -9,7 +9,10 @@
 import { BufferPool } from '../core/buffers.js'
 import { resolveProfile } from '../core/profiles.js'
 import { initializeDecoderStream } from '../state/decoder.js'
-import { FrameDecodeScratch, validateFrameSource } from '../io/frame-decoder.js'
+import {
+  FrameDecodeScratch,
+  validateFrameSource,
+} from '../syntax/frame/reader.js'
 import { dequantize } from '../dequantization/stage.js'
 import { unpack } from '../unpacking.js'
 import { synthesize } from '../synthesis.js'

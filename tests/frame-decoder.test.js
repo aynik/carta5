@@ -12,7 +12,7 @@ import {
   FrameTraversal,
   FrameTraversalError,
   validateFrameSource,
-} from '../codec/io/frame-decoder.js'
+} from '../codec/syntax/frame/reader.js'
 
 import { BitWriter } from '../codec/syntax/bitstream.js'
 import { FRAME_ITEM_KIND, FRAME_TAG } from '../codec/core/constants.js'

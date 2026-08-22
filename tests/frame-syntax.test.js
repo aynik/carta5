@@ -6,11 +6,15 @@ import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
 import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
-import { FramePackError, measureFrame, packFrame } from '../codec/io/frame.js'
+import {
+  FramePackError,
+  measureFrame,
+  packFrame,
+} from '../codec/syntax/frame/writer.js'
 import {
   FrameDecodeScratch,
   unpackFrameSyntax,
-} from '../codec/io/frame-decoder.js'
+} from '../codec/syntax/frame/reader.js'
 import { BitWriter } from '../codec/syntax/bitstream.js'
 
 import {

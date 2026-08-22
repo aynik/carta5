@@ -7,7 +7,7 @@ import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import {
   FrameDecodeScratch,
   unpackFrameSyntax,
-} from '../codec/io/frame-decoder.js'
+} from '../codec/syntax/frame/reader.js'
 import {
   applyStereoToneFixes,
   unpackToneSection,

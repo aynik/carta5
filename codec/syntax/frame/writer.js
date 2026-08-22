@@ -4,15 +4,15 @@ import {
   FRAME_PACK_SCRATCH_SLACK_BYTES,
   FRAME_PADDING_BYTE,
   FRAME_TAG,
-} from '../core/constants.js'
-import { framePayloadCapacityBits } from '../core/geometry.js'
-import { BitCounter, BitWriter } from '../syntax/bitstream.js'
-import { measureCodingUnit, packCodingUnit } from '../syntax/unit/writer.js'
+} from '../../core/constants.js'
+import { framePayloadCapacityBits } from '../../core/geometry.js'
+import { BitCounter, BitWriter } from '../bitstream.js'
+import { measureCodingUnit, packCodingUnit } from '../unit/writer.js'
 import {
   FrameHeader,
   frameTagForChannelCount,
   packFrameTag,
-} from '../syntax/records.js'
+} from '../records.js'
 
 /**
  * Error raised when frame pack input violates the decoder or bitstream contract.

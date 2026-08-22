@@ -13,7 +13,7 @@ import {
   BUDGET_RETRY_LIMIT,
   BUDGET_RETRY_STEP_BITS,
 } from '../core/constants.js'
-import { FramePackError, measureFrame } from '../io/frame.js'
+import { FramePackError, measureFrame } from '../syntax/frame/writer.js'
 
 /**
  * Reduce an over-budget retained selection.

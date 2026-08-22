@@ -1,6 +1,6 @@
 /** ATRAC3plus frame packing stage. */
 
-import { packFrame } from './io/frame.js'
+import { packFrame } from './syntax/frame/writer.js'
 
 /**
  * Serialize the detached frame into bounded scratch without publishing state.

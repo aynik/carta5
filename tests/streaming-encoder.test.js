@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto'
 
 const measureFrameControl = vi.hoisted(() => ({ intercept: null }))
 
-vi.mock('../codec/io/frame.js', async (importOriginal) => {
+vi.mock('../codec/syntax/frame/writer.js', async (importOriginal) => {
   const original = await importOriginal()
   return {
     ...original,
@@ -19,7 +19,7 @@ import { BufferPool } from '../codec/core/buffers.js'
 import { flushTailFramesForSampleCount } from '../codec/core/timing.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'
 import { packCodingUnit } from '../codec/syntax/unit/writer.js'
-import { FramePackError } from '../codec/io/frame.js'
+import { FramePackError } from '../codec/syntax/frame/writer.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
 import { StreamingEncoder } from '../codec/io/stream-encoder.js'

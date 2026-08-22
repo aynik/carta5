@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/core/buffers.js'
-import { FrameDecodeScratch } from '../codec/io/frame-decoder.js'
+import { FrameDecodeScratch } from '../codec/syntax/frame/reader.js'
 import {
   ANALYSIS_BANDS,
   ANALYSIS_SLOTS,

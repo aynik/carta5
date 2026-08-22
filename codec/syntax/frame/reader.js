@@ -9,17 +9,17 @@ import {
   FRAME_TAG_BITS,
   FRAME_ITEM_KIND,
   FRAME_TAG,
-} from '../core/constants.js'
-import { peekBits, BitReader } from '../syntax/bitstream.js'
+} from '../../core/constants.js'
+import { peekBits, BitReader } from '../bitstream.js'
 import {
   FrameHeader,
   channelCountForFrameTag,
   frameTagFromWire,
-} from '../syntax/records.js'
+} from '../records.js'
 
-import { unpackCodingUnit } from '../syntax/unit/reader.js'
-import { applyStereoToneFixes } from '../syntax/tone/reader.js'
-import { FrameDecodeStorage } from '../state/decoder-syntax.js'
+import { unpackCodingUnit } from '../unit/reader.js'
+import { applyStereoToneFixes } from '../tone/reader.js'
+import { FrameDecodeStorage } from '../../state/decoder-syntax.js'
 
 /**
  * Error raised when frame traversal input violates the decoder or bitstream contract.

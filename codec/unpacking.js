@@ -1,6 +1,6 @@
 /** ATRAC3plus frame unpacking stage. */
 
-import { unpackFrameSyntax } from './io/frame-decoder.js'
+import { unpackFrameSyntax } from './syntax/frame/reader.js'
 
 /**
  * Traverse every configured coding unit into detached decoder blocks.
