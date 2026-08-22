@@ -3,11 +3,11 @@ import { BufferPool } from '../codec/core/buffers.js'
 import { FRAME_SAMPLES } from '../codec/core/constants.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { FrameDecodeScratch } from '../codec/io/frame-decoder.js'
+import { dequantize } from '../codec/dequantization/stage.js'
 import { unpack } from '../codec/unpacking.js'
 import {
   beginTransaction,
   decode,
-  dequantize,
   synthesize,
   validateFrame,
 } from '../codec/pipeline/decoder.js'
