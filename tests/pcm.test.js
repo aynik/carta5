@@ -4,11 +4,11 @@ import { FRAME_SAMPLES } from '../codec/core/constants.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { FrameDecodeScratch } from '../codec/io/frame-decoder.js'
 import { dequantize } from '../codec/dequantization/stage.js'
+import { synthesize } from '../codec/synthesis.js'
 import { unpack } from '../codec/unpacking.js'
 import {
   beginTransaction,
   decode,
-  synthesize,
   validateFrame,
 } from '../codec/pipeline/decoder.js'
 import { encode } from '../codec/pipeline/encoder.js'
