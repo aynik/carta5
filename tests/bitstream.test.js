@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { packBits, unpackBits, unpackSignedBits } from '../codec/io/bitstream'
+import {
+  packBits,
+  unpackBits,
+  unpackSignedBits,
+} from '../codec/syntax/bitstream.js'
 
 describe('Bitstream Operations', () => {
   describe('packBits and unpackBits', () => {
