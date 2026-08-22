@@ -7,7 +7,7 @@
  */
 
 import { allocate } from '../allocation/stage.js'
-import { BufferPool } from '../core/buffers.js'
+import { BufferPool } from '../state/storage.js'
 import { resolveProfile } from '../core/profiles.js'
 import { FRAME_SAMPLES } from '../core/constants.js'
 import { initializeEncoderStream } from '../state/encoder.js'

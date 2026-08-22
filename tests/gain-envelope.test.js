@@ -6,7 +6,7 @@ import {
   writeGainRecordDeltaEnvelope,
 } from '../codec/analysis/gain/records.js'
 import { GainRecord } from '../codec/state/gain/coding.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { GainEnvelopeScratch } from '../codec/state/analysis.js'
 
 function writeEnvelope(record, events, options = {}) {

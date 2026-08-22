@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GainRecord } from '../codec/state/gain/coding.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 import {
   applyInverseGainScale,

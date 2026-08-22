@@ -1,23 +1,23 @@
 /** Typed-array ownership for one reusable ATRAC3plus codec instance. */
 
-import { IntensityScratch } from '../state/analysis.js'
-import { GainAnalysisScratch } from '../state/gain-analysis.js'
-import { ToneAnalysisScratch, ToneSwapGate } from '../state/tone.js'
-import { SpectrumSyntaxScratch } from '../state/spectrum.js'
-import { EncoderFrameState, EncoderState } from '../state/encoder.js'
-import { DecoderFrameState, DecoderState } from '../state/decoder.js'
-import { FrameDecodeStorage } from '../state/decoder-syntax.js'
+import { IntensityScratch } from './analysis.js'
+import { GainAnalysisScratch } from './gain-analysis.js'
+import { ToneAnalysisScratch, ToneSwapGate } from './tone.js'
+import { SpectrumSyntaxScratch } from './spectrum.js'
+import { EncoderFrameState, EncoderState } from './encoder.js'
+import { DecoderFrameState, DecoderState } from './decoder.js'
+import { FrameDecodeStorage } from './decoder-syntax.js'
 import {
   MdctScratch,
   QmfAnalysisScratch,
   SpectralReconstructionScratch,
   ToneSynthesisScratch,
-} from '../state/transform.js'
+} from './transform.js'
 import {
   FRAME_PACK_SCRATCH_SLACK_BYTES,
   MAX_CODING_UNITS,
   MAX_FRAME_BYTES,
-} from './constants.js'
+} from '../core/constants.js'
 
 /**
  * Own reusable codec storage according to the lifetime of its contents.

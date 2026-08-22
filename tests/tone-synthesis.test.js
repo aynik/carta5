@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { DecodeChannelState } from '../codec/state/decoder.js'
 
 import { SharedState } from '../codec/state/shared.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import {
   addDecodedTones,
   synthesizeTonePair,

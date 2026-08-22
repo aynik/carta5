@@ -7,7 +7,7 @@
  * individual transaction stages from becoming accidental public APIs.
  */
 
-export { BufferPool } from './core/buffers.js'
+export { BufferPool } from './state/storage.js'
 export { resolveProfile, resolveWaveProfile } from './core/profiles.js'
 export { decode } from './pipeline/decoder.js'
 export { encode } from './pipeline/encoder.js'

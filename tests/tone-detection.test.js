@@ -12,7 +12,7 @@ import {
   writeToneJointRatioMask,
   writeToneWindowedSpectrum,
 } from '../codec/analysis/tones/detection.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 
 import { TONE_SYNTHESIS_SINE } from '../codec/core/tables.js'
 import { ToneSynthesisRecord } from '../codec/state/tone.js'

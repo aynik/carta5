@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { FRAME_SAMPLES } from '../codec/core/constants.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { FrameDecodeScratch } from '../codec/syntax/frame/reader.js'

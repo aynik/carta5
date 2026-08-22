@@ -7,7 +7,7 @@ import {
   prepareGeometry,
   rotateHistory,
 } from '../codec/analysis/stage.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { validateFrame } from '../codec/pipeline/encoder.js'
 import { beginEncoderFrame } from '../codec/state/stream.js'

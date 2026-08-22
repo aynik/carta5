@@ -6,7 +6,7 @@
  * surround that semantic recipe.
  */
 
-import { BufferPool } from '../core/buffers.js'
+import { BufferPool } from '../state/storage.js'
 import { resolveProfile } from '../core/profiles.js'
 import { initializeDecoderStream } from '../state/decoder.js'
 import {

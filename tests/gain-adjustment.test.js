@@ -7,7 +7,7 @@ import {
   planLowModeGainAdjustment,
 } from '../codec/analysis/gain/adjustment.js'
 import { GainRecordPlan, GainRecord } from '../codec/state/gain/coding.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import {
   EncodeAnalysisState,
   EncodeChannelState,

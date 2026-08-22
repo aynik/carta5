@@ -11,7 +11,7 @@ export class WaveStreamingEncoder {
    * Create a WAVE timeline adapter around one persistent chunk encoder.
    *
    * @param {WaveCodecOptions} [options] Maintained profile and timeline options.
-   * @param {import('../core/buffers.js').BufferPool} bufferPool
+   * @param {import('../state/storage.js').BufferPool} bufferPool
    * Explicit reusable codec storage.
    */
   constructor(options = {}, bufferPool) {
@@ -62,7 +62,7 @@ export class WaveStreamingEncoder {
  * Create a streaming encoder that owns ATRACX timeline accounting.
  *
  * @param {WaveCodecOptions} [options] Maintained profile and timeline options.
- * @param {import('../core/buffers.js').BufferPool} bufferPool
+ * @param {import('../state/storage.js').BufferPool} bufferPool
  * Explicit reusable codec storage.
  * @returns {WaveStreamingEncoder} Persistent WAVE timeline adapter.
  */

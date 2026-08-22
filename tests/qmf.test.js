@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { analyzeBands, rotateHistory } from '../codec/analysis/stage.js'
 import { validateFrame } from '../codec/pipeline/encoder.js'

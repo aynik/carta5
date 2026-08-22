@@ -7,7 +7,7 @@ import {
   packSpectrumPayload,
   unpackSpectrumPayload,
 } from '../codec/syntax/spectrum/coding.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import {
   spectralNoiseLevelFieldCount,
   packChannelSpectrum,

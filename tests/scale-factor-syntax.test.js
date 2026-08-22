@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { unpackScaleFactorChannel } from '../codec/syntax/scale-factor/reader.js'
 import {

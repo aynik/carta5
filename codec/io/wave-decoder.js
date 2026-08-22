@@ -19,7 +19,7 @@ export class WaveStreamingDecoder {
    * Create a frame decoder with WAVE timeline trimming.
    *
    * @param {WaveCodecOptions} [options] Profile and `fact` timeline options.
-   * @param {import('../core/buffers.js').BufferPool} bufferPool
+   * @param {import('../state/storage.js').BufferPool} bufferPool
    * Explicit reusable codec storage.
    */
   constructor(options = {}, bufferPool) {
@@ -85,7 +85,7 @@ export class WaveStreamingDecoder {
  * Create a streaming decoder that applies ATRACX timeline trimming.
  *
  * @param {WaveCodecOptions} [options] Profile and `fact` timeline options.
- * @param {import('../core/buffers.js').BufferPool} bufferPool
+ * @param {import('../state/storage.js').BufferPool} bufferPool
  * Explicit reusable codec storage.
  * @returns {WaveStreamingDecoder} Persistent WAVE timeline adapter.
  */

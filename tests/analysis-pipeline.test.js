@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { resolveProfile } from '../codec/core/profiles.js'
 import { allocate } from '../codec/allocation/stage.js'
 import { quantize } from '../codec/quantization/stage.js'

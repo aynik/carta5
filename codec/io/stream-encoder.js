@@ -1,6 +1,6 @@
 /** Arbitrary-chunk and flush-tail owner for the detached ATRAC3plus encoder. */
 
-import { BufferPool } from '../core/buffers.js'
+import { BufferPool } from '../state/storage.js'
 import { FRAME_SAMPLES, DONE, DRAINING, FEEDING } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { flushTailFramesForSampleCount } from '../core/timing.js'

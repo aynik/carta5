@@ -5,7 +5,7 @@ import {
   normalizeAllocationSpectrum,
 } from '../codec/allocation/initial.js'
 
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { SPECTRUM_FORBIDDEN_BITS } from '../codec/core/constants.js'
 import { QUANTIZATION_UNIT_OFFSETS } from '../codec/core/tables.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'

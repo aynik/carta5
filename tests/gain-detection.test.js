@@ -5,7 +5,7 @@ import {
   detectGainRecordsRaw,
   planGainRecords,
 } from '../codec/analysis/gain/detection.js'
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { EncodeChannelState } from '../codec/state/encoder.js'
 
 const HASH_OFFSET = 1469598103934665603n

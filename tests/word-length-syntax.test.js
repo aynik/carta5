@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { BufferPool } from '../codec/core/buffers.js'
+import { BufferPool } from '../codec/state/storage.js'
 import { MAX_CODING_UNITS } from '../codec/core/constants.js'
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
 import { unpackWordLengthChannel } from '../codec/syntax/word-length/reader.js'
