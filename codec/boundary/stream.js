@@ -4,13 +4,12 @@ import { BufferPool } from '../state/storage.js'
 import {
   ANALYSIS_RESIDUAL_OVERLAP_SAMPLES,
   ANALYSIS_TO_STREAM_DELAY_FRAMES,
-  DELAY_SAMPLES,
   DONE,
   DRAINING,
   FEEDING,
   FRAME_SAMPLES,
   FULL_FRAME_FLUSH_TAIL_FRAMES,
-  WAVE_DEFAULT_ALIGNMENT_SAMPLES,
+  STREAM_PRIMING_SAMPLES,
 } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { createWave, parseWave } from './container.js'
@@ -272,7 +271,7 @@ export function encodeWavePcm(channels, options = {}) {
     channels: encoder.profile.channels,
     sampleRate: encoder.profile.sampleRate,
     sampleCount: encoder.sampleCount,
-    alignmentSampleCount: options.alignmentSampleCount,
+    primingSampleCount: options.primingSampleCount,
   })
 }
 
@@ -293,9 +292,7 @@ export class WaveStreamingDecoder {
       throw new RangeError('Unsupported ATRACX WAVE decoder profile')
     }
     this.decodeFrame = decode(this.profile, bufferPool)
-    this.skipSamples =
-      (options.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES) +
-      DELAY_SAMPLES
+    this.skipSamples = options.primingSampleCount ?? STREAM_PRIMING_SAMPLES
     this.sampleCount = options.sampleCount ?? Number.POSITIVE_INFINITY
     this.timelinePosition = 0
     this.emittedSamples = 0
@@ -366,20 +363,17 @@ export function createWaveStreamingDecoder(options, bufferPool) {
  */
 export function decodeWavePcm(input) {
   const parsed = parseWave(input)
-  const alignmentSampleCount =
-    parsed.fact?.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES
+  const primingSampleCount =
+    parsed.fact?.primingSampleCount ?? STREAM_PRIMING_SAMPLES
   const sampleCount =
     parsed.fact?.sampleCount ??
-    Math.max(
-      0,
-      parsed.frameCount * FRAME_SAMPLES - alignmentSampleCount - DELAY_SAMPLES
-    )
+    Math.max(0, parsed.frameCount * FRAME_SAMPLES - primingSampleCount)
   const decoder = new WaveStreamingDecoder({
     bitrateKbps: parsed.profile.bitrateKbps,
     channels: parsed.profile.channels,
     sampleRate: parsed.profile.sampleRate,
     sampleCount,
-    alignmentSampleCount,
+    primingSampleCount,
   })
   const output = Array.from(
     { length: parsed.profile.channels },

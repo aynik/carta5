@@ -2,8 +2,8 @@
 
 import {
   FRAME_SAMPLES,
+  STREAM_PRIMING_SAMPLES,
   STREAM_CHANNEL_MODE,
-  WAVE_DEFAULT_ALIGNMENT_SAMPLES,
 } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { decode } from '../pipeline/decoder.js'
@@ -174,7 +174,7 @@ export class AudioProcessor {
     const header = createWaveHeader(
       profile,
       frames.length * profile.bytesPerFrame,
-      options.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES,
+      options.primingSampleCount ?? STREAM_PRIMING_SAMPLES,
       options.sampleCount ?? 0
     )
     return new Blob([header, ...frames], { type: 'audio/wav' })

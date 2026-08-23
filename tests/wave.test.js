@@ -2,7 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { createWave, parseWave } from '../codec/boundary/container.js'
 import { decodeWavePcm, encodeWavePcm } from '../codec/boundary/stream.js'
 import { PCM_SCALE } from '../codec/boundary/pcm.js'
-import { WAVE_HEADER_BYTES } from '../codec/core/constants.js'
+import {
+  STREAM_PRIMING_SAMPLES,
+  WAVE_HEADER_BYTES,
+} from '../codec/core/constants.js'
 
 describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {
   it('writes the canonical reference extensible header layout', () => {
@@ -59,7 +62,7 @@ describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {
     expect(parsed.fact).toEqual({
       sampleCount: 2048,
       reservedSampleCount: 2048,
-      alignmentSampleCount: 2232,
+      primingSampleCount: STREAM_PRIMING_SAMPLES,
     })
     expect(parsed.frameCount).toBe(2)
     expect([...parsed.frames()].map((frame) => frame[0])).toEqual([3, 7])
@@ -101,12 +104,36 @@ describe('ATRACX RIFF/WAVE_FORMAT_EXTENSIBLE container', () => {
     expect(parsed.fact).toEqual({
       sampleCount: 3000,
       reservedSampleCount: 2048,
-      alignmentSampleCount: 2232,
+      primingSampleCount: STREAM_PRIMING_SAMPLES,
     })
     expect(parsed.frameCount).toBe(3)
     const decoded = decodeWavePcm(wave)
     expect(decoded).toHaveLength(1)
     expect(decoded[0]).toHaveLength(3000)
     expect(decoded[0].every(Number.isFinite)).toBe(true)
+  })
+
+  it('aligns decoded PCM with the original source timeline', () => {
+    const sampleCount = 8192
+    const impulseSample = 3145
+    const source = new Float32Array(sampleCount)
+    source[impulseSample] = 0.8
+
+    const [decoded] = decodeWavePcm(
+      encodeWavePcm([source], {
+        bitrateKbps: 128,
+        channels: 1,
+        sampleRate: 44100,
+      })
+    )
+    let peakSample = 0
+    for (let sample = 1; sample < decoded.length; sample++) {
+      if (Math.abs(decoded[sample]) > Math.abs(decoded[peakSample])) {
+        peakSample = sample
+      }
+    }
+
+    expect(decoded).toHaveLength(sampleCount)
+    expect(peakSample).toBe(impulseSample)
   })
 })

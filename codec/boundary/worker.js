@@ -1,10 +1,6 @@
 /** Browser worker boundary for normalized PCM and complete ATRACX WAVE jobs. */
 
-import {
-  DELAY_SAMPLES,
-  FRAME_SAMPLES,
-  WAVE_DEFAULT_ALIGNMENT_SAMPLES,
-} from '../core/constants.js'
+import { FRAME_SAMPLES, STREAM_PRIMING_SAMPLES } from '../core/constants.js'
 import { resolveProfile } from '../core/profiles.js'
 import { PROFILE_ROWS } from '../core/tables.js'
 import {
@@ -56,7 +52,7 @@ self.onmessage = async ({ data }) => {
       const header = createWaveHeader(
         profile,
         frames.length * profile.bytesPerFrame,
-        options.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES,
+        options.primingSampleCount ?? STREAM_PRIMING_SAMPLES,
         encoder.sampleCount
       )
       result = {
@@ -72,21 +68,16 @@ self.onmessage = async ({ data }) => {
     } else if (type === 'decode') {
       const wave = await asBytes(data.wave)
       const parsed = parseWave(wave)
-      const alignmentSampleCount =
-        parsed.fact?.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES
+      const primingSampleCount =
+        parsed.fact?.primingSampleCount ?? STREAM_PRIMING_SAMPLES
       const sampleCount =
         parsed.fact?.sampleCount ??
-        Math.max(
-          0,
-          parsed.frameCount * FRAME_SAMPLES -
-            alignmentSampleCount -
-            DELAY_SAMPLES
-        )
+        Math.max(0, parsed.frameCount * FRAME_SAMPLES - primingSampleCount)
       const decoder = createWaveStreamingDecoder({
         bitrateKbps: parsed.profile.bitrateKbps,
         channels: parsed.profile.channels,
         sampleRate: parsed.profile.sampleRate,
-        alignmentSampleCount,
+        primingSampleCount,
         sampleCount,
       })
       const pcmParts = [

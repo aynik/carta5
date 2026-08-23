@@ -2,9 +2,9 @@
 
 import {
   DELAY_SAMPLES,
+  STREAM_PRIMING_SAMPLES,
   WAVE_FORMAT_TAG,
   WAVE_FORMAT_VERSION,
-  WAVE_DEFAULT_ALIGNMENT_SAMPLES,
   WAVE_EXTENSION_BYTES,
   WAVE_FACT_BYTES,
   WAVE_FORMAT_CHUNK_BYTES,
@@ -20,7 +20,7 @@ import { ATRACX_GUID_BYTES } from '../core/tables.js'
  *
  * @typedef {object} WaveTimelineOptions
  * @property {number} [sampleCount] Visible PCM samples per channel.
- * @property {number} [alignmentSampleCount] Container alignment position.
+ * @property {number} [primingSampleCount] Samples before source sample zero.
  */
 
 /** @typedef {CodecProfileOptions & WaveTimelineOptions} WaveCodecOptions */
@@ -70,13 +70,13 @@ function matchesAtracxGuid(input, offset) {
  *
  * @param {CodecProfile} profile
  * @param {number} dataBytes
- * @param {number} alignmentSampleCount
+ * @param {number} primingSampleCount
  * @param {number} sampleCount
  */
 function validateHeaderGeometry(
   profile,
   dataBytes,
-  alignmentSampleCount,
+  primingSampleCount,
   sampleCount
 ) {
   if (
@@ -85,9 +85,9 @@ function validateHeaderGeometry(
     dataBytes < 0 ||
     dataBytes > 0xffffffff - WAVE_HEADER_BYTES ||
     dataBytes % profile.bytesPerFrame !== 0 ||
-    !Number.isInteger(alignmentSampleCount) ||
-    alignmentSampleCount < DELAY_SAMPLES ||
-    alignmentSampleCount > 0xffffffff ||
+    !Number.isInteger(primingSampleCount) ||
+    primingSampleCount < DELAY_SAMPLES * 2 ||
+    primingSampleCount > 0xffffffff ||
     !Number.isInteger(sampleCount) ||
     sampleCount < 0 ||
     sampleCount > 0xffffffff
@@ -101,17 +101,17 @@ function validateHeaderGeometry(
  *
  * @param {CodecProfile} profile Immutable maintained profile.
  * @param {number} dataBytes Total encoded frame bytes.
- * @param {number} [alignmentSampleCount] Container alignment timeline.
+ * @param {number} [primingSampleCount] Samples before source sample zero.
  * @param {number} [sampleCount] Visible PCM samples per channel.
  * @returns {Uint8Array} Canonical fixed-size WAVE header.
  */
 export function createWaveHeader(
   profile,
   dataBytes,
-  alignmentSampleCount = WAVE_DEFAULT_ALIGNMENT_SAMPLES,
+  primingSampleCount = STREAM_PRIMING_SAMPLES,
   sampleCount = 0
 ) {
-  validateHeaderGeometry(profile, dataBytes, alignmentSampleCount, sampleCount)
+  validateHeaderGeometry(profile, dataBytes, primingSampleCount, sampleCount)
   const output = new Uint8Array(WAVE_HEADER_BYTES)
   const view = new DataView(output.buffer)
   writeFourCc(output, 0, 'RIFF')
@@ -141,8 +141,8 @@ export function createWaveHeader(
   writeFourCc(output, 72, 'fact')
   view.setUint32(76, WAVE_FACT_BYTES, true)
   view.setUint32(80, sampleCount, true)
-  view.setUint32(84, alignmentSampleCount - DELAY_SAMPLES, true)
-  view.setUint32(88, alignmentSampleCount, true)
+  view.setUint32(84, primingSampleCount - DELAY_SAMPLES * 2, true)
+  view.setUint32(88, primingSampleCount - DELAY_SAMPLES, true)
   writeFourCc(output, 92, 'data')
   view.setUint32(96, dataBytes, true)
   return output
@@ -164,7 +164,7 @@ export function createWave(frames, options = {}) {
     createWaveHeader(
       profile,
       dataBytes,
-      options.alignmentSampleCount ?? WAVE_DEFAULT_ALIGNMENT_SAMPLES,
+      options.primingSampleCount ?? STREAM_PRIMING_SAMPLES,
       options.sampleCount ?? 0
     )
   )
@@ -234,11 +234,11 @@ export function parseWave(input) {
           sampleCount: view.getUint32(payload, true),
           reservedSampleCount:
             size >= 12 ? view.getUint32(payload + 4, true) : null,
-          alignmentSampleCount:
+          primingSampleCount:
             size >= 12
-              ? view.getUint32(payload + 8, true)
+              ? view.getUint32(payload + 8, true) + DELAY_SAMPLES
               : size >= 8
-                ? view.getUint32(payload + 4, true) + DELAY_SAMPLES
+                ? view.getUint32(payload + 4, true) + DELAY_SAMPLES * 2
                 : null,
         }
       }

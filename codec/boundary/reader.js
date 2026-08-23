@@ -1,5 +1,6 @@
 /** Iterable ATRACX WAVE reader over an in-memory byte image. */
 
+import { STREAM_PRIMING_SAMPLES } from '../core/constants.js'
 import { parseWave } from './container.js'
 
 /**
@@ -36,9 +37,8 @@ export class WaveReader {
       bytesPerFrame: this.parsed.profile.bytesPerFrame,
       frameCount: this.parsed.frameCount,
       sampleCount: this.parsed.fact?.sampleCount ?? null,
-      alignmentSampleCount:
-        this.parsed.fact?.alignmentSampleCount ??
-        this.parsed.profile.frameSamples,
+      primingSampleCount:
+        this.parsed.fact?.primingSampleCount ?? STREAM_PRIMING_SAMPLES,
     }
   }
 

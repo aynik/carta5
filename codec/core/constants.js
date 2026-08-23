@@ -847,8 +847,8 @@ export const TYPE_ONE_BIT = 2
 /** Type value. */
 export const TYPE_VALUE = 1
 
-/** WAVE default alignment samples. */
-export const WAVE_DEFAULT_ALIGNMENT_SAMPLES = FRAME_SAMPLES + DELAY_SAMPLES
+/** Complete-stream priming before source sample zero. */
+export const STREAM_PRIMING_SAMPLES = FRAME_SAMPLES + DELAY_SAMPLES * 2
 
 /** WAVE extension bytes. */
 export const WAVE_EXTENSION_BYTES = 34
