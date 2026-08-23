@@ -24,17 +24,13 @@ function bitReverseComplexPairs16(spectrum) {
 }
 
 /**
- * Permute interleaved complex pairs into radix-two bit-reversed order.
+ * Permute 128 interleaved complex pairs into radix-two bit-reversed order.
  *
  * @param {ArrayLike<number>} spectrum
- * @param {number} sampleCount
  */
-function bitReverseComplexPairs(spectrum, sampleCount) {
-  const complexCount = sampleCount >> 1
-  let bitCount = 0
-  for (let remaining = complexCount; remaining > 1; remaining >>= 1) bitCount++
-  for (let sourcePair = 0; sourcePair < complexCount; sourcePair++) {
-    const destinationPair = reverseLowBits(sourcePair, bitCount)
+function bitReverseComplexPairs256(spectrum) {
+  for (let sourcePair = 0; sourcePair < 128; sourcePair++) {
+    const destinationPair = reverseLowBits(sourcePair, 7)
     if (destinationPair <= sourcePair) continue
     const source = sourcePair * 2
     const destination = destinationPair * 2
@@ -170,7 +166,7 @@ export function forwardRealDft256(spectrum) {
     throw new RangeError('ATRAC3plus 256-point DFT requires 256 floats')
   }
   const twiddles = DFT_256_TWIDDLES
-  bitReverseComplexPairs(spectrum, 256)
+  bitReverseComplexPairs256(spectrum)
 
   {
     const a0 = spectrum[0]
@@ -324,7 +320,7 @@ export function forwardRealDft256(spectrum) {
   }
 
   let butterflySpan = 8
-  for (;;) {
+  while (butterflySpan < 128) {
     const groupStride = butterflySpan
     const quarterSpan = groupStride * 4
     for (let lane = 0; lane < groupStride; lane += 2) {
@@ -485,59 +481,20 @@ export function forwardRealDft256(spectrum) {
       }
     }
     butterflySpan = quarterSpan
-    if (groupStride << 4 >= 256) break
   }
 
-  if (butterflySpan * 4 === 256) {
-    const i1 = butterflySpan
-    const i2 = butterflySpan * 2
-    const i3 = butterflySpan * 3
-    for (let lane = 0; lane < butterflySpan; lane += 2) {
-      const q0e = spectrum[lane]
-      const q0o = spectrum[lane + 1]
-      const q1e = spectrum[i1 + lane]
-      const q1o = spectrum[i1 + lane + 1]
-      const q2e = spectrum[i2 + lane]
-      const q2o = spectrum[i2 + lane + 1]
-      const q3e = spectrum[i3 + lane]
-      const q3o = spectrum[i3 + lane + 1]
-      spectrum[lane] = float32Round(
-        float32Round(float32Round(q0e + q1e) + q2e) + q3e
-      )
-      spectrum[lane + 1] = float32Round(
-        float32Round(float32Round(q0o + q1o) + q2o) + q3o
-      )
-      spectrum[i1 + lane] = float32Round(
-        float32Round(float32Round(q0e - q1e) - q2o) + q3o
-      )
-      spectrum[i1 + lane + 1] = float32Round(
-        float32Round(float32Round(q0o - q1o) + q2e) - q3e
-      )
-      spectrum[i2 + lane] = float32Round(
-        float32Round(float32Round(q0e + q1e) - q2e) - q3e
-      )
-      spectrum[i2 + lane + 1] = float32Round(
-        float32Round(float32Round(q0o + q1o) - q2o) - q3o
-      )
-      spectrum[i3 + lane] = float32Round(
-        float32Round(float32Round(q0e - q1e) + q2o) - q3o
-      )
-      spectrum[i3 + lane + 1] = float32Round(
-        float32Round(float32Round(q0o - q1o) - q2e) + q3e
-      )
-    }
-  } else {
-    const i1 = butterflySpan
-    for (let lane = 0; lane < butterflySpan; lane += 2) {
-      const q0e = spectrum[lane]
-      const q0o = spectrum[lane + 1]
-      const q1e = spectrum[i1 + lane]
-      const q1o = spectrum[i1 + lane + 1]
-      spectrum[lane] = float32Round(q0e + q1e)
-      spectrum[lane + 1] = float32Round(q0o + q1o)
-      spectrum[i1 + lane] = float32Round(q0e - q1e)
-      spectrum[i1 + lane + 1] = float32Round(q0o - q1o)
-    }
+  const secondHalf = butterflySpan
+  for (let lane = 0; lane < butterflySpan; lane += 2) {
+    const firstReal = spectrum[lane]
+    const firstImaginary = spectrum[lane + 1]
+    const secondReal = spectrum[secondHalf + lane]
+    const secondImaginary = spectrum[secondHalf + lane + 1]
+    spectrum[lane] = float32Round(firstReal + secondReal)
+    spectrum[lane + 1] = float32Round(firstImaginary + secondImaginary)
+    spectrum[secondHalf + lane] = float32Round(firstReal - secondReal)
+    spectrum[secondHalf + lane + 1] = float32Round(
+      firstImaginary - secondImaginary
+    )
   }
 
   let low = 65
