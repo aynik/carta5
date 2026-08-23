@@ -1,11 +1,11 @@
 /** Iterable ATRACX WAVE reader over an in-memory byte image. */
 
-import { parseWave } from '../boundary/container.js'
+import { parseWave } from './container.js'
 
 /**
  * Normalize supported in-memory binary inputs without unnecessary copying.
  *
- * @param {Uint8Array} input
+ * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input
  * @returns {Uint8Array}
  */
 function asBytes(input) {

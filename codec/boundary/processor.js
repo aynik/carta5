@@ -82,6 +82,19 @@ export class AudioProcessor {
   }
 
   /**
+   * Collect all frames from a synchronous or asynchronous stream.
+   *
+   * @template T
+   * @param {AsyncIterable<T>|Iterable<T>} frameStream Frames in source order.
+   * @returns {Promise<T[]>} Materialized frames in source order.
+   */
+  static async collectFrames(frameStream) {
+    const frames = []
+    for await (const frame of frameStream) frames.push(frame)
+    return frames
+  }
+
+  /**
    * Fold complete equally sized planar buffers into zero-padded coding frames.
    *
    * @param {Float32Array[]} buffers Complete normalized planar PCM.

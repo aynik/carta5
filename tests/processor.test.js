@@ -74,6 +74,15 @@ describe('AudioProcessor ATRAC3plus boundaries', () => {
     expect(frames[1][0][1]).toBe(0)
   })
 
+  it('collects synchronous and asynchronous frame streams', async () => {
+    expect(await AudioProcessor.collectFrames([1, 2])).toEqual([1, 2])
+    async function* frames() {
+      yield 3
+      yield 4
+    }
+    expect(await AudioProcessor.collectFrames(frames())).toEqual([3, 4])
+  })
+
   it('rejects mismatched planar buffers and invalid frame sizes', () => {
     expect(() => [
       ...AudioProcessor.frameBufferToFrames([
