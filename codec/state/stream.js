@@ -1,7 +1,7 @@
 /** Directional ATRAC3plus frame-state publication. */
 
 import { copyDecoderState } from './decoder/image.js'
-import { copyEncoderState } from './encoder.js'
+import { copyEncoderState, publishEncoderState } from './encoder.js'
 
 /** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
 /** @import {DecoderContext, DecoderFrame} from '../pipeline/decoder.js' */
@@ -71,12 +71,15 @@ export function delayEncoderFrame(context) {
 export function commitEncoderFrame(context) {
   const encoder = context.bufferPool.encoder
   return (frame) => {
+    if (frame.committed) {
+      throw new Error('ATRAC3plus frame was already committed')
+    }
     if (!frame.analysisDelayed && !(frame.output instanceof Uint8Array)) {
       throw new Error(
         'ATRAC3plus frame cannot commit before successful packing'
       )
     }
-    copyEncoderState(encoder.frame, encoder.state, encoder.state.topology)
+    publishEncoderState(encoder.state, encoder.frame)
     encoder.state.lastAllocationAttempts = frame.allocationAttempts
     frame.committed = true
     return frame

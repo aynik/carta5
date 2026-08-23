@@ -20,6 +20,7 @@ import {
   bindEncoderChannelStates,
   copyEncoderState,
   initializeEncoderStream,
+  publishEncoderState,
   rotateEncoderFrameHistories,
 } from '../codec/state/encoder.js'
 import {
@@ -327,6 +328,30 @@ describe('ATRAC3plus persistent state', () => {
         codingUnitCount: 1,
       })
     ).toThrow('copy topology')
+  })
+
+  it('publishes the detached encoder image by exchanging its owners', () => {
+    const pool = new BufferPool()
+    const profile = resolveProfile({
+      bitrateKbps: 128,
+      channels: 1,
+      sampleRate: 44100,
+    })
+    initializeEncoderStream(profile, pool.encoder)
+    const committedBlocks = pool.encoder.state.channelBlocks
+    const detachedBlocks = pool.encoder.frame.channelBlocks
+    const qmfBands = pool.encoder.frame.qmfBands[0]
+    detachedBlocks[0].analysis.bandSlots[0][8][0] = 1.5
+
+    publishEncoderState(pool.encoder.state, pool.encoder.frame)
+
+    expect(pool.encoder.state.channelBlocks).toBe(detachedBlocks)
+    expect(pool.encoder.frame.channelBlocks).toBe(committedBlocks)
+    expect(pool.encoder.state.analysisChannels[0].bandSlots[0][8][0]).toBe(1.5)
+    expect(pool.encoder.frame.qmfBands[0]).toBe(qmfBands)
+    expect(pool.encoder.frame.qmfBands[0][0]).toBe(
+      pool.encoder.frame.analysisChannels[0].bandSlots[0][8]
+    )
   })
 
   it('captures only allocation-mutated state in the pool retry checkpoint', () => {

@@ -210,11 +210,13 @@ describe('ATRAC3plus detached analysis stage chain', () => {
     frame = pack(context)(frame)
     expect(frame.output).toBeNull()
     expect(frame.packedPayloadBits).toBe(0)
-    frame = commitEncoderFrame(context)(frame)
+    const commit = commitEncoderFrame(context)
+    frame = commit(frame)
     expect(frame.committed).toBe(true)
     expect(bufferPool.encoder.state.sharedCodingUnits[0].scaleFactorCount).toBe(
       9
     )
+    expect(() => commit(frame)).toThrow('already committed')
 
     expect(() =>
       commitEncoderFrame(context)({ analysisDelayed: false, output: null })

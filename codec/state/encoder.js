@@ -773,3 +773,37 @@ export function copyEncoderState(source, destination, topology = null) {
     )
   }
 }
+
+/**
+ * Publish one accepted encoder image and retain the old image for the next transaction.
+ *
+ * @param {EncoderState} state Committed stream owner.
+ * @param {EncoderFrameState} frame Detached frame owner.
+ * @returns {EncoderState} The newly committed stream state.
+ */
+export function publishEncoderState(state, frame) {
+  const sharedCodingUnits = state.sharedCodingUnits
+  state.sharedCodingUnits = frame.sharedCodingUnits
+  frame.sharedCodingUnits = sharedCodingUnits
+
+  const channelBlocks = state.channelBlocks
+  state.channelBlocks = frame.channelBlocks
+  frame.channelBlocks = channelBlocks
+
+  const analysisChannels = state.analysisChannels
+  state.analysisChannels = frame.analysisChannels
+  frame.analysisChannels = analysisChannels
+
+  const intensityCodingUnits = state.intensityCodingUnits
+  state.intensityCodingUnits = frame.intensityCodingUnits
+  frame.intensityCodingUnits = intensityCodingUnits
+
+  for (let channel = 0; channel < frame.analysisChannels.length; channel++) {
+    const bands = frame.qmfBands[channel]
+    const slots = frame.analysisChannels[channel].bandSlots
+    for (let band = 0; band < ANALYSIS_BANDS; band++) {
+      bands[band] = slots[band][ANALYSIS_SLOTS - 1]
+    }
+  }
+  return state
+}
