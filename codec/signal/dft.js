@@ -4,23 +4,26 @@ import { DFT_16_TWIDDLES, DFT_256_TWIDDLES } from '../core/tables.js'
 import { float32Round, reverseLowBits } from '../utils.js'
 
 /**
- * Apply the specialized 16-point bit-reversal permutation to interleaved complex pairs.
+ * Apply the two swaps in the fixed eight-pair bit-reversal permutation.
  *
  * @param {ArrayLike<number>} spectrum
  */
 function bitReverseComplexPairs16(spectrum) {
-  for (let sourcePair = 0; sourcePair < 8; sourcePair++) {
-    const destinationPair = reverseLowBits(sourcePair, 3)
-    if (destinationPair <= sourcePair) continue
-    const source = sourcePair * 2
-    const destination = destinationPair * 2
-    let temporary = spectrum[source]
-    spectrum[source] = spectrum[destination]
-    spectrum[destination] = temporary
-    temporary = spectrum[source + 1]
-    spectrum[source + 1] = spectrum[destination + 1]
-    spectrum[destination + 1] = temporary
-  }
+  // Complex pair 1 <-> 4.
+  let temporary = spectrum[2]
+  spectrum[2] = spectrum[8]
+  spectrum[8] = temporary
+  temporary = spectrum[3]
+  spectrum[3] = spectrum[9]
+  spectrum[9] = temporary
+
+  // Complex pair 3 <-> 6.
+  temporary = spectrum[6]
+  spectrum[6] = spectrum[12]
+  spectrum[12] = temporary
+  temporary = spectrum[7]
+  spectrum[7] = spectrum[13]
+  spectrum[13] = temporary
 }
 
 /**
