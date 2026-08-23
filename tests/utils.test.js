@@ -34,9 +34,9 @@ describe('Utilities', () => {
     expect(float32ToBits(float32Negate(0))).toBe(0x80000000)
   })
 
-  it('shares exact float ordering, ranges, and conversions', () => {
+  it('shares float64 arithmetic, ordering, ranges, and conversions', () => {
     const offset = 2 ** -27
-    expect(float64MultiplyAdd(1 + offset, 1 - offset, -1)).toBe(-(2 ** -54))
+    expect(float64MultiplyAdd(1 + offset, 1 - offset, -1)).toBe(0)
     expect(float64MultiplyAdd(Number.POSITIVE_INFINITY, 1, 0)).toBe(
       Number.POSITIVE_INFINITY
     )

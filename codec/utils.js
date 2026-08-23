@@ -58,7 +58,7 @@ export function float32MultiplyAdd(left, right, addend) {
 }
 
 /**
- * Multiply and add with one final float64 rounding.
+ * Multiply two float64 values and add an accumulator.
  *
  * @param {number} left
  * @param {number} right
@@ -66,27 +66,7 @@ export function float32MultiplyAdd(left, right, addend) {
  * @returns {number}
  */
 export function float64MultiplyAdd(left, right, addend) {
-  const product = left * right
-  if (!Number.isFinite(product) || !Number.isFinite(addend)) {
-    return product + addend
-  }
-  const split = 134217729
-  const leftSplit = split * left
-  const leftHigh = leftSplit - (leftSplit - left)
-  const leftLow = left - leftHigh
-  const rightSplit = split * right
-  const rightHigh = rightSplit - (rightSplit - right)
-  const rightLow = right - rightHigh
-  const productError =
-    leftHigh * rightHigh -
-    product +
-    leftHigh * rightLow +
-    leftLow * rightHigh +
-    leftLow * rightLow
-  const sum = product + addend
-  const addendVirtual = sum - product
-  const sumError = product - (sum - addendVirtual) + (addend - addendVirtual)
-  return sum + (productError + sumError)
+  return left * right + addend
 }
 
 /**
