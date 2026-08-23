@@ -542,7 +542,7 @@ class EncodeAllocationCheckpointChannel {
  * @param {StreamTopology} topology
  * @param {number} channelCapacity
  * @param {number} unitCapacity
- * @returns {{channelCount: number, codingUnitCount: number}}
+ * @returns {object} Active topology.
  */
 function validateCheckpointTopology(topology, channelCapacity, unitCapacity) {
   const channelCount = topology?.channelCount
@@ -679,7 +679,7 @@ export function bindEncoderChannelStates(
 /**
  * Configure immutable topology/policy and bind committed channel identities.
  *
- * @param {CodecProfile} profile Immutable maintained profile.
+ * @param {object} profile Immutable maintained profile.
  * @param {EncoderState} encoder Encoder pool ownership root.
  * @returns {StreamTopology} Configured stream topology.
  */

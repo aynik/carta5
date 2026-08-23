@@ -131,7 +131,7 @@ class CliUsageError extends Error {}
 /**
  * Read exactly one fixed-size region from an open file.
  *
- * @param {import("node:fs/promises").FileHandle} handle
+ * @param {object} handle
  * @param {number} length
  * @param {number} position
  * @returns {Promise<Buffer>}
@@ -155,11 +155,11 @@ async function readExactly(handle, length, position) {
 /**
  * Traverse bounded RIFF chunks without retaining their payloads.
  *
- * @param {import("node:fs/promises").FileHandle} handle
+ * @param {object} handle
  * @param {number} size
  * @param {string} label
  * @param {boolean} [zeroDataToEnd]
- * @returns {AsyncGenerator<{chunkBytes: number, id: string, payload: number}>}
+ * @returns {AsyncGenerator<object>}
  */
 async function* readWaveChunks(handle, size, label, zeroDataToEnd = false) {
   const header = await readExactly(handle, 12, 0)
@@ -190,7 +190,7 @@ async function* readWaveChunks(handle, size, label, zeroDataToEnd = false) {
  * Parse ATRACX profile and data geometry without retaining encoded frames.
  *
  * @param {string} filePath
- * @returns {Promise<{dataBytes: number, dataOffset: number, fact: {sampleCount: number, alignmentSampleCount: number|null}, frameCount: number, profile: CodecProfile}>}
+ * @returns {Promise<object>} Parsed streaming input.
  */
 async function readAtracWaveMetadata(filePath) {
   const handle = await open(filePath, 'r')
@@ -279,7 +279,7 @@ async function readAtracWaveMetadata(filePath) {
  * Parse the PCM format and data geometry needed for streaming input.
  *
  * @param {string} filePath
- * @returns {Promise<{dataBytes: number, dataOffset: number, duration: number, format: {channels: number, sampleRate: number, blockAlign: number, bitDepth: number}, sampleCount: number}>}
+ * @returns {Promise<object>} Parsed PCM WAVE metadata.
  */
 async function readPcmWaveMetadata(filePath) {
   const handle = await open(filePath, 'r')
@@ -356,7 +356,7 @@ async function readPcmWaveMetadata(filePath) {
  * Yield one WAVE data chunk without retaining its complete payload.
  *
  * @param {string} filePath
- * @param {{dataOffset: number, dataBytes: number}} metadata
+ * @param {object} metadata
  * @returns {AsyncGenerator<Uint8Array>}
  */
 async function* readDataChunks(filePath, metadata) {
@@ -372,7 +372,7 @@ async function* readDataChunks(filePath, metadata) {
  * Split an ATRACX data chunk into complete encoded frame views.
  *
  * @param {string} filePath
- * @param {{dataOffset: number, dataBytes: number, profile: CodecProfile}} metadata
+ * @param {object} metadata
  * @returns {AsyncGenerator<Uint8Array>}
  */
 async function* readAtracFrames(filePath, metadata) {
@@ -440,7 +440,7 @@ async function* readPlanarPcm(chunks, channelCount) {
 /**
  * Write bytes while respecting stream backpressure.
  *
- * @param {import("node:stream").Writable} stream
+ * @param {object} stream
  * @param {Uint8Array} bytes
  */
 async function writeBytes(stream, bytes) {

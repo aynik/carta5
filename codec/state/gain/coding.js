@@ -25,8 +25,8 @@ export class GainRecord {
   /**
    * Copy wire-visible fields while preserving destination-local detector state.
    *
-   * @param {GainRecord} source Record whose coded fields should be copied.
-   * @returns {GainRecord} This destination record.
+   * @param {object} source Record whose coded fields should be copied.
+   * @returns {object} This destination record.
    */
   copyCodedFieldsFrom(source) {
     this.entries = source.entries
@@ -41,8 +41,8 @@ export class GainRecord {
    *
    * `peakHistory` is retained beside the coded fields as detector-local carry.
    *
-   * @param {GainRecord} destination Preallocated record to overwrite.
-   * @returns {GainRecord} The destination record.
+   * @param {object} destination Preallocated record to overwrite.
+   * @returns {object} The destination record.
    */
   copyTo(destination) {
     destination.entries = this.entries
@@ -65,7 +65,7 @@ export class GainRecord {
   /**
    * Create a detached copy including local detector history.
    *
-   * @returns {GainRecord} Independent record copy.
+   * @returns {object} Independent record copy.
    */
   clone() {
     const clone = new GainRecord()
@@ -76,7 +76,7 @@ export class GainRecord {
   /**
    * Compare only fields that affect encoded gain syntax.
    *
-   * @param {GainRecord} other Record to compare.
+   * @param {object} other Record to compare.
    * @returns {boolean} Whether both records encode identical syntax.
    */
   codedEquals(other) {
@@ -197,7 +197,7 @@ export class GainRecordPlan {
  * Gain-control records serialized per channel.
  *
  * @param {EncodeChannelState|GainCodingChannel} source
- * @returns {GainRecord[]|null}
+ * @returns {object[]|null}
  */
 function recordsFromSource(source) {
   return source?.currentGainRecords ?? source?.records ?? null
@@ -208,7 +208,7 @@ function recordsFromSource(source) {
  *
  * @param {EncodeChannelState|GainCodingChannel} source Encoder channel block or record owner.
  * @param {GainCodingChannel} destination Bound channel syntax storage.
- * @returns {GainRecord[]} Bound source records.
+ * @returns {object[]} Bound source records.
  */
 function bindGainSource(source, destination) {
   const records = recordsFromSource(source)

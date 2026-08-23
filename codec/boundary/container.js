@@ -13,18 +13,6 @@ import {
 import { resolveProfile, resolveWaveProfile } from '../core/profiles.js'
 import { ATRACX_GUID_BYTES } from '../core/tables.js'
 
-/** @import {CodecProfile, CodecProfileOptions} from '../core/profiles.js' */
-
-/**
- * Container timeline fields added to maintained codec profile selectors.
- *
- * @typedef {object} WaveTimelineOptions
- * @property {number} [sampleCount] Visible PCM samples per channel.
- * @property {number} [primingSampleCount] Samples before source sample zero.
- */
-
-/** @typedef {CodecProfileOptions & WaveTimelineOptions} WaveCodecOptions */
-
 const textDecoder = new TextDecoder('ascii')
 
 /**
@@ -68,7 +56,7 @@ function matchesAtracxGuid(input, offset) {
 /**
  * Validate frame-aligned payload size and timeline fields before writing the fixed ATRACX WAVE header.
  *
- * @param {CodecProfile} profile
+ * @param {object} profile
  * @param {number} dataBytes
  * @param {number} primingSampleCount
  * @param {number} sampleCount
@@ -99,7 +87,7 @@ function validateHeaderGeometry(
 /**
  * Build reference's canonical fixed 100-byte ATRACX WAVE header.
  *
- * @param {CodecProfile} profile Immutable maintained profile.
+ * @param {object} profile Immutable maintained profile.
  * @param {number} dataBytes Total encoded frame bytes.
  * @param {number} [primingSampleCount] Samples before source sample zero.
  * @param {number} [sampleCount] Visible PCM samples per channel.
@@ -152,7 +140,7 @@ export function createWaveHeader(
  * Materialize complete ATRACX WAVE bytes from fixed-size ATRAC3plus frames.
  *
  * @param {Uint8Array[]} frames Complete profile-sized encoded frames.
- * @param {WaveCodecOptions} [options] Profile and `fact` timeline options.
+ * @param {object} [options] Profile and `fact` timeline options.
  * @returns {Uint8Array} Complete ATRACX WAVE byte image.
  */
 export function createWave(frames, options = {}) {
@@ -268,7 +256,7 @@ export function parseWave(input) {
     /**
      * Yield fixed-size encoded frame views from the WAVE data chunk without copying.
      *
-     * @returns {Generator<unknown>}
+     * @returns {Generator}
      */
     *frames() {
       for (let index = 0; index < this.frameCount; index++) {

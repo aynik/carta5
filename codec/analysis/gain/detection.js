@@ -1277,7 +1277,7 @@ function selectReductionAction(
  *
  * @param {GainPointWorkArena} arena
  * @param {number} entry
- * @returns {{count: number, tail: number}}
+ * @returns {object} Detection result.
  */
 function duplicateIndexRun(arena, entry) {
   const key = arena.entries[entry].index
@@ -1543,8 +1543,8 @@ function reduceGainPoints(
  * @param {Float32Array} analysis
  * @param {number} spanShift
  * @param {GainDetectionScratch} scratch
- * @param {GainRecord} record
- * @returns {GainRecord}
+ * @param {object} record
+ * @returns {object}
  */
 function detectGainBand(persisted, analysis, spanShift, scratch, record) {
   const state = loadBandState(persisted, scratch.bandState)

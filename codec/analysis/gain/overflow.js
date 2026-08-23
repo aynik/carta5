@@ -26,8 +26,8 @@ export function gainPeakOverflows(sourcePeak, gainPeak) {
 /**
  * Canonical ATRAC3plus overflow record normalization.
  *
- * @param {GainRecord} record Record to normalize.
- * @returns {GainRecord} The normalized record.
+ * @param {object} record Record to normalize.
+ * @returns {object} The normalized record.
  */
 export function normalizeOverflowGainRecord(record) {
   return normalizeGainRecord(
@@ -40,7 +40,7 @@ export function normalizeOverflowGainRecord(record) {
 /**
  * Collect entries whose level drops toward the next or implicit tail level.
  *
- * @param {GainRecord} record Record to scan.
+ * @param {object} record Record to scan.
  * @param {Int32Array} destination Caller-owned entry indices.
  * @returns {number} Collected entry count.
  */
@@ -72,7 +72,7 @@ function stateOffset(state) {
  *
  * @param {GainOverflowScratch} scratch
  * @param {number} state
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} peak
  * @param {number} stepCount
  */
@@ -95,8 +95,8 @@ function storeState(scratch, state, record, peak, stepCount) {
  *
  * @param {GainOverflowScratch} scratch Overflow graph storage.
  * @param {number} state Frontier-state index.
- * @param {GainRecord} record Destination record.
- * @returns {GainRecord} The destination record.
+ * @param {object} record Destination record.
+ * @returns {object} The destination record.
  */
 export function loadGainOverflowState(scratch, state, record) {
   const count = scratch.entries[state]
@@ -113,7 +113,7 @@ export function loadGainOverflowState(scratch, state, record) {
 /**
  * Hash the active fields of a gain record for frontier deduplication.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {number}
  */
 function hashGainRecord(record) {
@@ -132,7 +132,7 @@ function hashGainRecord(record) {
  *
  * @param {GainOverflowScratch} scratch
  * @param {number} state
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {boolean}
  */
 function stateEqualsRecord(scratch, state, record) {
@@ -154,7 +154,7 @@ function stateEqualsRecord(scratch, state, record) {
  * Probe the open-addressed gain-state table for a matching or empty slot.
  *
  * @param {GainOverflowScratch} scratch
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {number}
  */
 function findHashSlot(scratch, record) {
@@ -173,7 +173,7 @@ function findHashSlot(scratch, record) {
  * Insert a gain-overflow state only when its complete record is not already in the frontier.
  *
  * @param {GainOverflowScratch} scratch
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} peak
  * @param {number} stepCount
  * @returns {boolean}
@@ -207,11 +207,11 @@ function appendTerminal(scratch, state) {
  * Build the complete reference-ordered reduction graph in fixed pooled storage.
  * `measurePeak` must return the gain-scaled peak for the supplied candidate.
  *
- * @param {GainRecord} record Initial overflowing record.
+ * @param {object} record Initial overflowing record.
  * @param {number} sourcePeak Unscaled source peak.
  * @param {number} currentPeak Initial gain-scaled peak.
  * @param {GainOverflowScratch} scratch Reusable graph storage.
- * @param {function(GainRecord, *): number} measurePeak Candidate peak measurement callback.
+ * @param {Function} measurePeak Candidate peak measurement callback.
  * @param {*} [measureContext] Opaque callback context.
  * @returns {GainOverflowScratch} The populated graph storage.
  */

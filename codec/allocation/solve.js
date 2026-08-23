@@ -10,8 +10,6 @@ import { searchAllocation } from './search.js'
 import { prepareAllocationSource } from './source.js'
 import { quantizeTrial } from '../quantization/symbols.js'
 
-/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
-
 /**
  * Reduce an over-budget retained selection.
  *
@@ -129,7 +127,7 @@ function solveLfeSingle(transaction, shared) {
  *
  * @param {number} channelMode Coding-unit channel mode.
  * @param {boolean} singleFill Whether allocation skips its initial fill.
- * @returns {function(CodingUnitAllocationTransaction, SharedState, number): void} Selected solver.
+ * @returns {Function} Selected solver.
  */
 function unitSolver(channelMode, singleFill) {
   if (channelMode === 4) return singleFill ? solveLfeSingle : solveLfeFull
@@ -139,9 +137,9 @@ function unitSolver(channelMode, singleFill) {
 /**
  * Bind one stable topology unit to its construction-selected solver.
  *
- * @param {EncoderContext} context Pipeline ownership context.
+ * @param {object} context Pipeline ownership context.
  * @param {number} unit Coding-unit index.
- * @returns {function(EncoderFrame, number): CodingUnitAllocationTransaction} Unit allocator.
+ * @returns {Function} Unit allocator.
  */
 function createUnitAllocator(context, unit) {
   const encoder = context.bufferPool.encoder
@@ -193,9 +191,9 @@ function createUnitAllocator(context, unit) {
 /**
  * Apply every construction-bound unit allocator once.
  *
- * @param {Array<function(EncoderFrame, number): CodingUnitAllocationTransaction>} allocators Unit allocators.
+ * @param {Function[]} allocators Unit allocators.
  * @param {CodingUnitAllocationTransaction[]} transactions Active transaction view.
- * @returns {function(EncoderFrame, number): EncoderFrame} One allocation attempt.
+ * @returns {Function} One allocation attempt.
  */
 function solveFrame(allocators, transactions) {
   return (frame, reductionBits) => {
@@ -208,8 +206,8 @@ function solveFrame(allocators, transactions) {
 /**
  * Bind the configured coding-unit solvers for one stream.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame, number): EncoderFrame} Frame solver.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Frame solver.
  */
 export function solve(context) {
   const encoder = context.bufferPool.encoder

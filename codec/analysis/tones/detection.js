@@ -601,8 +601,8 @@ function emittedToneStep(omega) {
  * @param {number} end
  * @param {number} iterations
  * @param {boolean} stopOnEmittedGrid
- * @param {{omega: number, emittedStep: number}} destination
- * @returns {{omega: number, emittedStep: number}}
+ * @param {object} destination
+ * @returns {object}
  */
 function refineToneFrequency(
   initialAngularFrequency,
@@ -662,7 +662,7 @@ function refineToneFrequency(
  * @param {number} start
  * @param {number} end
  * @param {number} omega
- * @param {{magnitude: number, step: number, phase: number}} destination
+ * @param {object} destination
  * @returns {boolean}
  */
 function fitToneLeastSquares(samples, start, end, omega, destination) {

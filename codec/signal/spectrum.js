@@ -51,7 +51,7 @@ export function mdctWindow(previousTransient, currentTransient) {
  * @param {Float32Array} destination Caller-owned coefficient output.
  * @param {Float32Array} window Selected MDCT window.
  * @param {boolean} reverseOutput Whether to reverse coefficient order.
- * @param {MdctScratch} scratch Reusable MDCT work.
+ * @param {object} scratch Reusable MDCT work.
  * @param {number} [destinationOffset=0] First output coefficient.
  * @returns {Float32Array} The destination coefficients.
  */
@@ -183,7 +183,7 @@ export function forwardMdct128(
  * @param {number} previousTransient
  * @param {number} currentTransient
  * @param {number} subband
- * @param {MdctScratch} scratch
+ * @param {object} scratch
  * @returns {boolean}
  */
 function inverseMdctSubband(
@@ -292,13 +292,13 @@ function inverseMdctSubband(
  *
  * @param {Float32Array} spectrum Dequantized channel spectrum.
  * @param {Float32Array} destination Caller-owned subband samples.
- * @param {GainRecord[]} previousGainRecords Previous-frame gain records.
- * @param {GainRecord[]} currentGainRecords Current-frame gain records.
+ * @param {object[]} previousGainRecords Previous-frame gain records.
+ * @param {object[]} currentGainRecords Current-frame gain records.
  * @param {Uint8Array} previousWindowFlags Previous transient flags.
  * @param {Uint8Array} currentWindowFlags Current transient flags.
  * @param {number} activeSubbandCount Active transform subbands.
  * @param {Float32Array} overlap Staged overlap state.
- * @param {MdctScratch} scratch Reusable inverse-MDCT work.
+ * @param {object} scratch Reusable inverse-MDCT work.
  * @returns {Float32Array|null} Destination samples, or `null` if invalid.
  */
 export function inverseMdctFrame(
@@ -364,11 +364,11 @@ export function inverseMdctFrame(
  *
  * @param {EncodeAnalysisState} analysis Staged QMF analysis state.
  * @param {number} bandCount Active analysis-band count.
- * @param {GainRecord[]} previousGainRecords Previous-frame gain records.
- * @param {GainRecord[]} currentGainRecords Current-frame gain records.
+ * @param {object[]} previousGainRecords Previous-frame gain records.
+ * @param {object[]} currentGainRecords Current-frame gain records.
  * @param {Float32Array} gainScaledSpectrum Gain-scaled output spectrum.
  * @param {Float32Array} gainUnscaledSpectrum Unscaled output spectrum.
- * @param {MdctScratch} scratch Reusable MDCT work.
+ * @param {object} scratch Reusable MDCT work.
  * @returns {Float32Array|null} Scaled spectrum, or `null` if gain is invalid.
  */
 export function writeMdctOutputs(

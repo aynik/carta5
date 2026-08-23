@@ -233,7 +233,7 @@ function applyStereoMaps(channelBlocks, channels, shared, spectra) {
  * Secondary symbol reuse deliberately updates only the staged channel image.
  *
  * @param {DecodeChannelState[]} channelBlocks Detached decoder channel blocks.
- * @param {CodingUnitChannels|ArrayLike<number>} channels Coding-unit channel indices.
+ * @param {ArrayLike<number>} channels Coding-unit channel indices.
  * @param {SharedState} shared Shared coding-unit syntax.
  * @param {Float32Array[]} spectra Pool-owned float spectra.
  * @param {SpectralReconstructionScratch} scratch Reusable reconstruction work.

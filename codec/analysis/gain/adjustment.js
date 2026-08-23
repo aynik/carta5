@@ -71,8 +71,8 @@ export function maximumGainWindowMagnitude(source) {
  * Measure the maximum after applying an adjacent gain-record pair.
  *
  * @param {Float32Array} source Gain-window samples.
- * @param {GainRecord} previousRecord Previous-frame gain record.
- * @param {GainRecord} currentRecord Current-frame gain record.
+ * @param {object} previousRecord Previous-frame gain record.
+ * @param {object} currentRecord Current-frame gain record.
  * @param {LowRateGainScratch} scratch Reusable scale work.
  * @returns {number|null} Scaled maximum, or `null` for invalid syntax.
  */
@@ -119,8 +119,8 @@ export function maximumGainScaledMagnitude(
  * Apply the planned gain envelope to the source samples used for perceptual candidate comparison.
  *
  * @param {Float32Array} source
- * @param {GainRecord} previousRecord
- * @param {GainRecord} currentRecord
+ * @param {object} previousRecord
+ * @param {object} currentRecord
  * @param {Float32Array} destination
  * @param {LowRateGainScratch} scratch
  * @returns {boolean}
@@ -154,9 +154,9 @@ function materializeGainScaled(
  * Compare one current-record alternative in reconstructed sample space.
  *
  * @param {Float32Array} source Gain-window samples.
- * @param {GainRecord} previousRecord Previous-frame record.
- * @param {GainRecord} incumbentRecord Current incumbent record.
- * @param {GainRecord} candidateRecord Candidate replacement record.
+ * @param {object} previousRecord Previous-frame record.
+ * @param {object} incumbentRecord Current incumbent record.
+ * @param {object} candidateRecord Candidate replacement record.
  * @param {LowRateGainScratch} scratch Reusable comparison work.
  * @returns {SignalComparison|null} Exact comparison, or `null` if invalid.
  */
@@ -545,7 +545,7 @@ function mergeStereoBandRecords(
 /**
  * Combine neighboring-band gain records into a detached candidate and normalize its ordering.
  *
- * @param {GainRecord[]} currentRecords
+ * @param {object[]} currentRecords
  * @param {EncodeAnalysisState} analysis
  * @param {number} channel
  * @param {number} bandLimit
@@ -734,7 +734,7 @@ function applyRateBoundedStereoMergeAlternatives(
  * @param {number} coreMode
  * @param {number} channel
  * @param {number} band
- * @param {GainRecord} record
+ * @param {object} record
  * @param {LowRateGainScratch} scratch
  * @returns {GainLoweredAlternative}
  */
@@ -794,7 +794,7 @@ function lowerGainRecordAlternative(
  * @param {number} channelCount
  * @param {number} channel
  * @param {number} band
- * @param {GainRecord} record
+ * @param {object} record
  * @param {LowRateGainScratch} scratch
  */
 function commitLoweredGainAlternative(
@@ -826,7 +826,7 @@ function commitLoweredGainAlternative(
  * @param {number} coreMode
  * @param {number} channel
  * @param {number} band
- * @param {GainRecord} record
+ * @param {object} record
  * @param {LowRateGainScratch} scratch
  * @param {number} acceptance
  * @param {number} threshold
@@ -991,12 +991,12 @@ function applyRateBoundedAdjacentMergeKeeps(
 /**
  * Follow the bounded reduction frontier until the incumbent gain syntax fits its budget.
  *
- * @param {GainRecord} record
- * @param {GainRecord} previousRecord
+ * @param {object} record
+ * @param {object} previousRecord
  * @param {number} sourcePeak
  * @param {number} currentPeak
  * @param {number} initialEntry
- * @param {GainRecord} destination
+ * @param {object} destination
  * @param {LowRateGainScratch} scratch
  * @returns {number}
  */
@@ -1043,8 +1043,8 @@ function convergeGainOverflowPath(
 /**
  * Seed the overflow frontier from the incumbent gain record and retain the best path that reaches budget.
  *
- * @param {GainRecord} record
- * @param {GainRecord} previousRecord
+ * @param {object} record
+ * @param {object} previousRecord
  * @param {number} sourcePeak
  * @param {number} currentPeak
  * @param {ArrayLike<number>} initialEntries
@@ -1112,7 +1112,7 @@ function planIncumbentGainOverflowPath(
 /**
  * Reconstruct one overflow candidate and measure its maximum gain-scaled magnitude.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {LowRateGainScratch} scratch
  * @returns {number}
  */
@@ -1170,7 +1170,7 @@ function selectOverflowTerminalCandidate(overflow, sourcePeak) {
  * Find the measured overflow candidate whose gain record exactly matches the requested state.
  *
  * @param {GainOverflowScratch} overflow
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {number}
  */
 function findOverflowCandidateByRecord(overflow, record) {
@@ -1194,12 +1194,12 @@ function findOverflowCandidateByRecord(overflow, record) {
  * @param {number} coreMode
  * @param {number} channel
  * @param {number} band
- * @param {GainRecord} record
- * @param {GainRecord} previousRecord
+ * @param {object} record
+ * @param {object} previousRecord
  * @param {number} sourcePeak
  * @param {number} currentPeak
  * @param {LowRateGainScratch} scratch
- * @returns {GainRecord}
+ * @returns {object}
  */
 function planGainOverflowReduction(
   channelBlocks,

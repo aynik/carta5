@@ -124,7 +124,7 @@ function channelRole(channelOrdinal) {
 /**
  * Count consecutive active records from the start of a gain sidechain.
  *
- * @param {GainRecord[]} records
+ * @param {object[]} records
  * @param {number} recordCount
  * @returns {number}
  */
@@ -137,7 +137,7 @@ function activePrefixCount(records, recordCount) {
 /**
  * Count the nonrepeating prefix shared by predictor-relative gain syntax.
  *
- * @param {GainRecord[]} records
+ * @param {object[]} records
  * @param {number} recordCount
  * @returns {number}
  */
@@ -169,7 +169,7 @@ function prepareSyntaxCounts(channel, recordCount) {
 /**
  * Return a gain-point level or the neutral level used beyond the active record prefix.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} entry
  * @returns {number}
  */
@@ -197,8 +197,8 @@ function recordsHaveEqualCounts(channel, base) {
 /**
  * Compare a gain record's active levels with the selected predictor record.
  *
- * @param {GainRecord} record
- * @param {GainRecord} base
+ * @param {object} record
+ * @param {object} base
  * @returns {boolean}
  */
 function recordLevelsEqualToBase(record, base) {
@@ -232,8 +232,8 @@ function recordsHaveEqualLevels(channel, base) {
 /**
  * Compare a gain record's active locations with the selected predictor record.
  *
- * @param {GainRecord} record
- * @param {GainRecord} base
+ * @param {object} record
+ * @param {object} base
  * @returns {boolean}
  */
 function recordLocationsEqualToBase(record, base) {
@@ -349,7 +349,7 @@ function measurePointCountCandidate(channel, base, role, mode, coreMode) {
 /**
  * Measure one record's absolute first level and wrapped intra-record level deltas.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {number}
  */
 function measureIntraRecordLevels(record) {
@@ -493,7 +493,7 @@ function measureLevelCandidate(channel, base, role, mode) {
 /**
  * Report whether a gain transition moves toward release rather than attack.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} entry
  * @returns {boolean}
  */
@@ -533,7 +533,7 @@ function ascendingLocationBits(previous) {
 /**
  * Measure a strictly ascending location sequence using predecessor-dependent field widths.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} [startEntry]
  * @returns {number}
  */
@@ -548,7 +548,7 @@ function measureAscendingRecordLocations(record, startEntry = 0) {
 /**
  * Measure one A-family location sequence with attack/release-dependent canonical codebooks.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @returns {number}
  */
 function measureAIncrementRecordLocations(record) {
@@ -814,8 +814,8 @@ function measureLocationCandidate(channel, base, role, mode, coreMode) {
 /**
  * Choose the cheapest legal syntax mode for one gain field plane.
  *
- * @param {function(number): number} measureCandidate Exact cost function for one mode.
- * @param {function(number): void} setMode Publishes the selected mode.
+ * @param {Function} measureCandidate Exact cost function for one mode.
+ * @param {Function} setMode Publishes the selected mode.
  * @returns {number}
  */
 function selectPlaneMode(measureCandidate, setMode) {
@@ -1149,7 +1149,7 @@ function packPointCounts(channel, base, sink) {
 /**
  * Emit one record's first absolute gain level followed by wrapped intra-record deltas.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {BitWriter|BitCounter} sink
  */
 function packIntraRecordLevels(record, sink) {
@@ -1258,7 +1258,7 @@ function ascendingLocationSymbol(previous, current) {
 /**
  * Emit strictly ascending gain locations with widths derived from their predecessors.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} startEntry
  * @param {BitWriter|BitCounter} sink
  */
@@ -1280,7 +1280,7 @@ function packAscendingRecordLocations(record, startEntry, sink) {
 /**
  * Emit A-family location increments with attack/release-dependent codebooks.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {BitWriter|BitCounter} sink
  */
 function packAIncrementRecordLocations(record, sink) {

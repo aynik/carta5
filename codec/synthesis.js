@@ -6,13 +6,11 @@ import { addDecodedTones } from './signal/tone.js'
 import { addSubbandNoise } from './signal/noise.js'
 import { pipe } from './utils.js'
 
-/** @import {DecoderContext, DecoderFrame} from './pipeline/decoder.js' */
-
 /**
  * Synthesize subbands through inverse MDCT, inverse gain, and frame overlap.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Spectrum synthesis application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Spectrum synthesis application.
  */
 function synthesizeSpectrum(context) {
   const decoder = context.bufferPool.decoder
@@ -50,8 +48,8 @@ function synthesizeSpectrum(context) {
 /**
  * Add decoded tone and broadband-noise components to synthesized subbands.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Component synthesis application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Component synthesis application.
  */
 function synthesizeComponents(context) {
   const decoder = context.bufferPool.decoder
@@ -81,8 +79,8 @@ function synthesizeComponents(context) {
 /**
  * Fold every detached channel's subbands into pool-owned PCM.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} PCM synthesis application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} PCM synthesis application.
  */
 function synthesizePcm(context) {
   const decoder = context.bufferPool.decoder
@@ -107,8 +105,8 @@ function synthesizePcm(context) {
 /**
  * Reconstruct PCM from the dequantized coding-unit spectra.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Synthesis stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Synthesis stage.
  */
 export function synthesize(context) {
   return pipe(context, synthesizeSpectrum, synthesizeComponents, synthesizePcm)

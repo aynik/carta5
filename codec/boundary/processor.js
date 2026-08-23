@@ -16,8 +16,6 @@ import {
 import { createWaveHeader, parseWave } from './container.js'
 import { createPcmWave } from './pcm.js'
 
-/** @import {WaveCodecOptions} from './container.js' */
-
 /**
  * High-level streaming audio processor facade.
  */
@@ -27,7 +25,7 @@ export class AudioProcessor {
    *
    * @param {AsyncIterable<Float32Array[]>|Iterable<Float32Array[]>} pcmChunks
    * Planar normalized PCM chunks.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Encoder profile and progress options.
+   * @param {object} [options] Encoder profile and progress options.
    * @returns {AsyncGenerator<Uint8Array>} Encoded frame stream.
    */
   static async *encodeStream(pcmChunks, options = {}) {
@@ -50,7 +48,7 @@ export class AudioProcessor {
    *
    * @param {AsyncIterable<Uint8Array>|Iterable<Uint8Array>} encodedFrames
    * Complete encoded frames.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Decoder profile and progress options.
+   * @param {object} [options] Decoder profile and progress options.
    * @returns {AsyncGenerator<Float32Array[]>} Decoded normalized planar frames.
    */
   static async *decodeStream(encodedFrames, options = {}) {
@@ -67,7 +65,7 @@ export class AudioProcessor {
    *
    * @param {AsyncIterable<Uint8Array>|Iterable<Uint8Array>} encodedFrames
    * Complete encoded frames.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Timeline, profile, and progress options.
+   * @param {object} [options] Timeline, profile, and progress options.
    * @returns {AsyncGenerator<Float32Array[]>} Timeline-trimmed normalized planar chunks.
    */
   static async *decodeWaveStream(encodedFrames, options = {}) {
@@ -84,9 +82,8 @@ export class AudioProcessor {
   /**
    * Collect all frames from a synchronous or asynchronous stream.
    *
-   * @template T
-   * @param {AsyncIterable<T>|Iterable<T>} frameStream Frames in source order.
-   * @returns {Promise<T[]>} Materialized frames in source order.
+   * @param {AsyncIterable|Iterable} frameStream Frames in source order.
+   * @returns {Promise<Array>} Materialized frames in source order.
    */
   static async collectFrames(frameStream) {
     const frames = []
@@ -133,7 +130,7 @@ export class AudioProcessor {
    * Encode complete normalized planar PCM buffers into an ATRACX WAVE image.
    *
    * @param {Float32Array[]} channels Complete maintained-topology normalized PCM.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Encoder profile and WAVE options.
+   * @param {object} [options] Encoder profile and WAVE options.
    * @returns {Uint8Array} Complete ATRACX WAVE image.
    */
   static encodeWavePcm(channels, options = {}) {
@@ -155,7 +152,7 @@ export class AudioProcessor {
    *
    * @param {AsyncIterable<Uint8Array>|Iterable<Uint8Array>} encodedFrames
    * Complete encoded frames.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] Profile and WAVE timeline options.
+   * @param {object} [options] Profile and WAVE timeline options.
    * @returns {Promise<Blob>} ATRACX WAVE blob.
    */
   static async createWaveBlob(encodedFrames, options = {}) {
@@ -184,7 +181,7 @@ export class AudioProcessor {
    * Parse a browser WAVE blob into metadata and a lazy frame iterable.
    *
    * @param {Blob} blob Complete ATRACX WAVE blob.
-   * @returns {Promise<{profile: CodecProfile, fact: ParsedWave['fact'], frames: Generator<Uint8Array>, bytes: Uint8Array}>} Profile, fact metadata, frames, and source bytes.
+   * @returns {Promise<object>} Profile, fact metadata, frames, and source bytes.
    */
   static async parseWaveBlob(blob) {
     const bytes = new Uint8Array(await blob.arrayBuffer())
@@ -201,7 +198,7 @@ export class AudioProcessor {
    * Serialize normalized planar PCM into a browser-compatible PCM WAVE blob.
    *
    * @param {Float32Array[]} channels Complete normalized planar PCM channels.
-   * @param {WaveCodecOptions & {onProgress?: function(number): void}} [options] PCM WAVE serialization options.
+   * @param {object} [options] PCM WAVE serialization options.
    * @returns {Blob} PCM WAVE blob.
    */
   static createPcmWaveBlob(channels, options = {}) {

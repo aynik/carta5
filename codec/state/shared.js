@@ -113,7 +113,7 @@ export class StreamTopology {
   /**
    * Configure this owner for one maintained stream profile.
    *
-   * @param {CodecProfile} profile Immutable profile descriptor.
+   * @param {object} profile Immutable profile descriptor.
    * @returns {StreamTopology|null} This configured owner, or `null`.
    */
   configure(profile) {
@@ -139,7 +139,7 @@ export class StreamTopology {
  *
  * @param {number} streamMode Packed stream topology selector.
  * @param {CodingUnitChannels[]} destination Preallocated unit maps.
- * @returns {{codingUnitCount: number, channelCount: number}|null} Topology bounds.
+ * @returns {object|null} Topology bounds.
  */
 export function configureCodingUnitChannels(streamMode, destination) {
   const mode = streamMode & 7

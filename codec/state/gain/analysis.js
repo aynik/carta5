@@ -488,7 +488,7 @@ function createGainCandidateBank() {
 /**
  * Allocate fixed band and paired-record storage for stereo gain-merge candidates.
  *
- * @returns {{count: number, bands: Uint8Array, records: GainRecord[][]}}
+ * @returns {object} Captured gain history.
  */
 function createStereoMergeFrontier() {
   return {
@@ -504,7 +504,7 @@ function createStereoMergeFrontier() {
 /**
  * Allocate per-channel storage for neighboring-band gain-merge candidates.
  *
- * @returns {{counts: Uint8Array, bands: Uint8Array[], records: GainRecord[][]}}
+ * @returns {object} Captured gain history.
  */
 function createAdjacentMergeFrontier() {
   return {

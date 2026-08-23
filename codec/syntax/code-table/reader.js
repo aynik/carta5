@@ -25,7 +25,7 @@ export class CodeTableDecodeError extends RangeError {
    * Attach codec context to a code table decode error before it crosses the public boundary.
    *
    * @param {string} kind
-   * @param {Record<string, unknown>} [fields]
+   * @param {object} [fields]
    */
   constructor(kind, fields = {}) {
     super(`ATRAC3plus code-table decode failed: ${kind}`)

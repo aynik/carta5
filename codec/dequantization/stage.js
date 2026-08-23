@@ -2,13 +2,11 @@
 
 import { reconstructCodingUnitSpectra } from './spectrum.js'
 
-/** @import {DecoderContext, DecoderFrame} from '../pipeline/decoder.js' */
-
 /**
  * Reconstruct every detached coding unit into fixed decoder spectra.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Dequantization stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Dequantization stage.
  */
 export function dequantize(context) {
   const decoder = context.bufferPool.decoder

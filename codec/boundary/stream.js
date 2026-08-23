@@ -16,9 +16,6 @@ import { createWave, parseWave } from './container.js'
 import { decode } from '../pipeline/decoder.js'
 import { encode } from '../pipeline/encoder.js'
 
-/** @import {CodecProfileOptions} from '../core/profiles.js' */
-/** @import {WaveCodecOptions} from './container.js' */
-
 // The first QMF evaluation skips 16 samples of the persisted 384-sample carry.
 
 /**
@@ -73,7 +70,7 @@ export class StreamingEncoder {
   /**
    * Create an arbitrary-chunk adapter around one persistent frame encoder.
    *
-   * @param {CodecProfileOptions} [options] Maintained profile options.
+   * @param {object} [options] Maintained profile options.
    * @param {BufferPool} [bufferPool] Explicit codec storage owner.
    */
   constructor(options = {}, bufferPool = new BufferPool()) {
@@ -195,8 +192,8 @@ export class WaveStreamingEncoder {
   /**
    * Create a WAVE timeline adapter around one persistent chunk encoder.
    *
-   * @param {WaveCodecOptions} [options] Maintained profile and timeline options.
-   * @param {import('../state/storage.js').BufferPool} bufferPool
+   * @param {object} [options] Maintained profile and timeline options.
+   * @param {object} bufferPool
    * Explicit reusable codec storage.
    */
   constructor(options = {}, bufferPool) {
@@ -246,8 +243,8 @@ export class WaveStreamingEncoder {
 /**
  * Create a streaming encoder that owns ATRACX timeline accounting.
  *
- * @param {WaveCodecOptions} [options] Maintained profile and timeline options.
- * @param {import('../state/storage.js').BufferPool} bufferPool
+ * @param {object} [options] Maintained profile and timeline options.
+ * @param {object} bufferPool
  * Explicit reusable codec storage.
  * @returns {WaveStreamingEncoder} Persistent WAVE timeline adapter.
  */
@@ -259,7 +256,7 @@ export function createWaveStreamingEncoder(options, bufferPool) {
  * Encode complete planar normalized PCM into an ATRACX WAVE image.
  *
  * @param {Float32Array[]} channels Equal-length normalized PCM channels.
- * @param {WaveCodecOptions} [options] Maintained profile and alignment options.
+ * @param {object} [options] Maintained profile and alignment options.
  * @returns {Uint8Array} Complete ATRACX WAVE byte image.
  */
 export function encodeWavePcm(channels, options = {}) {
@@ -282,8 +279,8 @@ export class WaveStreamingDecoder {
   /**
    * Create a frame decoder with WAVE timeline trimming.
    *
-   * @param {WaveCodecOptions} [options] Profile and `fact` timeline options.
-   * @param {import('../state/storage.js').BufferPool} bufferPool
+   * @param {object} [options] Profile and `fact` timeline options.
+   * @param {object} bufferPool
    * Explicit reusable codec storage.
    */
   constructor(options = {}, bufferPool) {
@@ -346,8 +343,8 @@ export class WaveStreamingDecoder {
 /**
  * Create a streaming decoder that applies ATRACX timeline trimming.
  *
- * @param {WaveCodecOptions} [options] Profile and `fact` timeline options.
- * @param {import('../state/storage.js').BufferPool} bufferPool
+ * @param {object} [options] Profile and `fact` timeline options.
+ * @param {object} bufferPool
  * Explicit reusable codec storage.
  * @returns {WaveStreamingDecoder} Persistent WAVE timeline adapter.
  */

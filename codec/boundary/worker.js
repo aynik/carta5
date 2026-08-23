@@ -27,7 +27,7 @@ async function asBytes(value) {
  * Project a parsed WAVE image onto worker-safe metadata.
  *
  * @param {ParsedWave} parsed
- * @returns {{bitrateKbps: number, channels: number, sampleRate: number, frameCount: number, sampleCount: number|null}}
+ * @returns {object} Encoder metadata.
  */
 function metadata(parsed) {
   return {

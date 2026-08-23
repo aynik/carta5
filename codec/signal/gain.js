@@ -12,8 +12,8 @@ import {
 /**
  * Test whether either half of an adjacent gain-record pair is active.
  *
- * @param {GainRecord} previous Previous-frame record.
- * @param {GainRecord} current Current-frame record.
+ * @param {object} previous Previous-frame record.
+ * @param {object} current Current-frame record.
  * @returns {boolean} Whether either record carries gain points.
  */
 export function gainPairIsActive(previous, current) {
@@ -24,7 +24,7 @@ export function gainPairIsActive(previous, current) {
  * Expand one ATRAC3plus record onto its local half of the shared 64-step axis.
  *
  * @param {ArrayLike<number>} destination
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} endBias
  * @param {boolean} add Whether to add to an existing previous-frame envelope.
  * @returns {boolean}
@@ -48,8 +48,8 @@ function applyRecordSteps(destination, record, endBias, add) {
 /**
  * Reconstruct reference's table-interpolated 256-sample ATRAC3plus forward envelope.
  *
- * @param {GainRecord} previous Previous-frame gain record.
- * @param {GainRecord} current Current-frame gain record.
+ * @param {object} previous Previous-frame gain record.
+ * @param {object} current Current-frame gain record.
  * @param {Float32Array} output Caller-owned sample envelope.
  * @param {Int32Array} steps Caller-owned step envelope.
  * @returns {number|null} Inclusive end of the first changed reverse group.
@@ -116,10 +116,10 @@ export function reconstructForwardGainScale(previous, current, output, steps) {
 /**
  * Apply the forward envelope through its first changed group.
  *
- * @param {GainRecord} previous Previous-frame gain record.
- * @param {GainRecord} current Current-frame gain record.
+ * @param {object} previous Previous-frame gain record.
+ * @param {object} current Current-frame gain record.
  * @param {Float32Array} samples Mutable time-domain samples.
- * @param {GainScaleScratch} scratch Reusable gain-scale work.
+ * @param {object} scratch Reusable gain-scale work.
  * @returns {number|null} Inclusive final scaled sample, or `null` if invalid.
  */
 export function applyForwardGainScale(previous, current, samples, scratch) {
@@ -155,8 +155,8 @@ function inverseGainPower(gain) {
 /**
  * Reconstruct reference's inverse gain envelope.
  *
- * @param {GainRecord} previous Previous-frame gain record.
- * @param {GainRecord} current Current-frame gain record.
+ * @param {object} previous Previous-frame gain record.
+ * @param {object} current Current-frame gain record.
  * @param {Float32Array} output Caller-owned sample envelope.
  * @param {Int32Array} steps Caller-owned step envelope.
  * @returns {number|null} Inclusive end of the changed prefix, or `null`.
@@ -224,10 +224,10 @@ export function reconstructInverseGainScale(previous, current, output, steps) {
 /**
  * Apply the inverse envelope through the overlap prefix and first change.
  *
- * @param {GainRecord} previous Previous-frame gain record.
- * @param {GainRecord} current Current-frame gain record.
+ * @param {object} previous Previous-frame gain record.
+ * @param {object} current Current-frame gain record.
  * @param {Float32Array} samples Mutable time-domain samples.
- * @param {GainScaleScratch} scratch Reusable gain-scale work.
+ * @param {object} scratch Reusable gain-scale work.
  * @returns {number|null} Inclusive final scaled sample, or `null` if invalid.
  */
 export function applyInverseGainScale(previous, current, samples, scratch) {

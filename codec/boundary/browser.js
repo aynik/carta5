@@ -2,8 +2,6 @@
  * Promise-based client for the Carta5 ATRAC3plus Web Worker.
  */
 
-/** @import {CodecProfileOptions} from '../core/profiles.js' */
-
 export class Carta5Worker {
   /**
    * Create a worker client and install job-resolution handlers.
@@ -31,8 +29,8 @@ export class Carta5Worker {
    * Submit one typed worker request and resolve its correlated response.
    *
    * @param {string} type Worker operation identifier.
-   * @param {Record<string, unknown>} [payload] Structured-cloneable operation payload.
-   * @returns {Promise<WorkerEncodeResult|WorkerDecodeResult|WorkerMetadata|WorkerProfileDescriptor[]>} Correlated worker result.
+   * @param {object} [payload] Structured-cloneable operation payload.
+   * @returns {Promise<object>} Correlated worker result.
    */
   request(type, payload = {}) {
     if (!this.worker) return Promise.reject(new Error('Worker is terminated'))
@@ -47,8 +45,8 @@ export class Carta5Worker {
    * Encode normalized planar PCM into an ATRACX WAVE blob.
    *
    * @param {Float32Array[]} pcmData Maintained-topology normalized planar PCM.
-   * @param {CodecProfileOptions} [options] Encoder profile options.
-   * @returns {Promise<WorkerEncodeResult>} Encoded blob and metadata.
+   * @param {object} [options] Encoder profile options.
+   * @returns {Promise<object>} Encoded blob and metadata.
    */
   encode(pcmData, options = {}) {
     return this.request('encode', { pcmData, options })
@@ -58,7 +56,7 @@ export class Carta5Worker {
    * Decode an ATRACX WAVE image into a PCM WAVE blob.
    *
    * @param {ArrayBuffer|ArrayBufferView|Blob} wave Encoded WAVE input.
-   * @returns {Promise<WorkerDecodeResult>} Decoded blob and metadata.
+   * @returns {Promise<object>} Decoded blob and metadata.
    */
   decode(wave) {
     return this.request('decode', { wave })
@@ -68,7 +66,7 @@ export class Carta5Worker {
    * Read container and profile metadata without decoding samples.
    *
    * @param {ArrayBuffer|ArrayBufferView|Blob} wave Encoded WAVE input.
-   * @returns {Promise<WorkerMetadata>} Container and ATRAC3plus profile metadata.
+   * @returns {Promise<object>} Container and ATRAC3plus profile metadata.
    */
   inspect(wave) {
     return this.request('inspect', { wave })
@@ -77,7 +75,7 @@ export class Carta5Worker {
   /**
    * Return codec profiles supported by the worker build.
    *
-   * @returns {Promise<WorkerProfileDescriptor[]>} Maintained profile descriptors.
+   * @returns {Promise<object[]>} Maintained profile descriptors.
    */
   getProfiles() {
     return this.request('getProfiles')

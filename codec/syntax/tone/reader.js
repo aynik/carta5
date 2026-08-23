@@ -36,7 +36,7 @@ export class ToneDecodeError extends RangeError {
    * Attach codec context to a tone decode error before it crosses the public boundary.
    *
    * @param {string} kind
-   * @param {Record<string, unknown>} [fields]
+   * @param {object} [fields]
    */
   constructor(kind, fields = {}) {
     super(`ATRAC3plus tone decode failed: ${kind}`)
@@ -86,7 +86,7 @@ function signExtend(value, bits) {
  * Decode a disabled, uniform, or per-band tone header plane into flat header storage.
  *
  * @param {Int32Array} header
- * @param {{enable: number, mode: number, values: number}} descriptor
+ * @param {object} descriptor
  * @param {number} count
  * @param {BitReader} reader
  */

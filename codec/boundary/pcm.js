@@ -33,7 +33,7 @@ export function scalePcmFrame(channels, output) {
  * Create a reusable normalized-to-codec PCM input adapter.
  *
  * @param {number} channelCount Configured stream channel count.
- * @returns {function(Float32Array[]|{channels: Float32Array[], sampleCount?: number}): {channels: Float32Array[], sampleCount: number}}
+ * @returns {Function} PCM scaling operation.
  */
 export function createPcmScaler(channelCount) {
   if (!Number.isInteger(channelCount) || channelCount < 1) {

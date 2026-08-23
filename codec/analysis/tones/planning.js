@@ -671,7 +671,7 @@ function commitTonePlan(
  *
  * @param {EncodeChannelState[]} channelBlocks Detached encoder channel blocks.
  * @param {EncodeAnalysisState[]} analysisStates Detached channel analysis states.
- * @param {CodingUnitChannels|ArrayLike<number>} channels Coding-unit channel indices.
+ * @param {ArrayLike<number>} channels Coding-unit channel indices.
  * @param {number} channelMode Coding-unit channel mode.
  * @param {number} toneAnalysisEnabled Tone extraction enable flag.
  * @param {number} bitrateKbps Stream bitrate in kilobits per second.

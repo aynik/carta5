@@ -3,14 +3,11 @@
 import { copyDecoderState } from './decoder/image.js'
 import { copyEncoderState, publishEncoderState } from './encoder.js'
 
-/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
-/** @import {DecoderContext, DecoderFrame} from '../pipeline/decoder.js' */
-
 /**
  * Rotate accepted frame syntax histories after all signal kernels succeed.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} History rotation stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} History rotation stage.
  */
 function rotateDecoderHistory(context) {
   const decoder = context.bufferPool.decoder
@@ -29,8 +26,8 @@ function rotateDecoderHistory(context) {
 /**
  * Capture all ported ATRAC3plus state into detached storage before analysis.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Transaction capture stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Transaction capture stage.
  */
 export function beginEncoderFrame(context) {
   return (frame) => {
@@ -51,8 +48,8 @@ export function beginEncoderFrame(context) {
 /**
  * Consume one successful analyzed frame before stream output becomes visible.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Analysis delay stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Analysis delay stage.
  */
 export function delayEncoderFrame(context) {
   const delay = context.bufferPool.encoder.state.analysisToStreamDelay
@@ -65,8 +62,8 @@ export function delayEncoderFrame(context) {
 /**
  * Publish frame histories only after delay acceptance or successful packing.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Atomic commit stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Atomic commit stage.
  */
 export function commitEncoderFrame(context) {
   const encoder = context.bufferPool.encoder
@@ -89,8 +86,8 @@ export function commitEncoderFrame(context) {
 /**
  * Capture persistent syntax and history into the detached transaction.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Transaction capture stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Transaction capture stage.
  */
 export function beginDecoderFrame(context) {
   return (frame) => {
@@ -105,8 +102,8 @@ export function beginDecoderFrame(context) {
 /**
  * Atomically publish the accepted decoder frame into persistent state.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} State publication stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} State publication stage.
  */
 export function commitDecoderFrame(context) {
   const decoder = context.bufferPool.decoder

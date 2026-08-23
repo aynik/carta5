@@ -22,32 +22,6 @@ import {
 } from './tables.js'
 
 /**
- * Maintained ATRAC3plus profile selectors accepted at codec boundaries.
- *
- * @typedef {object} CodecProfileOptions
- * @property {number} [bitrateKbps] Requested aggregate stream bitrate.
- * @property {number} [channels] Requested maintained channel topology.
- * @property {number} [sampleRate] Requested sample rate in hertz.
- */
-
-/**
- * Immutable resolved ATRAC3plus profile shared by one codec instance.
- *
- * @typedef {object} CodecProfile
- * @property {number} bitrateKbps Aggregate stream bitrate.
- * @property {number} bytesPerFrame Fixed encoded frame size.
- * @property {number} sampleRate Sample rate in hertz.
- * @property {number} streamChannelMode Packed stream topology selector.
- * @property {number} bandwidthHz Maintained analysis bandwidth.
- * @property {number} primaryCodingUnitChannelMode Primary coding-unit mode.
- * @property {number} channels Maintained stream channel count.
- * @property {number} frameSamples PCM samples per channel and frame.
- * @property {number} channelMask WAVE speaker mask.
- * @property {number} codecConfiguration Packed ATRACX configuration.
- * @property {Uint8Array} codecInfoBytes Big-endian codec configuration bytes.
- */
-
-/**
  * Quantize the reference coding-unit byte/rate product to a core mode.
  *
  * @param {number} scaled Reference sample-rate/byte product.
@@ -86,7 +60,7 @@ export function toneAnalysisEnabled(channelMode, coreMode) {
 /**
  * Fill fixed stream-topology storage with derived coding-unit policy.
  *
- * @param {CodecProfile} profile Immutable maintained profile.
+ * @param {object} profile Immutable maintained profile.
  * @param {CodingUnitProfiles} destination Preallocated coding-unit profile owner.
  * @returns {CodingUnitProfiles|null} `destination`, or `null` for invalid geometry.
  */
@@ -222,7 +196,7 @@ export function channelMask(channels) {
  * Freeze derived lookup tables and limits onto one resolved codec profile.
  *
  * @param {CodecProfileRow} row Maintained profile-table entry.
- * @returns {CodecProfile} Immutable profile with all derived fields attached.
+ * @returns {object} Immutable profile with all derived fields attached.
  */
 function materializeProfile(row) {
   const channels = channelsForStreamMode(row.streamChannelMode)
@@ -244,8 +218,8 @@ function materializeProfile(row) {
 /**
  * Resolve one canonical ATRAC3plus encode profile.
  *
- * @param {CodecProfileOptions} [options] Requested bitrate, channel topology, and sample rate.
- * @returns {CodecProfile|null} Immutable profile, or `null` when unsupported.
+ * @param {object} [options] Requested bitrate, channel topology, and sample rate.
+ * @returns {object|null} Immutable profile, or `null` when unsupported.
  */
 export function resolveProfile({
   bitrateKbps = 128,
@@ -268,7 +242,7 @@ export function resolveProfile({
  * Container metadata that does not select a profile is intentionally ignored.
  *
  * @param {WaveProfileGeometry} format Parsed channel count, sample rate, frame size, and samples per frame.
- * @returns {CodecProfile|null} Immutable matching profile, or `null`.
+ * @returns {object|null} Immutable matching profile, or `null`.
  */
 export function resolveWaveProfile({
   channels,

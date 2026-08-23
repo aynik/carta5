@@ -23,8 +23,8 @@ import {
 /**
  * Sort, deduplicate, and clamp a gain record before policy decisions inspect it.
  *
- * @param {GainRecord} record
- * @returns {GainRecord}
+ * @param {object} record
+ * @returns {object}
  */
 function normalizePolicyRecord(record) {
   return normalizeGainRecord(
@@ -37,8 +37,8 @@ function normalizePolicyRecord(record) {
 /**
  * Count adjacent gain points that can collapse without changing the envelope materially.
  *
- * @param {GainRecord} first
- * @param {GainRecord} second
+ * @param {object} first
+ * @param {object} second
  * @returns {number}
  */
 function closeRecordMergeCount(first, second) {
@@ -48,9 +48,9 @@ function closeRecordMergeCount(first, second) {
 /**
  * Plan one destination record from a close peer into preallocated output.
  *
- * @param {GainRecord} destination Incumbent destination record.
- * @param {GainRecord} peer Peer record used as evidence.
- * @param {GainRecord} output Detached output record.
+ * @param {object} destination Incumbent destination record.
+ * @param {object} peer Peer record used as evidence.
+ * @param {object} output Detached output record.
  * @returns {boolean} Whether the output differs from the incumbent.
  */
 export function planCloseRecordFromPeer(destination, peer, output) {
@@ -65,10 +65,10 @@ export function planCloseRecordFromPeer(destination, peer, output) {
 /**
  * Plan the symmetric close-record merge used between stereo channels.
  *
- * @param {GainRecord} primary Primary-channel record.
- * @param {GainRecord} secondary Secondary-channel record.
+ * @param {object} primary Primary-channel record.
+ * @param {object} secondary Secondary-channel record.
  * @param {GainRecordPolicyScratch} scratch Reusable merge storage.
- * @returns {GainRecord[]} Detached merged records.
+ * @returns {object[]} Detached merged records.
  */
 export function planCloseRecordsBetweenChannels(primary, secondary, scratch) {
   const records = scratch.stereoRecords
@@ -113,7 +113,7 @@ export function recordMergeHasTemporalSupport(signalComparison) {
 /**
  * Measure how strongly the original band-zero record supports a proposed edit.
  *
- * @param {GainRecord[]} currentRecords
+ * @param {object[]} currentRecords
  * @param {number} sourceLocation
  * @param {number} bandLimit
  * @returns {boolean}
@@ -133,12 +133,12 @@ function band0SourceSupport(currentRecords, sourceLocation, bandLimit) {
 /**
  * Choose whether band zero should retain, merge, or replace its gain record using band-one support.
  *
- * @param {GainRecord[]} currentRecords
- * @param {GainRecord} peerBand1
+ * @param {object[]} currentRecords
+ * @param {object} peerBand1
  * @param {number} channelCount
  * @param {number} bandLimit
  * @param {GainRecordPolicyScratch} scratch
- * @returns {{type: number, index: number, location: number, level: number}}
+ * @returns {object} Gain decision.
  */
 function planBand0Edit(
   currentRecords,
@@ -198,8 +198,8 @@ function planBand0Edit(
 /**
  * Apply the band-1-derived band-0 edit and retain its incumbent when selected.
  *
- * @param {GainRecord[]} currentRecords Current channel gain records.
- * @param {GainRecord|null} peerBand1 Optional peer-channel band-1 record.
+ * @param {object[]} currentRecords Current channel gain records.
+ * @param {object|null} peerBand1 Optional peer-channel band-1 record.
  * @param {number} channelCount Active coding-unit channels.
  * @param {number} bandLimit Active gain-band count.
  * @param {GainRecordPolicyScratch} scratch Reusable edit storage.

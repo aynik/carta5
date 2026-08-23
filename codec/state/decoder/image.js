@@ -272,7 +272,7 @@ export function bindDecoderChannelStates(
 /**
  * Configure immutable topology and bind both decoder transaction images.
  *
- * @param {CodecProfile} profile Immutable maintained profile.
+ * @param {object} profile Immutable maintained profile.
  * @param {DecoderState} decoder Decoder pool ownership root.
  * @returns {StreamTopology} Configured stream topology.
  */

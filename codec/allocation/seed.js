@@ -230,8 +230,8 @@ export function deriveAllocationSeed(
 /**
  * Compare the active gain points of two records for exact syntax equality.
  *
- * @param {GainRecord} left
- * @param {GainRecord} right
+ * @param {object} left
+ * @param {object} right
  * @returns {boolean}
  */
 function gainRecordsEqual(left, right) {
@@ -256,7 +256,7 @@ function gainRecordsEqual(left, right) {
  * Prepare the exact stereo reuse mask without publishing it to the transaction.
  *
  * @param {EncodeChannelState[]} channelBlocks Detached stereo channel blocks.
- * @param {import('../state/allocation.js').AllocationSourceChannel[]} sourceChannels Measured allocation source rows.
+ * @param {object[]} sourceChannels Measured allocation source rows.
  * @param {Int32Array} jointScaleFactorIndices Measured left-minus-right scale indices.
  * @param {number} coreMode Profile core-mode selector.
  * @param {number} bandCount Active quantization bands.
@@ -330,12 +330,3 @@ export function prepareIntensityStereoMask(
   }
   return destination
 }
-
-/**
- * Measure one bound coding unit and derive every candidate-invariant policy object consumed by allocation.
- *
- * @param {CodingUnitAllocationTransaction} transaction Bound allocation transaction.
- * @param {number} bandCount Active quantization bands.
- * @param {number} channelMode Coding-unit channel mode.
- * @param {number} sampleRateHz Stream sample rate.
- */

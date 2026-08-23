@@ -29,7 +29,7 @@ export class WordLengthDecodeError extends RangeError {
    * Attach codec context to a word length decode error before it crosses the public boundary.
    *
    * @param {string} kind
-   * @param {Record<string, unknown>} [fields]
+   * @param {object} [fields]
    */
   constructor(kind, fields = {}) {
     super(`ATRAC3plus word-length decode failed: ${kind}`)
@@ -75,7 +75,7 @@ function validateRequest(syntax, base, channelOrdinal, limit, reader, scratch) {
  * @param {boolean} zeroCountIsFull
  * @param {BitReader} reader
  * @param {WordLengthDecodeScratch} scratch
- * @returns {{count: number, value: number}}
+ * @returns {object} Decoded run.
  */
 function readTail(channelOrdinal, limit, zeroCountIsFull, reader, scratch) {
   const mode = reader.read(2)

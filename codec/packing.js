@@ -2,13 +2,11 @@
 
 import { packFrame } from './syntax/frame/writer.js'
 
-/** @import {EncoderContext, EncoderFrame} from './pipeline/encoder.js' */
-
 /**
  * Serialize the detached frame into bounded scratch without publishing state.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Packing stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Packing stage.
  */
 export function pack(context) {
   const encoder = context.bufferPool.encoder

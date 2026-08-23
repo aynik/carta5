@@ -6,13 +6,11 @@ import {
 } from '../core/constants.js'
 import { framePayloadCapacityBits } from '../core/geometry.js'
 
-/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
-
 /**
  * Build exact frame-ledger fitting while preserving suppressed delay frames.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): boolean} Frame fit predicate.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Frame fit predicate.
  */
 function fits(context) {
   const encoder = context.bufferPool.encoder
@@ -34,10 +32,10 @@ function fits(context) {
 /**
  * Protect one allocation attempt and exact measurement with bounded retry.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @param {function(EncoderFrame, number): EncoderFrame} solve One frame solve.
- * @param {function(EncoderFrame): boolean} fits Exact ledger fit.
- * @returns {function(EncoderFrame): EncoderFrame} Retrying allocation protocol.
+ * @param {object} context Pipeline ownership context.
+ * @param {Function} solve One frame solve.
+ * @param {Function} fits Exact ledger fit.
+ * @returns {Function} Retrying allocation protocol.
  */
 function retryFit(context, solve, fits) {
   const encoder = context.bufferPool.encoder
@@ -66,9 +64,9 @@ function retryFit(context, solve, fits) {
 /**
  * Fit one solved frame to its exact serialized capacity.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @param {function(EncoderFrame, number): EncoderFrame} solve Frame solver.
- * @returns {function(EncoderFrame): EncoderFrame} Bounded fitting operation.
+ * @param {object} context Pipeline ownership context.
+ * @param {Function} solve Frame solver.
+ * @returns {Function} Bounded fitting operation.
  */
 export function fit(context, solve) {
   return retryFit(context, solve, fits(context))

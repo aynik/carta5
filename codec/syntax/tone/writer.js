@@ -64,7 +64,7 @@ function presenceBits(enabled, mixed, count) {
  * Choose joint, differential, and orientation flags for the shared tone header array.
  *
  * @param {SharedState} header
- * @param {{enable: number, mode: number, values: number}} descriptor
+ * @param {object} descriptor
  * @param {number} count
  * @param {ToneCodingPlan} plan
  * @param {number} arrayIndex
@@ -320,7 +320,7 @@ function locationBits(record) {
  * @param {ToneSynthesisRecord[]} records
  * @param {ArrayLike<number>} present
  * @param {number} count
- * @param {function(ToneSynthesisRecord): number} measure Record field-width function.
+ * @param {Function} measure Record field-width function.
  * @returns {number}
  */
 function flaggedRecordBits(records, present, count, measure) {
@@ -534,7 +534,7 @@ export function planToneSection(channelBlocks, swapGate, destination) {
  * Emit one disabled, uniform, or per-band tone header plane.
  *
  * @param {Int32Array} header
- * @param {{enable: number, mode: number, values: number}} descriptor
+ * @param {object} descriptor
  * @param {number} enabled
  * @param {number} mixed
  * @param {number} count

@@ -66,8 +66,8 @@ export function addSubbandNoise(shared, subbandSamples) {
 /**
  * Select the gain exponent that best aligns reconstructed noise with the target scale.
  *
- * @param {GainRecord} current
- * @param {GainRecord} previous
+ * @param {object} current
+ * @param {object} previous
  * @returns {number}
  */
 function bestGainShift(current, previous) {
@@ -169,8 +169,8 @@ export function spectralNoiseScale(
  * Noise scale in the quantized-coefficient domain, or null when disabled.
  *
  * @param {number} levelIndex Spectral-noise level index.
- * @param {GainRecord} currentGain Current-frame gain record.
- * @param {GainRecord} previousGain Previous-frame gain record.
+ * @param {object} currentGain Current-frame gain record.
+ * @param {object} previousGain Previous-frame gain record.
  * @param {number} quantizationMode Spectrum quantization mode.
  * @returns {number|null} Quantized noise scale, or `null` when disabled.
  */

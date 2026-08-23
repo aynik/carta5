@@ -2,13 +2,11 @@
 
 import { unpackFrameSyntax } from './syntax/frame/reader.js'
 
-/** @import {DecoderContext, DecoderFrame} from './pipeline/decoder.js' */
-
 /**
  * Traverse every configured coding unit into detached decoder blocks.
  *
- * @param {DecoderContext} context Pipeline ownership context.
- * @returns {function(DecoderFrame): DecoderFrame} Unpacking stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Unpacking stage.
  */
 export function unpack(context) {
   const decoder = context.bufferPool.decoder

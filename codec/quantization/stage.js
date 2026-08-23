@@ -2,13 +2,11 @@
 
 import { quantizeSymbols } from './symbols.js'
 
-/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
-
 /**
  * Materialize final symbols for every retained coding unit.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Quantization stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Quantization stage.
  */
 export function quantize(context) {
   const { codingUnitCount } = context.bufferPool.encoder.state.topology

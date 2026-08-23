@@ -11,7 +11,7 @@ import {
  *
  * @param {ArrayLike<number>} order
  * @param {number} count
- * @param {function(number, number): boolean} greater
+ * @param {Function} greater
  */
 function shellSortDescending(order, count, greater) {
   let gap = 1
@@ -70,7 +70,7 @@ export class AllocationBandOrder {
  * Score and order every active band by scale-factor and band-level priority.
  *
  * @param {EncodeChannelState[]} channelBlocks Coding-unit channels in ordinal order.
- * @param {import('../state/allocation.js').AllocationSourceChannel[]} sourceChannels
+ * @param {object[]} sourceChannels
  * @param {number} bandCount
  * @param {AllocationBandOrder} destination
  */
@@ -112,7 +112,7 @@ function fillPriorityOrder(
  * Rank one measured coding unit using the qualified allocation priority.
  *
  * @param {EncodeChannelState[]} channelBlocks Coding-unit channels in ordinal order.
- * @param {import('../state/allocation.js').AllocationSourceChannel[]} sourceChannels Measured allocation source rows.
+ * @param {object[]} sourceChannels Measured allocation source rows.
  * @param {number} bandCount Active quantization bands.
  * @param {AllocationBandOrder} destination Ordering to overwrite.
  * @returns {AllocationBandOrder} The destination ordering.

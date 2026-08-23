@@ -30,7 +30,7 @@ const canonicalTables = new WeakMap()
  * Materialize canonical Huffman codes for the supplied code-length vector.
  *
  * @param {ArrayLike<number>} codeLengths
- * @returns {{codes: Uint32Array, maximum: number}}
+ * @returns {object} Canonical code table.
  */
 function tableFor(codeLengths) {
   let table = canonicalTables.get(codeLengths)

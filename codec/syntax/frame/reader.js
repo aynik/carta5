@@ -29,7 +29,7 @@ export class FrameTraversalError extends RangeError {
    * Describe one structural frame traversal failure.
    *
    * @param {string} kind Stable failure category.
-   * @param {Record<string, unknown>} fields Additional diagnostic fields.
+   * @param {object} fields Additional diagnostic fields.
    */
   constructor(kind, fields = {}) {
     super(`ATRAC3plus frame traversal failed: ${kind}`)

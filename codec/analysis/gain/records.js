@@ -118,7 +118,7 @@ export function scoreGainLevelAdjustment(
  * Integrate scan-ordered ATRAC3plus gain delta events into one seven-slot record.
  * Equal-location events must be adjacent, matching detector arena traversal.
  *
- * @param {GainRecord} record Destination record.
+ * @param {object} record Destination record.
  * @param {Int32Array} eventLocations Scan-ordered event locations.
  * @param {Int32Array} eventDeltas Level deltas paired with the events.
  * @param {number} eventCount Number of valid event entries.
@@ -126,7 +126,7 @@ export function scoreGainLevelAdjustment(
  * @param {number} levelCeiling Largest reconstructed level.
  * @param {number} maxTransitions Maximum transitions to retain.
  * @param {boolean} rejectOverflow Whether excess transitions reject the plan.
- * @param {function(number): number} levelIndex Map a reconstructed level to its coded index.
+ * @param {Function} levelIndex Map a reconstructed level to its coded index.
  * @param {GainEnvelopeScratch} scratch Reusable locations and levels storage.
  * @returns {number|null} Written transition count, or `null` when rejected.
  */
@@ -202,7 +202,7 @@ export function writeGainRecordDeltaEnvelope(
 /**
  * Whether one coded gain record contains at least one transition.
  *
- * @param {GainRecord} record Record to inspect.
+ * @param {object} record Record to inspect.
  * @returns {boolean} Whether the record is active.
  */
 export function gainRecordIsActive(record) {
@@ -212,8 +212,8 @@ export function gainRecordIsActive(record) {
 /**
  * Whether either half of an adjacent-frame gain pair is active.
  *
- * @param {GainRecord} previous Previous-frame record.
- * @param {GainRecord} current Current-frame record.
+ * @param {object} previous Previous-frame record.
+ * @param {object} current Current-frame record.
  * @returns {boolean} Whether either record is active.
  */
 export function gainRecordPairIsActive(previous, current) {
@@ -223,7 +223,7 @@ export function gainRecordPairIsActive(previous, current) {
 /**
  * Delete one gain point in place while keeping the remaining fields compact.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} index
  * @param {number} count
  * @returns {number}
@@ -240,7 +240,7 @@ function removeGainRecordEntry(record, index, count) {
 /**
  * Remove adjacent gain points whose selected field carries the same value.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} count
  * @param {string} field
  * @returns {number}
@@ -260,10 +260,10 @@ function collapseAdjacentEqualGainField(record, count, field) {
 /**
  * Canonicalize one record while preserving its profile-local carry.
  *
- * @param {GainRecord} record Record to normalize in place.
+ * @param {object} record Record to normalize in place.
  * @param {number} defaultTailLevel Profile's implicit terminal level.
  * @param {boolean} clearInactiveSlots Whether to zero unused fixed slots.
- * @returns {GainRecord} The normalized record.
+ * @returns {object} The normalized record.
  */
 export function normalizeGainRecord(
   record,
@@ -287,8 +287,8 @@ export function normalizeGainRecord(
 /**
  * Return the common close-shape entry count, or `null` when not mergeable.
  *
- * @param {GainRecord} first First candidate record.
- * @param {GainRecord} second Second candidate record.
+ * @param {object} first First candidate record.
+ * @param {object} second Second candidate record.
  * @param {number} maximumLocationDelta Allowed per-slot location delta.
  * @param {number} maximumLevelDelta Allowed per-slot level delta.
  * @returns {number|null} Common entry count when mergeable.
@@ -319,10 +319,10 @@ export function closeGainRecordMergeCount(
 /**
  * Merge slots into one earliest-location/highest-level record.
  *
- * @param {GainRecord} destination Record to update.
- * @param {GainRecord} source Peer record to merge.
+ * @param {object} destination Record to update.
+ * @param {object} source Peer record to merge.
  * @param {number} count Number of corresponding slots.
- * @returns {GainRecord} The updated destination.
+ * @returns {object} The updated destination.
  */
 export function mergeGainRecordMinLocationMaxLevel(destination, source, count) {
   const limit = Math.min(count, GAIN_SLOT_COUNT)
@@ -342,8 +342,8 @@ export function mergeGainRecordMinLocationMaxLevel(destination, source, count) {
 /**
  * Apply the same earliest-location/highest-level merge to both records.
  *
- * @param {GainRecord} first First record to update.
- * @param {GainRecord} second Second record to update.
+ * @param {object} first First record to update.
+ * @param {object} second Second record to update.
  * @param {number} count Number of corresponding slots.
  * @returns {void}
  */
@@ -363,8 +363,8 @@ export function mergeGainRecordPairMinLocationMaxLevel(first, second, count) {
  * Copy a longer peer location shape when all shared endpoints and drops agree.
  * `sourceIndices` is seven-entry caller-owned scratch.
  *
- * @param {GainRecord} destination Shorter record to update.
- * @param {GainRecord} source Longer peer record.
+ * @param {object} destination Shorter record to update.
+ * @param {object} source Longer peer record.
  * @param {number} maximumEndpointLevelDelta Allowed endpoint level delta.
  * @param {number} maximumAdjacentDropDelta Allowed adjacent-drop delta.
  * @param {Int32Array} sourceIndices Caller-owned match-index scratch.
@@ -454,7 +454,7 @@ export function copyGainRecordLocationSupersetIfLevelShapeClose(
 /**
  * Insert a transition into a bounded record.
  *
- * @param {GainRecord} record Record to update.
+ * @param {object} record Record to update.
  * @param {number} index Insertion index.
  * @param {number} location Encoded transition location.
  * @param {number} level Encoded transition level.
@@ -476,7 +476,7 @@ export function insertGainRecordEntry(record, index, location, level) {
 /**
  * Return one saturating incremented level for an active entry.
  *
- * @param {GainRecord} record Record to inspect.
+ * @param {object} record Record to inspect.
  * @param {number} index Entry index.
  * @param {number} maximumLevel Saturation ceiling.
  * @returns {number|null} Incremented level, or `null` for an inactive index.
@@ -491,7 +491,7 @@ export function gainRecordIncrementedLevel(record, index, maximumLevel) {
 /**
  * Initial record level relative to the profile's implicit tail level.
  *
- * @param {GainRecord} record Record to inspect.
+ * @param {object} record Record to inspect.
  * @param {number} defaultTailLevel Profile's implicit terminal level.
  * @returns {number} Signed initial-level delta.
  */
@@ -502,9 +502,9 @@ export function gainRecordInitialLevelDelta(record, defaultTailLevel) {
 /**
  * Select the largest record transition into caller-owned result storage.
  *
- * @param {GainRecord} record Record to inspect.
+ * @param {object} record Record to inspect.
  * @param {number} defaultTailLevel Profile's implicit terminal level.
- * @param {{entry: number, location: number, levelBefore: number, levelAfter: number, drop: number}} result Caller-owned transition result.
+ * @param {object} result Caller-owned transition result.
  * @returns {boolean} Whether an active transition was found.
  */
 export function gainRecordBestLevelTransition(
@@ -535,7 +535,7 @@ export function gainRecordBestLevelTransition(
 /**
  * Whether any transition lies within an inclusive absolute location delta.
  *
- * @param {GainRecord} record Record to inspect.
+ * @param {object} record Record to inspect.
  * @param {number} target Target location.
  * @param {number} maximumDelta Inclusive location tolerance.
  * @returns {boolean} Whether a nearby transition exists.

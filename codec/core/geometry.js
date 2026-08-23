@@ -58,7 +58,7 @@ export function framePayloadCapacityBits(frameBytes, codingUnitCount) {
  * Return one quantization unit's end-exclusive coefficient range.
  *
  * @param {number} unit Quantization-unit index.
- * @returns {{start: number, end: number}|null} Immutable range, or `null`.
+ * @returns {object|null} Immutable range, or `null`.
  */
 export function quantizationUnitRange(unit) {
   if (

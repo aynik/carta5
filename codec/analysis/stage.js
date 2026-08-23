@@ -17,13 +17,11 @@ import { writeMdctOutputs } from '../signal/spectrum.js'
 import { analyzeQmfFrame } from '../signal/bands.js'
 import { pipe } from '../utils.js'
 
-/** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
-
 /**
  * Prepare detached format geometry and chronological histories for analysis.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Analysis setup protocol.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Analysis setup protocol.
  */
 function prepareAnalysis(context) {
   return pipe(context, prepareGeometry, rotateHistory)
@@ -32,8 +30,8 @@ function prepareAnalysis(context) {
 /**
  * Apply format decisions that depend on the analyzed QMF signal.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Signal decision recipe.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Signal decision recipe.
  */
 function analyzeSignal(context) {
   return pipe(context, applyIntensity, planTones, planGain)
@@ -42,8 +40,8 @@ function analyzeSignal(context) {
 /**
  * Refresh detached syntax geometry before current-frame signal analysis.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Geometry setup operation.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Geometry setup operation.
  */
 export function prepareGeometry(context) {
   const encoder = context.bufferPool.encoder
@@ -73,7 +71,7 @@ export function prepareGeometry(context) {
 /**
  * Rotate only detached frame histories before current-frame analysis.
  *
- * @returns {function(EncoderFrame): EncoderFrame} History setup operation.
+ * @returns {Function} History setup operation.
  */
 export function rotateHistory() {
   return (frame) => {
@@ -85,8 +83,8 @@ export function rotateHistory() {
 /**
  * Advance the detached 16-band QMF histories for every stream channel.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Band analysis application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Band analysis application.
  */
 export function analyzeBands(context) {
   const encoder = context.bufferPool.encoder
@@ -105,8 +103,8 @@ export function analyzeBands(context) {
 /**
  * Apply stereo-only intensity processing and publish delayed correlation.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Intensity application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Intensity application.
  */
 export function applyIntensity(context) {
   const encoder = context.bufferPool.encoder
@@ -169,8 +167,8 @@ export function applyIntensity(context) {
 /**
  * Plan complete per-unit tone syntax and residuals in detached state.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Tone application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Tone application.
  */
 export function planTones(context) {
   const encoder = context.bufferPool.encoder
@@ -196,8 +194,8 @@ export function planTones(context) {
  * Intensity-stereo and tone applications run immediately before this one; gain
  * deliberately owns neither policy.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Gain application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Gain application.
  */
 export function planGain(context) {
   const encoder = context.bufferPool.encoder
@@ -240,8 +238,8 @@ export function planGain(context) {
 /**
  * Publish gain-scaled and gain-unscaled spectra from detached channel state.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Spectrum application.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Spectrum application.
  */
 export function transformSpectrum(context) {
   const encoder = context.bufferPool.encoder
@@ -275,8 +273,8 @@ export function transformSpectrum(context) {
 /**
  * Compose ATRAC3plus signal analysis and format decisions.
  *
- * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Analysis stage.
+ * @param {object} context Pipeline ownership context.
+ * @returns {Function} Analysis stage.
  */
 export function analyze(context) {
   return pipe(

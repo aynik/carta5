@@ -24,7 +24,7 @@ export class GainDecodeError extends RangeError {
    * Attach codec context to a gain decode error before it crosses the public boundary.
    *
    * @param {string} kind
-   * @param {Record<string, unknown>} [fields]
+   * @param {object} [fields]
    */
   constructor(kind, fields = {}) {
     super(`ATRAC3plus gain decode failed: ${kind}`)
@@ -71,7 +71,7 @@ function applyDelta(symbol, reference, mask) {
 /**
  * Return a decoded gain level or the neutral predictor when the entry is absent.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} entry
  * @returns {number}
  */
@@ -82,7 +82,7 @@ function levelOrDefault(record, entry) {
 /**
  * Report whether a gain transition moves toward release rather than attack.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} entry
  * @returns {boolean}
  */
@@ -191,7 +191,7 @@ function readPointCounts(frame, base, secondary, reader) {
 /**
  * Decode the first absolute level followed by wrapped deltas within one gain record.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {BitReader} reader
  */
 function readIntraLevels(record, reader) {
@@ -210,8 +210,8 @@ function readIntraLevels(record, reader) {
 /**
  * Copy base levels into reusable destination storage without retaining source-owned views.
  *
- * @param {GainRecord} record
- * @param {GainRecord} base
+ * @param {object} record
+ * @param {object} base
  */
 function copyBaseLevels(record, base) {
   for (let entry = 0; entry < record.entries; entry++) {
@@ -293,7 +293,7 @@ function readLevels(frame, base, secondary, reader) {
 /**
  * Decode strictly ascending gain locations with the width implied by each preceding location.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {number} startEntry
  * @param {BitReader} reader
  */
@@ -312,7 +312,7 @@ function readAscending(record, startEntry, reader) {
 /**
  * Decode A-family gain locations using attack/release-dependent increment codebooks.
  *
- * @param {GainRecord} record
+ * @param {object} record
  * @param {BitReader} reader
  */
 function readAIncrement(record, reader) {
