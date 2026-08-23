@@ -43,7 +43,6 @@ export class BitWriter {
    * @returns {void}
    */
   write(value, bitCount) {
-    assertBitCount(bitCount)
     if (
       this.bitPosition < 0 ||
       this.bitPosition + bitCount > this.buffer.length * 8
