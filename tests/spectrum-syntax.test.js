@@ -207,8 +207,9 @@ describe('ATRAC3plus spectrum syntax', () => {
     expect(pool.encoder.scratch.spectrumSyntax).toBeInstanceOf(
       SpectrumSyntaxScratch
     )
-    expect(pool.encoder.scratch.spectrumSyntax.symbol.fields).toBeInstanceOf(
-      Uint32Array
-    )
+    const symbol = pool.encoder.scratch.spectrumSyntax.symbol
+    expect(symbol.symbols).toBeInstanceOf(Uint16Array)
+    expect(symbol.extraBits).toBeInstanceOf(Uint32Array)
+    expect(symbol.extraCounts).toBeInstanceOf(Uint8Array)
   })
 })

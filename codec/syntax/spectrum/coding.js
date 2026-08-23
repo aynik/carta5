@@ -185,9 +185,10 @@ export function groupSpectrumCoefficients(
  * @param {ArrayLike<number>} coefficients
  * @param {number} start
  * @param {SpectrumDescriptor} descriptor
- * @param {ArrayLike<number>} fields
+ * @param {SpectrumSymbolScratch} scratch
+ * @param {number} slot
  */
-function buildSpectrumSymbol(coefficients, start, descriptor, fields) {
+function buildSpectrumSymbol(coefficients, start, descriptor, scratch, slot) {
   let symbol = 0
   let extraBits = 0
   let extraCount = 0
@@ -204,27 +205,31 @@ function buildSpectrumSymbol(coefficients, start, descriptor, fields) {
       extraCount++
     }
   }
-  fields[0] = symbol
-  fields[1] = extraBits
-  fields[2] = extraCount
+  scratch.symbols[slot] = symbol
+  scratch.extraBits[slot] = extraBits
+  scratch.extraCounts[slot] = extraCount
 }
 
 /**
  * Emit one canonical spectrum symbol and fail with its packed coefficient position when the codebook forbids it.
  *
  * @param {SpectrumDescriptor} descriptor
- * @param {ArrayLike<number>} fields
+ * @param {SpectrumSymbolScratch} scratch
+ * @param {number} slot
  * @param {number} packedIndex
  * @param {BitWriter|BitCounter} sink
  */
-function writeSpectrumSymbol(descriptor, fields, packedIndex, sink) {
-  const symbol = fields[0]
+function writeSpectrumSymbol(descriptor, scratch, slot, packedIndex, sink) {
+  const symbol = scratch.symbols[slot]
   if (!writeCanonicalSymbol(descriptor.codeLengths, symbol, sink)) {
     throw new RangeError(
       `ATRAC3plus spectrum symbol ${symbol} at ${packedIndex} is not packable`
     )
   }
-  if (symbol !== 0 && fields[2] !== 0) sink.write(fields[1], fields[2])
+  const extraCount = scratch.extraCounts[slot]
+  if (symbol !== 0 && extraCount !== 0) {
+    sink.write(scratch.extraBits[slot], extraCount)
+  }
 }
 
 /**
@@ -266,31 +271,43 @@ export function packSpectrumPayload(
   }
   const packedCount = Math.min(Math.trunc(count / group), 128)
   const chunk = Math.max(descriptor.zeroRunChunk, 1)
-  const fields = scratch.fields
-  for (let chunkStart = 0; chunkStart < packedCount; chunkStart += chunk) {
-    const chunkEnd = Math.min(chunkStart + chunk, packedCount)
-    let anyNonzero = false
-    if (chunk > 1) {
-      for (let packed = chunkStart; packed < chunkEnd; packed++) {
-        buildSpectrumSymbol(
-          coefficients,
-          start + packed * group,
-          descriptor,
-          fields
-        )
-        anyNonzero ||= fields[0] !== 0
-      }
-      sink.write(Number(anyNonzero), 1)
-      if (!anyNonzero) continue
-    }
-    for (let packed = chunkStart; packed < chunkEnd; packed++) {
+  if (chunk === 1) {
+    for (let packed = 0; packed < packedCount; packed++) {
       buildSpectrumSymbol(
         coefficients,
         start + packed * group,
         descriptor,
-        fields
+        scratch,
+        0
       )
-      writeSpectrumSymbol(descriptor, fields, packed, sink)
+      writeSpectrumSymbol(descriptor, scratch, 0, packed, sink)
+    }
+    return
+  }
+  for (let chunkStart = 0; chunkStart < packedCount; chunkStart += chunk) {
+    const chunkEnd = Math.min(chunkStart + chunk, packedCount)
+    let anyNonzero = false
+    for (let packed = chunkStart; packed < chunkEnd; packed++) {
+      const slot = packed - chunkStart
+      buildSpectrumSymbol(
+        coefficients,
+        start + packed * group,
+        descriptor,
+        scratch,
+        slot
+      )
+      anyNonzero ||= scratch.symbols[slot] !== 0
+    }
+    sink.write(Number(anyNonzero), 1)
+    if (!anyNonzero) continue
+    for (let packed = chunkStart; packed < chunkEnd; packed++) {
+      writeSpectrumSymbol(
+        descriptor,
+        scratch,
+        packed - chunkStart,
+        packed,
+        sink
+      )
     }
   }
 }

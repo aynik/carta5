@@ -534,7 +534,11 @@ describe('ATRAC3plus persistent state', () => {
     expect(pool.encoder.scratch.spectrumSyntax).toBeInstanceOf(
       SpectrumSyntaxScratch
     )
-    expect(pool.encoder.scratch.spectrumSyntax.symbol.fields).toHaveLength(3)
+    expect(pool.encoder.scratch.spectrumSyntax.symbol.symbols).toHaveLength(4)
+    expect(pool.encoder.scratch.spectrumSyntax.symbol.extraBits).toHaveLength(4)
+    expect(pool.encoder.scratch.spectrumSyntax.symbol.extraCounts).toHaveLength(
+      4
+    )
     expect(pool.encoder.scratch.gain).toBeInstanceOf(GainAnalysisScratch)
     expect(pool.encoder.scratch.gain.detection.measurement).toBeInstanceOf(
       GainMeasurementScratch

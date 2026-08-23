@@ -1,14 +1,16 @@
 /** Reusable scalar state for ATRAC3plus spectrum pricing and emission. */
 
 /**
- * Reusable fields for one lowered spectral symbol and its sign payload.
+ * Reusable fields for one four-symbol spectral zero-run chunk.
  */
 export class SpectrumSymbolScratch {
   /**
-   * Allocate the fixed symbol, sign-bits, and sign-count fields.
+   * Allocate fixed symbol, sign-bits, and sign-count rows.
    */
   constructor() {
-    this.fields = new Uint32Array(3)
+    this.symbols = new Uint16Array(4)
+    this.extraBits = new Uint32Array(4)
+    this.extraCounts = new Uint8Array(4)
   }
 }
 
