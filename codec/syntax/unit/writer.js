@@ -63,20 +63,19 @@ function packStereoPresence(shared, sink) {
 }
 
 /**
- * Traverse one selected coding unit using explicit coefficient rows.
+ * Write one selected coding unit using its retained coefficient rows.
  *
  * @param {CodingUnitAllocationTransaction} transaction Selected transaction.
- * @param {Int16Array[]} spectra Final or trial coefficient rows.
  * @param {SharedState} shared Detached shared coding-unit state.
  * @param {SpectrumSyntaxScratch} scratch Reusable spectrum syntax work.
  * @param {BitWriter|BitCounter} sink Bit sink exposing `write(value, bits)`.
  * @returns {number} Exact written bit length.
  */
-function writeCodingUnit(transaction, spectra, shared, scratch, sink) {
+function writeCodingUnit(transaction, shared, scratch, sink) {
   validateTransaction(transaction, shared)
   if (
-    !Array.isArray(spectra) ||
-    spectra.length < transaction.channelCount ||
+    !Array.isArray(transaction.symbols) ||
+    transaction.symbols.length < transaction.channelCount ||
     !(scratch instanceof SpectrumSyntaxScratch) ||
     typeof sink?.write !== 'function' ||
     !Number.isInteger(sink.bitPosition)
@@ -105,7 +104,7 @@ function writeCodingUnit(transaction, spectra, shared, scratch, sink) {
   for (let channel = 0; channel < transaction.channelCount; channel++) {
     packChannelSpectrum(
       transaction.channelBlocks[channel],
-      spectra[channel],
+      transaction.symbols[channel],
       shared,
       scratch,
       sink
@@ -126,25 +125,6 @@ function writeCodingUnit(transaction, spectra, shared, scratch, sink) {
 }
 
 /**
- * Measure one coding unit with allocation-local trial symbols.
- *
- * @param {CodingUnitAllocationTransaction} transaction Selected transaction.
- * @param {SharedState} shared Detached shared coding-unit state.
- * @param {SpectrumSyntaxScratch} scratch Reusable spectrum syntax work.
- * @param {BitCounter} sink Counting sink.
- * @returns {number} Exact measured bit length.
- */
-export function measureCodingUnit(transaction, shared, scratch, sink) {
-  return writeCodingUnit(
-    transaction,
-    transaction.trialSpectra,
-    shared,
-    scratch,
-    sink
-  )
-}
-
-/**
  * Pack one coding unit with retained coefficient symbols.
  *
  * @param {CodingUnitAllocationTransaction} transaction Selected transaction.
@@ -154,11 +134,5 @@ export function measureCodingUnit(transaction, shared, scratch, sink) {
  * @returns {number} Exact written bit length.
  */
 export function packCodingUnit(transaction, shared, scratch, sink) {
-  return writeCodingUnit(
-    transaction,
-    transaction.symbols,
-    shared,
-    scratch,
-    sink
-  )
+  return writeCodingUnit(transaction, shared, scratch, sink)
 }

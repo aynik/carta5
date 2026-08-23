@@ -6,8 +6,8 @@ import {
   FRAME_TAG,
 } from '../../core/constants.js'
 import { framePayloadCapacityBits } from '../../core/geometry.js'
-import { BitCounter, BitWriter } from '../bitstream.js'
-import { measureCodingUnit, packCodingUnit } from '../unit/writer.js'
+import { BitWriter } from '../bitstream.js'
+import { packCodingUnit } from '../unit/writer.js'
 import {
   FrameHeader,
   frameTagForChannelCount,
@@ -93,15 +93,14 @@ function sharedForTransaction(transaction, sharedCodingUnits) {
 }
 
 /**
- * Traverse one complete frame through a selected coding-unit serializer.
+ * Write one complete frame.
  *
  * @param {CodingUnitAllocationTransaction[]} transactions Selected units.
  * @param {SharedState[]} sharedCodingUnits Detached shared unit states.
  * @param {number} codingUnitCount Active coding-unit count.
  * @param {number} frameBytes Profile frame width.
  * @param {SpectrumSyntaxScratch} spectrumScratch Reusable spectrum work.
- * @param {BitWriter|BitCounter} sink Bit sink.
- * @param {function(CodingUnitAllocationTransaction, SharedState, SpectrumSyntaxScratch, BitWriter|BitCounter): number} writeUnit Unit serializer.
+ * @param {BitWriter} sink Bit sink.
  * @returns {number} Unpadded payload width in bits.
  */
 function traverseFrame(
@@ -110,8 +109,7 @@ function traverseFrame(
   codingUnitCount,
   frameBytes,
   spectrumScratch,
-  sink,
-  writeUnit
+  sink
 ) {
   const frameBits = frameBytes * 8
   FrameHeader.pack(sink)
@@ -122,7 +120,7 @@ function traverseFrame(
       throw new RangeError('ATRAC3plus coding-unit frame tag is invalid')
     }
     packFrameTag(tag, sink)
-    writeUnit(
+    packCodingUnit(
       transaction,
       sharedForTransaction(transaction, sharedCodingUnits),
       spectrumScratch,
@@ -137,41 +135,6 @@ function traverseFrame(
     throw new FramePackError('terminator overflow')
   }
   return sink.bitPosition
-}
-
-/**
- * Measure a complete allocation with trial symbols and exact wire traversal.
- *
- * @param {CodingUnitAllocationTransaction[]} transactions Selected units.
- * @param {SharedState[]} sharedCodingUnits Detached shared unit states.
- * @param {number} codingUnitCount Active coding-unit count.
- * @param {number} frameBytes Profile frame width.
- * @param {SpectrumSyntaxScratch} spectrumScratch Reusable spectrum work.
- * @returns {number} Unpadded payload width in bits.
- */
-export function measureFrame(
-  transactions,
-  sharedCodingUnits,
-  codingUnitCount,
-  frameBytes,
-  spectrumScratch
-) {
-  validateFrameRequest(
-    transactions,
-    sharedCodingUnits,
-    codingUnitCount,
-    frameBytes,
-    spectrumScratch
-  )
-  return traverseFrame(
-    transactions,
-    sharedCodingUnits,
-    codingUnitCount,
-    frameBytes,
-    spectrumScratch,
-    new BitCounter(),
-    measureCodingUnit
-  )
 }
 
 /**
@@ -210,8 +173,7 @@ export function packFrame(
     codingUnitCount,
     frameBytes,
     spectrumScratch,
-    writer,
-    packCodingUnit
+    writer
   )
   const alignedByte = (payloadBits + 7) >>> 3
   for (let byte = alignedByte; byte < frameBytes; byte++) {

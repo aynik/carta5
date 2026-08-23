@@ -5,10 +5,7 @@ import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
 import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
-import {
-  measureCodingUnit,
-  packCodingUnit,
-} from '../codec/syntax/unit/writer.js'
+import { packCodingUnit } from '../codec/syntax/unit/writer.js'
 import { unpackCodingUnit } from '../codec/syntax/unit/reader.js'
 
 import { BitCounter, BitReader, BitWriter } from '../codec/syntax/bitstream.js'
@@ -80,7 +77,7 @@ describe('ATRAC3plus coding-unit emission', () => {
       packCodingUnit(transaction, shared, new SpectrumSyntaxScratch(), writer)
     ).toBe(40)
     expect(
-      measureCodingUnit(
+      packCodingUnit(
         transaction,
         shared,
         new SpectrumSyntaxScratch(),

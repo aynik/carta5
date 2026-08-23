@@ -6,11 +6,7 @@ import { planScaleFactorSection } from '../codec/syntax/scale-factor/writer.js'
 
 import { planRawWordLengthSection } from '../codec/syntax/word-length/writer.js'
 import { planCodeTableSection } from '../codec/syntax/code-table/writer.js'
-import {
-  FramePackError,
-  measureFrame,
-  packFrame,
-} from '../codec/syntax/frame/writer.js'
+import { FramePackError, packFrame } from '../codec/syntax/frame/writer.js'
 import {
   FrameDecodeScratch,
   unpackFrameSyntax,
@@ -82,7 +78,7 @@ describe('ATRAC3plus bounded frame emission', () => {
     expect(framePayloadCapacityBits(744, 4)).toBe(5941)
   })
 
-  it('wraps the exact coding-unit oracle and pads only whole trailing bytes', () => {
+  it('pads only whole trailing bytes after exact coding-unit emission', () => {
     const { shared, transaction } = activeMonoFixture()
     const frameBytes = 8
     const scratch = new Uint8Array(frameBytes + FRAME_PACK_SCRATCH_SLACK_BYTES)
@@ -93,15 +89,6 @@ describe('ATRAC3plus bounded frame emission', () => {
         1,
         frameBytes,
         scratch,
-        new SpectrumSyntaxScratch()
-      )
-    ).toBe(45)
-    expect(
-      measureFrame(
-        [transaction],
-        [shared],
-        1,
-        frameBytes,
         new SpectrumSyntaxScratch()
       )
     ).toBe(45)

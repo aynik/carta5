@@ -4,30 +4,30 @@ import {
   BUDGET_RETRY_LIMIT,
   BUDGET_RETRY_STEP_BITS,
 } from '../core/constants.js'
-import { FramePackError, measureFrame } from '../syntax/frame/writer.js'
+import { framePayloadCapacityBits } from '../core/geometry.js'
 
 /** @import {EncoderContext, EncoderFrame} from '../pipeline/encoder.js' */
 
 /**
- * Build exact frame measurement while preserving suppressed delay frames.
+ * Build exact frame-ledger fitting while preserving suppressed delay frames.
  *
  * @param {EncoderContext} context Pipeline ownership context.
- * @returns {function(EncoderFrame): EncoderFrame} Frame measurement operation.
+ * @returns {function(EncoderFrame): boolean} Frame fit predicate.
  */
-function measure(context) {
+function fits(context) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
-  const frameBytes = context.profile.bytesPerFrame
+  const capacity = framePayloadCapacityBits(
+    context.profile.bytesPerFrame,
+    topology.codingUnitCount
+  )
   return (frame) => {
-    if (encoder.state.analysisToStreamDelay.remainingFrames !== 0) return frame
-    measureFrame(
-      frame.allocationTransactions,
-      frame.sharedCodingUnits,
-      topology.codingUnitCount,
-      frameBytes,
-      encoder.scratch.spectrumSyntax
-    )
-    return frame
+    if (encoder.state.analysisToStreamDelay.remainingFrames !== 0) return true
+    let payloadBits = 0
+    for (let unit = 0; unit < topology.codingUnitCount; unit++) {
+      payloadBits += frame.allocationTransactions[unit].bitsTotal
+    }
+    return payloadBits <= capacity
   }
 }
 
@@ -36,10 +36,10 @@ function measure(context) {
  *
  * @param {EncoderContext} context Pipeline ownership context.
  * @param {function(EncoderFrame, number): EncoderFrame} solve One frame solve.
- * @param {function(EncoderFrame): EncoderFrame} measure Exact measurement.
+ * @param {function(EncoderFrame): boolean} fits Exact ledger fit.
  * @returns {function(EncoderFrame): EncoderFrame} Retrying allocation protocol.
  */
-function retryFit(context, solve, measure) {
+function retryFit(context, solve, fits) {
   const encoder = context.bufferPool.encoder
   const { topology } = encoder.state
   const checkpoint = encoder.frame.allocationCheckpoint
@@ -49,14 +49,13 @@ function retryFit(context, solve, measure) {
       if (attempt > 0) checkpoint.restore(encoder.frame, topology)
       try {
         solve(frame, attempt * BUDGET_RETRY_STEP_BITS)
-        measure(frame)
+      } catch (error) {
+        checkpoint.restore(encoder.frame, topology)
+        throw error
+      }
+      if (fits(frame)) {
         frame.allocationAttempts = attempt + 1
         return frame
-      } catch (error) {
-        if (!(error instanceof FramePackError)) {
-          checkpoint.restore(encoder.frame, topology)
-          throw error
-        }
       }
     }
     checkpoint.restore(encoder.frame, topology)
@@ -72,5 +71,5 @@ function retryFit(context, solve, measure) {
  * @returns {function(EncoderFrame): EncoderFrame} Bounded fitting operation.
  */
 export function fit(context, solve) {
-  return retryFit(context, solve, measure(context))
+  return retryFit(context, solve, fits(context))
 }

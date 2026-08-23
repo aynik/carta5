@@ -1,25 +1,12 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { createHash } from 'node:crypto'
-
-const measureFrameControl = vi.hoisted(() => ({ intercept: null }))
-
-vi.mock('../codec/syntax/frame/writer.js', async (importOriginal) => {
-  const original = await importOriginal()
-  return {
-    ...original,
-    measureFrame(...args) {
-      return measureFrameControl.intercept
-        ? measureFrameControl.intercept(original.measureFrame, args)
-        : original.measureFrame(...args)
-    },
-  }
-})
 
 import { BufferPool } from '../codec/state/storage.js'
 import { flushTailFramesForSampleCount } from '../codec/boundary/stream.js'
+import { framePayloadCapacityBits } from '../codec/core/geometry.js'
+import { fit } from '../codec/allocation/fit.js'
 import { BitCounter } from '../codec/syntax/bitstream.js'
 import { packCodingUnit } from '../codec/syntax/unit/writer.js'
-import { FramePackError } from '../codec/syntax/frame/writer.js'
 import { encode } from '../codec/pipeline/encoder.js'
 import { decode } from '../codec/pipeline/decoder.js'
 import { StreamingEncoder } from '../codec/boundary/stream.js'
@@ -39,10 +26,6 @@ function frameHash(frames) {
   for (const frame of frames) hash.update(frame)
   return hash.digest('hex')
 }
-
-afterEach(() => {
-  measureFrameControl.intercept = null
-})
 
 describe('ATRAC3plus detached streaming frame encoder', () => {
   it('matches the reference flush-tail timing boundaries', () => {
@@ -166,43 +149,45 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     expect(encoder.sampleCount).toBe(2048 * 3)
   })
 
-  it('retries exact frame fitting without repeating analysis', () => {
-    const options = { bitrateKbps: 128, channels: 1, sampleRate: 44100 }
-    const retryPool = new BufferPool()
-    let measureCalls = 0
-    measureFrameControl.intercept = (measureFrame, args) => {
-      measureCalls++
-      if (measureCalls === 1) {
-        throw new FramePackError('coding-unit overflow', 0)
-      }
-      measureFrameControl.intercept = null
-      return measureFrame(...args)
+  it('retries exact frame-ledger fitting without repeating prior stages', () => {
+    const frameBytes = 744
+    const capacity = framePayloadCapacityBits(frameBytes, 1)
+    const checkpoint = {
+      captures: 0,
+      restores: 0,
+      capture() {
+        this.captures++
+      },
+      restore() {
+        this.restores++
+      },
     }
-    const retryEncoder = encode(options, retryPool)
-    const controlPool = new BufferPool()
-    const controlEncoder = encode(options, controlPool)
-    let retriedOutput = null
-    let controlOutput = null
-    for (let frame = 0; frame < 8; frame++) {
-      const input = [referencePcm(frame)]
-      retriedOutput = retryEncoder(input)
-      controlOutput = controlEncoder(input)
+    const context = {
+      profile: { bytesPerFrame: frameBytes },
+      bufferPool: {
+        encoder: {
+          state: {
+            topology: { codingUnitCount: 1 },
+            analysisToStreamDelay: { remainingFrames: 0 },
+          },
+          frame: { allocationCheckpoint: checkpoint },
+        },
+      },
     }
+    const frame = { allocationTransactions: [{ bitsTotal: 0 }] }
+    const reductions = []
+    const allocate = fit(context, (candidate, reductionBits) => {
+      reductions.push(reductionBits)
+      candidate.allocationTransactions[0].bitsTotal =
+        reductions.length === 1 ? capacity + 1 : capacity
+      return candidate
+    })
 
-    expect(retriedOutput).toHaveLength(744)
-    expect(controlOutput).toHaveLength(744)
-    expect(measureCalls).toBe(2)
-    expect(retryPool.encoder.state.lastAllocationAttempts).toBe(2)
-    expect(retryPool.encoder.frame.allocationCheckpoint.channelCount).toBe(1)
-    expect(retryPool.encoder.frame.allocationCheckpoint.codingUnitCount).toBe(1)
-    expect(retryPool.encoder.state.analysisChannels[0].samples).toStrictEqual(
-      controlPool.encoder.state.analysisChannels[0].samples
-    )
-    expect(
-      retryPool.encoder.state.channelBlocks[0].detection.energySum
-    ).toStrictEqual(
-      controlPool.encoder.state.channelBlocks[0].detection.energySum
-    )
+    expect(allocate(frame)).toBe(frame)
+    expect(reductions).toEqual([0, 32])
+    expect(frame.allocationAttempts).toBe(2)
+    expect(checkpoint.captures).toBe(1)
+    expect(checkpoint.restores).toBe(1)
   })
 
   it('keeps finalized silent-unit accounting equal to serialized size', () => {
