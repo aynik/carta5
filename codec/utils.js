@@ -231,9 +231,10 @@ export function reverseLowBits(value, bitCount) {
 /**
  * Compose stateful stage factories once and return the reusable frame path.
  *
- * @param {*} context Shared stage ownership and persistent state.
- * @param {...function(*): function(*): *} stages Ordered stage factories.
- * @returns {function(*): *} Reusable composed frame operation.
+ * @template TContext, TValue
+ * @param {TContext} context Shared stage ownership and persistent state.
+ * @param {...function(TContext): function(TValue): TValue} stages Ordered stage factories.
+ * @returns {function(TValue): TValue} Reusable composed frame operation.
  */
 export function pipe(context, ...stages) {
   const operations = stages.map((stage) => stage(context))
