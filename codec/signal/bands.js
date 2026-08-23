@@ -177,9 +177,7 @@ function computePolyphaseSums(window, windowOffset, accumulator, extendedSums) {
     accumulator[15] = float32Round(extended15)
   }
 
-  extendedSums.set(accumulator)
   extendedSums[7] = extended7
-  extendedSums[8] = extended8
   extendedSums[10] = extended10
   extendedSums[11] = extended11
   extendedSums[12] = extended12
