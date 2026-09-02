@@ -6,10 +6,7 @@ import {
   measureGainBlockPeaks,
   requiredGainRangeBits,
 } from '../codec/analysis/gain/measurement.js'
-import {
-  forwardRealDft16,
-  magnitudeSpectrum16LowBins,
-} from '../codec/signal/dft.js'
+import { forwardRealDft16 } from '../codec/signal/dft.js'
 import { GainMeasurementScratch } from '../codec/state/analysis.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
@@ -40,29 +37,7 @@ describe('ATRAC3plus gain measurement', () => {
     const scratch = new BufferPool().encoder.scratch.gain.detection.measurement
     expect(
       float32Bits(computeGainFlatnessScale(referenceWindow(), scratch))
-    ).toBe(1067770609)
-    expect([...scratch.magnitudes].map(float32Bits)).toEqual([
-      1017054144, 1073475126, 1080310082, 1076638916, 1075560634, 1076561362,
-      1082419883, 1087714382,
-    ])
-  })
-
-  it('supports an aliased input and DFT work buffer without changing magnitudes', () => {
-    const source = referenceWindow()
-    const detachedMagnitudes = new Float32Array(8)
-    magnitudeSpectrum16LowBins(source, detachedMagnitudes, new Float32Array(16))
-
-    const aliasedSpectrum = source.slice()
-    const aliasedMagnitudes = new Float32Array(8)
-    magnitudeSpectrum16LowBins(
-      aliasedSpectrum,
-      aliasedMagnitudes,
-      aliasedSpectrum
-    )
-
-    expect([...aliasedMagnitudes].map(float32Bits)).toEqual(
-      [...detachedMagnitudes].map(float32Bits)
-    )
+    ).toBe(1067770610)
   })
 
   it('preserves ordered NaN peak and index traversal behavior', () => {

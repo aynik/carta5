@@ -117,16 +117,16 @@ function hashState(channels, bandCount) {
 }
 
 describe('ATRAC3plus full-rate raw gain detector', () => {
-  it('matches reference across four persisted stereo frames', () => {
+  it('matches the power-domain reference across four persisted stereo frames', () => {
     const channels = [new EncodeChannelState(0), new EncodeChannelState(1)]
     const analysis = channels.map((channel) => channel.analysis)
     const scratch = new BufferPool().encoder.scratch.gain.detection
     const request = configureGainDetectionRequest({}, 6, 10, 0x17, 3, 2)
     const expected = [
-      ['4ecd8062ba2f5a03', 'c50e00ab8fb4ba6d'],
-      ['4ecd8062ba2f5a03', '72fd0bcbddacf91e'],
-      ['4ecd8062ba2f5a03', '265d93927096a95b'],
-      ['9b54b532a259ceae', 'e5b34e894387f41c'],
+      ['4ecd8062ba2f5a03', '5d5724100ac4587c'],
+      ['4ecd8062ba2f5a03', 'cd0d3e3bc01cea1b'],
+      ['4ecd8062ba2f5a03', 'ead7dd14effc6220'],
+      ['9b54b532a259ceae', '63d93ab36aab5e43'],
     ]
 
     for (let frame = 0; frame < expected.length; frame++) {

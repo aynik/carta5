@@ -565,39 +565,3 @@ export function powerSpectrum256(source, sampleCount, destination, scratch) {
   destination[128] = float32Round(nyquist * nyquist)
   return destination
 }
-
-/**
- * Write magnitudes for bins 0..7 of the fixed gain-analysis DFT.
- *
- * @param {Float32Array} source Sixteen real samples.
- * @param {Float32Array} destination Caller-owned magnitude output.
- * @param {Float32Array} scratch Reusable DFT work; may alias source.
- * @returns {Float32Array} The destination magnitudes.
- */
-export function magnitudeSpectrum16LowBins(source, destination, scratch) {
-  if (
-    !(source instanceof Float32Array) ||
-    source.length < 16 ||
-    !(destination instanceof Float32Array) ||
-    destination.length < 8 ||
-    !(scratch instanceof Float32Array) ||
-    scratch.length < 16
-  ) {
-    throw new RangeError(
-      'ATRAC3plus magnitude DFT buffers have invalid geometry'
-    )
-  }
-  if (source !== scratch) {
-    for (let index = 0; index < 16; index++) scratch[index] = source[index]
-  }
-  forwardRealDft16(scratch)
-  scratch[1] = 0
-  for (let bin = 0; bin < 8; bin++) {
-    const real = scratch[bin * 2]
-    const imaginary = scratch[bin * 2 + 1]
-    const sum = real * real + imaginary * imaginary
-    const root = Math.sqrt(sum)
-    destination[bin] = Number.isNaN(root) ? Math.sqrt(Math.fround(sum)) : root
-  }
-  return destination
-}

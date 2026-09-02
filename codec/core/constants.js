@@ -941,6 +941,11 @@ export const TONE_SOURCE_SAMPLE = 4 * ANALYSIS_TONE_ANALYSIS_SUBBAND_SAMPLES
 /** Gain control epsilon. */
 export const GAIN_CONTROL_EPSILON = Math.fround(1e-8)
 
+/** Gain control epsilon in squared-power units. */
+export const GAIN_CONTROL_POWER_EPSILON = Math.fround(
+  GAIN_CONTROL_EPSILON * GAIN_CONTROL_EPSILON
+)
+
 /** Gain control inverse 7. */
 export const GAIN_CONTROL_INVERSE_7 = Math.fround(1 / 7)
 

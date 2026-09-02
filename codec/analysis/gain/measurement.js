@@ -1,12 +1,13 @@
 /** Numeric measurement primitives for ATRAC3plus gain-point detection. */
 
-import { magnitudeSpectrum16LowBins } from '../../signal/dft.js'
+import { forwardRealDft16 } from '../../signal/dft.js'
 import {
   GAIN_WINDOW_BLOCKS,
   GAIN_WINDOW_FLOATS_PER_BLOCK,
   GAIN_CONTROL_EPSILON,
   GAIN_CONTROL_INITIAL_BITS_LOG2_E,
   GAIN_CONTROL_INVERSE_7,
+  GAIN_CONTROL_POWER_EPSILON,
   GAIN_CONTROL_SCALE,
 } from '../../core/constants.js'
 import { float32Round } from '../../utils.js'
@@ -118,7 +119,7 @@ function gainFlatnessScale(firstTerm, secondTerm) {
 }
 
 /**
- * Compute the detector's windowed 16-point spectral-flatness scale.
+ * Compute the detector's windowed 16-point spectral-flatness scale from power.
  *
  * @param {Float32Array} windowSamples At least 16 detector samples.
  * @param {GainMeasurementScratch} scratch Reusable DFT work.
@@ -149,52 +150,51 @@ export function computeGainFlatnessScale(
       windowSamples[sourceOffset + 15 - sample] * coefficient
     )
   }
-  const magnitudes = magnitudeSpectrum16LowBins(
-    spectrum,
-    scratch.magnitudes,
-    spectrum
-  )
+  forwardRealDft16(spectrum)
+  spectrum[1] = 0
 
-  let interiorProduct = 1
-  let squaredMagnitudeSum = float32Round(
-    float32Round(magnitudes[0] * magnitudes[0]) +
-      float32Round(magnitudes[7] * magnitudes[7])
+  // Power doubles every logarithm, so the common factor cancels from both
+  // flatness ratios.
+  const firstPower = float32Round(spectrum[0] * spectrum[0])
+  const lastPower = float32Round(
+    spectrum[14] * spectrum[14] + spectrum[15] * spectrum[15]
   )
+  let interiorPowerProduct = 1
+  let powerSum = float32Round(firstPower + lastPower)
   for (let bin = 1; bin < 7; bin++) {
-    const value = magnitudes[bin]
-    interiorProduct *= float32Round(value + GAIN_CONTROL_EPSILON)
-    squaredMagnitudeSum = float32Round(
-      squaredMagnitudeSum + float32Round(value * value)
-    )
+    const real = spectrum[bin * 2]
+    const imaginary = spectrum[bin * 2 + 1]
+    const power = float32Round(real * real + imaginary * imaginary)
+    interiorPowerProduct *= float32Round(power + GAIN_CONTROL_POWER_EPSILON)
+    powerSum = float32Round(powerSum + power)
   }
-  const interiorLogSum = float32Round(Math.log(interiorProduct))
-  const preciseRoot = float32Round(Math.sqrt(squaredMagnitudeSum))
-  const rootLogarithm = float32Round(
-    Math.log(float32Round(preciseRoot + GAIN_CONTROL_EPSILON))
+  const interiorLogSum = float32Round(Math.log(interiorPowerProduct))
+  const sumLogarithm = float32Round(
+    Math.log(float32Round(powerSum + GAIN_CONTROL_POWER_EPSILON))
   )
   const firstBinLogarithm = float32Round(
-    Math.log(float32Round(magnitudes[0] + GAIN_CONTROL_EPSILON))
+    Math.log(float32Round(firstPower + GAIN_CONTROL_POWER_EPSILON))
   )
   const lastBinLogarithm = float32Round(
-    Math.log(float32Round(magnitudes[7] + GAIN_CONTROL_EPSILON))
+    Math.log(float32Round(lastPower + GAIN_CONTROL_POWER_EPSILON))
   )
 
   const lastAndInterior = float32Round(lastBinLogarithm + interiorLogSum)
   const firstNumerator = float32Round(
-    rootLogarithm - float32Round(lastAndInterior * GAIN_CONTROL_INVERSE_7)
+    sumLogarithm - float32Round(lastAndInterior * GAIN_CONTROL_INVERSE_7)
   )
   const firstDenominator = float32Round(
-    float32Round(rootLogarithm - firstBinLogarithm) + GAIN_CONTROL_EPSILON
+    float32Round(sumLogarithm - firstBinLogarithm) + GAIN_CONTROL_EPSILON
   )
   const firstTerm = float32Round(
     float32Round(firstNumerator / firstDenominator) + GAIN_CONTROL_EPSILON
   )
   const leadingLogSum = float32Round(interiorLogSum + firstBinLogarithm)
   const secondNumerator = float32Round(
-    rootLogarithm - float32Round(leadingLogSum * GAIN_CONTROL_INVERSE_7)
+    sumLogarithm - float32Round(leadingLogSum * GAIN_CONTROL_INVERSE_7)
   )
   const secondDenominator = float32Round(
-    float32Round(rootLogarithm - lastBinLogarithm) + GAIN_CONTROL_EPSILON
+    float32Round(sumLogarithm - lastBinLogarithm) + GAIN_CONTROL_EPSILON
   )
   const secondTerm = float32Round(
     float32Round(secondNumerator / secondDenominator) + GAIN_CONTROL_EPSILON

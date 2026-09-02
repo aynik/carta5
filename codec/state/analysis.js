@@ -16,7 +16,6 @@ export class GainMeasurementScratch {
    */
   constructor() {
     this.spectrum = new Float32Array(16)
-    this.magnitudes = new Float32Array(8)
     this.blockPeaks = new Float32Array(GAIN_WINDOW_BLOCKS)
     this.peakResult = { maximumIndex: 0, maximumValue: 0, activity: 0 }
     this.sortedOrder = {
