@@ -1,16 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { BufferPool } from '../codec/state/storage.js'
 import { resolveProfile } from '../codec/core/profiles.js'
+import { ANALYSIS_TAIL_SAMPLES } from '../codec/core/constants.js'
 import { analyzeBands, rotateHistory } from '../codec/analysis/stage.js'
 import { validateFrame } from '../codec/pipeline/encoder.js'
 import { beginEncoderFrame } from '../codec/state/stream.js'
 import { EncodeAnalysisState } from '../codec/state/encoder.js'
 import { SynthesisState } from '../codec/state/decoder/image.js'
-import {
-  analyzeQmfChannel,
-  analyzeQmfFrame,
-  synthesizeQmfChannel,
-} from '../codec/signal/bands.js'
+import { analyzeQmfChannel, analyzeQmfFrame } from '../codec/analysis/bands.js'
+import { analyzeQmf, synthesizeQmf } from '../codec/signal/bands.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
 const U64_MASK = 0xffffffffffffffffn
@@ -72,7 +70,7 @@ function firstReferencePcm() {
 }
 
 describe('ATRAC3plus 16-band QMF analysis', () => {
-  it('matches reference 16-band QMF synthesis and staged delay history', () => {
+  it('matches detached 16-band QMF synthesis and delay history', () => {
     const subbands = new Float32Array(2048)
     for (let band = 0; band < 16; band++) {
       for (let sample = 0; sample < 128; sample++) {
@@ -91,7 +89,13 @@ describe('ATRAC3plus 16-band QMF analysis', () => {
       }
     }
     const output = new Float32Array(2048)
-    expect(synthesizeQmfChannel(subbands, state, output)).toBe(output)
+    state.delayRingIndex = synthesizeQmf(
+      subbands,
+      state.firstPhaseDelay,
+      state.secondPhaseDelay,
+      state.delayRingIndex,
+      output
+    )
     expect(rawSummary(output)).toEqual({
       sum: 4380829605050n,
       xor: 2258100032n,
@@ -116,6 +120,27 @@ describe('ATRAC3plus 16-band QMF analysis', () => {
       1023643838, 1021911120, 3173188552, 3168463442, 1117216298, 3257379126,
       3233903851, 1118613979,
     ])
+  })
+
+  it('transforms a complete detached window without publishing state', () => {
+    const state = new EncodeAnalysisState()
+    for (let index = 0; index < state.tail.length; index++) {
+      state.tail[index] = (((index * 13) % 97) - 48) / 32
+    }
+    const originalTail = state.tail.slice()
+    const scratch = new BufferPool().encoder.scratch.qmf
+    scratch.window.set(state.tail)
+    scratch.window.set(firstReferencePcm(), ANALYSIS_TAIL_SAMPLES)
+
+    expect(analyzeQmf(scratch.window, state.newestBands, scratch)).toBe(
+      state.newestBands
+    )
+    expect(newestSlotSummary(state)).toEqual({
+      sum: 4321202821368n,
+      xor: 2298417366n,
+      hash: 8288924493446930380n,
+    })
+    expect(state.tail).toEqual(originalTail)
   })
 
   it('matches the first complete reference raw-bit vector', () => {

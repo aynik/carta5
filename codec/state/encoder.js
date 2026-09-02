@@ -8,6 +8,7 @@ import {
   FRAME_SAMPLES,
   MAX_CHANNELS,
   MAX_CODING_UNITS,
+  NEWEST_ANALYSIS_SLOT,
   SUBBAND_SAMPLES,
   ANALYSIS_SAMPLE_COUNT,
   BAND_STRIDE,
@@ -109,6 +110,9 @@ export class EncodeAnalysisState {
         const start = band * BAND_STRIDE + slot * SUBBAND_SAMPLES
         return this.samples.subarray(start, start + SUBBAND_SAMPLES)
       })
+    )
+    this.newestBands = Object.freeze(
+      this.bandSlots.map((slots) => slots[NEWEST_ANALYSIS_SLOT])
     )
   }
 
@@ -439,9 +443,7 @@ export class EncoderFrameState extends EncoderStateImage {
       () => new Float32Array(FRAME_SAMPLES)
     )
     this.pcmChannelViews = createPrefixViews(this.pcmChannels)
-    this.qmfBands = this.analysisChannels.map((state) =>
-      state.bandSlots.map((slots) => slots[8])
-    )
+    this.qmfBands = this.analysisChannels.map((state) => [...state.newestBands])
     this.qmfBandViews = createPrefixViews(this.qmfBands)
 
     this.gainScaledSpectra = Array.from(
@@ -800,9 +802,9 @@ export function publishEncoderState(state, frame) {
 
   for (let channel = 0; channel < frame.analysisChannels.length; channel++) {
     const bands = frame.qmfBands[channel]
-    const slots = frame.analysisChannels[channel].bandSlots
+    const newestBands = frame.analysisChannels[channel].newestBands
     for (let band = 0; band < ANALYSIS_BANDS; band++) {
-      bands[band] = slots[band][ANALYSIS_SLOTS - 1]
+      bands[band] = newestBands[band]
     }
   }
   return state

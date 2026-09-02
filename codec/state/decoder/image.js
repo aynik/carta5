@@ -4,6 +4,7 @@ import {
   FRAME_SAMPLES,
   MAX_CHANNELS,
   MAX_CODING_UNITS,
+  QMF_SYNTHESIS_DELAY_SAMPLES,
 } from '../../core/constants.js'
 import { GainRecord } from '../gain/coding.js'
 import { ChannelSyntaxState, SharedState, StreamTopology } from '../shared.js'
@@ -81,8 +82,8 @@ export class SynthesisState {
    */
   constructor() {
     this.inverseTransformOverlap = new Float32Array(FRAME_SAMPLES)
-    this.firstPhaseDelay = new Float32Array(24 * 8)
-    this.secondPhaseDelay = new Float32Array(24 * 8)
+    this.firstPhaseDelay = new Float32Array(QMF_SYNTHESIS_DELAY_SAMPLES)
+    this.secondPhaseDelay = new Float32Array(QMF_SYNTHESIS_DELAY_SAMPLES)
     this.delayRingIndex = 0
   }
 

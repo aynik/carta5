@@ -586,6 +586,25 @@ export const QMF_STARTUP_SKIP_SAMPLES = 16
 
 /** QMF window samples. */
 export const QMF_WINDOW_SAMPLES = ANALYSIS_TAIL_SAMPLES + FRAME_SAMPLES
+/** Samples held in each phase of a QMF synthesis delay row. */
+export const QMF_SYNTHESIS_PHASE_SAMPLES = ANALYSIS_BANDS / 2
+/** Circular delay rows retained by QMF synthesis. */
+export const QMF_SYNTHESIS_DELAY_ROWS = 24
+/** Polyphase taps accumulated from the QMF synthesis delay rings. */
+export const QMF_SYNTHESIS_TAPS = QMF_SYNTHESIS_DELAY_ROWS / 2
+/** Samples retained in each QMF synthesis delay ring. */
+export const QMF_SYNTHESIS_DELAY_SAMPLES =
+  QMF_SYNTHESIS_DELAY_ROWS * QMF_SYNTHESIS_PHASE_SAMPLES
+/** Start of the second instantaneous synthesis-phase coefficient row. */
+export const QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET =
+  ANALYSIS_BANDS * QMF_SYNTHESIS_PHASE_SAMPLES
+/** Start of coefficients applied to the first synthesis delay ring. */
+export const QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET =
+  QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET * 2
+/** Start of coefficients applied to the second synthesis delay ring. */
+export const QMF_SYNTHESIS_SECOND_DELAY_COEFFICIENT_OFFSET =
+  QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET +
+  ANALYSIS_BANDS * QMF_SYNTHESIS_TAPS
 
 /** Raw bits. */
 export const RAW_BITS = 3

@@ -14,7 +14,7 @@ import { analyzeTones } from './tones/planning.js'
 import { channelCorrelationTwoSegments } from './perceptual.js'
 import { rotateEncoderFrameHistories } from '../state/encoder.js'
 import { writeMdctOutputs } from './spectrum.js'
-import { analyzeQmfFrame } from '../signal/bands.js'
+import { analyzeQmfFrame } from './bands.js'
 import { pipe } from '../utils.js'
 
 /**

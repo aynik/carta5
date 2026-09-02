@@ -2,12 +2,16 @@
 
 import {
   ANALYSIS_BANDS,
-  ANALYSIS_TAIL_SAMPLES,
   FRAME_SAMPLES,
-  MAX_CHANNELS,
   SUBBAND_SAMPLES,
-  NEWEST_ANALYSIS_SLOT,
   QMF_STARTUP_SKIP_SAMPLES,
+  QMF_SYNTHESIS_DELAY_ROWS,
+  QMF_SYNTHESIS_DELAY_SAMPLES,
+  QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET,
+  QMF_SYNTHESIS_PHASE_SAMPLES,
+  QMF_SYNTHESIS_SECOND_DELAY_COEFFICIENT_OFFSET,
+  QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET,
+  QMF_SYNTHESIS_TAPS,
   QMF_WINDOW_SAMPLES,
 } from '../core/constants.js'
 import {
@@ -363,28 +367,26 @@ function modulate16Band(polyphase, extended, output) {
 }
 
 /**
- * Analyze one complete ATRAC3plus PCM channel into the newest history slot.
- * The caller owns the preceding ring shift and supplies reusable scratch.
+ * Transform one complete time window into sixteen QMF subbands.
  *
- * @param {EncodeAnalysisState} analysisState Detached channel analysis state.
- * @param {Float32Array} pcm One frame of PCM samples.
+ * @param {Float32Array} window Current PCM preceded by the QMF look-back tail.
+ * @param {Float32Array[]} outputBands Sixteen caller-owned output rows.
  * @param {QmfAnalysisScratch} scratch Reusable QMF work.
- * @returns {EncodeAnalysisState} The updated analysis state.
+ * @returns {Float32Array[]} The completed output rows.
  */
-export function analyzeQmfChannel(analysisState, pcm, scratch) {
-  if (!(pcm instanceof Float32Array) || pcm.length < FRAME_SAMPLES) {
-    throw new RangeError(`ATRAC3plus QMF requires ${FRAME_SAMPLES} PCM samples`)
-  }
+export function analyzeQmf(window, outputBands, scratch) {
   if (
-    !analysisState ||
-    analysisState.bandSlots?.length !== ANALYSIS_BANDS ||
-    analysisState.tail?.length !== ANALYSIS_TAIL_SAMPLES
+    !(window instanceof Float32Array) ||
+    window.length < QMF_WINDOW_SAMPLES ||
+    outputBands?.length !== ANALYSIS_BANDS ||
+    outputBands.some(
+      (band) => !(band instanceof Float32Array) || band.length < SUBBAND_SAMPLES
+    )
   ) {
-    throw new RangeError('ATRAC3plus QMF analysis state geometry is invalid')
+    throw new RangeError('ATRAC3plus QMF analysis geometry is invalid')
   }
   if (
     !scratch ||
-    scratch.window?.length !== QMF_WINDOW_SAMPLES ||
     scratch.polyphaseSums?.length !== ANALYSIS_BANDS ||
     scratch.extendedPolyphaseSums?.length !== ANALYSIS_BANDS ||
     scratch.bands?.length !== ANALYSIS_BANDS
@@ -392,12 +394,10 @@ export function analyzeQmfChannel(analysisState, pcm, scratch) {
     throw new RangeError('ATRAC3plus QMF scratch geometry is invalid')
   }
 
-  const { window, polyphaseSums, extendedPolyphaseSums, bands } = scratch
-  window.set(analysisState.tail, 0)
-  window.set(pcm.subarray(0, FRAME_SAMPLES), ANALYSIS_TAIL_SAMPLES)
+  const { polyphaseSums, extendedPolyphaseSums, bands } = scratch
 
   for (let sample = 0; sample < SUBBAND_SAMPLES; sample++) {
-    const windowOffset = QMF_STARTUP_SKIP_SAMPLES + sample * 16
+    const windowOffset = QMF_STARTUP_SKIP_SAMPLES + sample * ANALYSIS_BANDS
     computePolyphaseSums(
       window,
       windowOffset,
@@ -406,114 +406,118 @@ export function analyzeQmfChannel(analysisState, pcm, scratch) {
     )
     modulate16Band(polyphaseSums, extendedPolyphaseSums, bands)
     for (let band = 0; band < ANALYSIS_BANDS; band++) {
-      analysisState.bandSlots[band][NEWEST_ANALYSIS_SLOT][sample] = bands[band]
+      outputBands[band][sample] = bands[band]
     }
   }
-
-  analysisState.tail.set(
-    pcm.subarray(FRAME_SAMPLES - ANALYSIS_TAIL_SAMPLES, FRAME_SAMPLES)
-  )
-  return analysisState
+  return outputBands
 }
 
 /**
- * Advance and analyze every active stream channel with one shared scratch.
- *
- * @param {Float32Array[]} pcmChannels Active planar PCM frame.
- * @param {EncodeAnalysisState[]} analysisStates Detached channel analysis states.
- * @param {number} channelCount Active stream channel count.
- * @param {QmfAnalysisScratch} scratch Reusable QMF work.
- * @returns {EncodeAnalysisState[]} The updated analysis states.
- */
-export function analyzeQmfFrame(
-  pcmChannels,
-  analysisStates,
-  channelCount,
-  scratch
-) {
-  if (
-    !Number.isInteger(channelCount) ||
-    channelCount < 1 ||
-    channelCount > MAX_CHANNELS ||
-    pcmChannels.length < channelCount ||
-    analysisStates.length < channelCount
-  ) {
-    throw new RangeError('ATRAC3plus QMF frame channel geometry is invalid')
-  }
-  for (let channel = 0; channel < channelCount; channel++) {
-    analysisStates[channel].shiftBandSlots()
-    analyzeQmfChannel(analysisStates[channel], pcmChannels[channel], scratch)
-  }
-  return analysisStates
-}
-
-/**
- * Fold detached subbands through the staged synthesis rings.
+ * Fold detached subbands through caller-owned QMF synthesis delay rings.
  *
  * @param {Float32Array} subbands Contiguous subband samples.
- * @param {QmfAnalysisScratch} state Staged QMF synthesis state.
+ * @param {Float32Array} firstPhaseDelay First synthesis delay ring.
+ * @param {Float32Array} secondPhaseDelay Second synthesis delay ring.
+ * @param {number} delayRingIndex Current synthesis delay row.
  * @param {Float32Array} output Caller-owned PCM output.
- * @returns {Float32Array} The output PCM.
+ * @returns {number} Next synthesis delay row.
  */
-export function synthesizeQmfChannel(subbands, state, output) {
+export function synthesizeQmf(
+  subbands,
+  firstPhaseDelay,
+  secondPhaseDelay,
+  delayRingIndex,
+  output
+) {
   if (
     !(subbands instanceof Float32Array) ||
     subbands.length < FRAME_SAMPLES ||
-    !(state?.firstPhaseDelay instanceof Float32Array) ||
-    state.firstPhaseDelay.length < 24 * 8 ||
-    !(state?.secondPhaseDelay instanceof Float32Array) ||
-    state.secondPhaseDelay.length < 24 * 8 ||
-    !Number.isInteger(state.delayRingIndex) ||
-    state.delayRingIndex < 0 ||
-    state.delayRingIndex >= 24 ||
+    !(firstPhaseDelay instanceof Float32Array) ||
+    firstPhaseDelay.length < QMF_SYNTHESIS_DELAY_SAMPLES ||
+    !(secondPhaseDelay instanceof Float32Array) ||
+    secondPhaseDelay.length < QMF_SYNTHESIS_DELAY_SAMPLES ||
+    !Number.isInteger(delayRingIndex) ||
+    delayRingIndex < 0 ||
+    delayRingIndex >= QMF_SYNTHESIS_DELAY_ROWS ||
     !(output instanceof Float32Array) ||
     output.length < FRAME_SAMPLES
   ) {
     throw new RangeError('ATRAC3plus QMF synthesis geometry is invalid')
   }
   output.fill(0)
-  let delayRow = state.delayRingIndex
+  let delayRow = delayRingIndex
   for (let sampleIndex = 0; sampleIndex < SUBBAND_SAMPLES; sampleIndex++) {
-    const delayOffset = delayRow * 8
-    for (let phaseSample = 0; phaseSample < 8; phaseSample++) {
+    const delayOffset = delayRow * QMF_SYNTHESIS_PHASE_SAMPLES
+    for (
+      let phaseSample = 0;
+      phaseSample < QMF_SYNTHESIS_PHASE_SAMPLES;
+      phaseSample++
+    ) {
       let firstSum = 0
       let secondSum = 0
-      const coefficientOffset = phaseSample * 16
-      for (let subband = 0; subband < 16; subband++) {
-        const sample = subbands[subband * 128 + sampleIndex]
+      const coefficientOffset = phaseSample * ANALYSIS_BANDS
+      for (let subband = 0; subband < ANALYSIS_BANDS; subband++) {
+        const sample = subbands[subband * SUBBAND_SAMPLES + sampleIndex]
         const coefficientIndex = coefficientOffset + subband
         firstSum += QMF_SYNTHESIS_COEFFICIENTS[coefficientIndex] * sample
-        secondSum += sample * QMF_SYNTHESIS_COEFFICIENTS[128 + coefficientIndex]
+        secondSum +=
+          sample *
+          QMF_SYNTHESIS_COEFFICIENTS[
+            QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET + coefficientIndex
+          ]
       }
-      state.firstPhaseDelay[delayOffset + phaseSample] = firstSum
-      state.secondPhaseDelay[delayOffset + phaseSample] = secondSum
+      firstPhaseDelay[delayOffset + phaseSample] = firstSum
+      secondPhaseDelay[delayOffset + phaseSample] = secondSum
     }
 
-    const outputOffset = sampleIndex * 16
-    for (let tap = 0; tap < 12; tap++) {
-      const firstDelayOffset = ((delayRow + tap * 2) % 24) * 8
-      const secondDelayOffset = ((delayRow + tap * 2 + 1) % 24) * 8
-      const coefficientOffset = tap * 16
-      for (let sample = 0; sample < 8; sample++) {
+    const outputOffset = sampleIndex * ANALYSIS_BANDS
+    for (let tap = 0; tap < QMF_SYNTHESIS_TAPS; tap++) {
+      const firstDelayOffset =
+        ((delayRow + tap * 2) % QMF_SYNTHESIS_DELAY_ROWS) *
+        QMF_SYNTHESIS_PHASE_SAMPLES
+      const secondDelayOffset =
+        ((delayRow + tap * 2 + 1) % QMF_SYNTHESIS_DELAY_ROWS) *
+        QMF_SYNTHESIS_PHASE_SAMPLES
+      const coefficientOffset = tap * ANALYSIS_BANDS
+      for (let sample = 0; sample < QMF_SYNTHESIS_PHASE_SAMPLES; sample++) {
         output[outputOffset + sample] =
-          state.firstPhaseDelay[firstDelayOffset + sample] *
-            QMF_SYNTHESIS_COEFFICIENTS[256 + coefficientOffset + sample] +
-          state.secondPhaseDelay[secondDelayOffset + sample] *
-            QMF_SYNTHESIS_COEFFICIENTS[448 + coefficientOffset + sample] +
+          firstPhaseDelay[firstDelayOffset + sample] *
+            QMF_SYNTHESIS_COEFFICIENTS[
+              QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET +
+                coefficientOffset +
+                sample
+            ] +
+          secondPhaseDelay[secondDelayOffset + sample] *
+            QMF_SYNTHESIS_COEFFICIENTS[
+              QMF_SYNTHESIS_SECOND_DELAY_COEFFICIENT_OFFSET +
+                coefficientOffset +
+                sample
+            ] +
           output[outputOffset + sample]
       }
-      for (let sample = 8; sample < 16; sample++) {
-        const mirrored = 15 - sample
+      for (
+        let sample = QMF_SYNTHESIS_PHASE_SAMPLES;
+        sample < ANALYSIS_BANDS;
+        sample++
+      ) {
+        const mirrored = ANALYSIS_BANDS - 1 - sample
         output[outputOffset + sample] =
-          state.firstPhaseDelay[firstDelayOffset + mirrored] *
-            QMF_SYNTHESIS_COEFFICIENTS[256 + coefficientOffset + sample] +
-          state.secondPhaseDelay[secondDelayOffset + mirrored] *
-            QMF_SYNTHESIS_COEFFICIENTS[448 + coefficientOffset + sample] +
+          firstPhaseDelay[firstDelayOffset + mirrored] *
+            QMF_SYNTHESIS_COEFFICIENTS[
+              QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET +
+                coefficientOffset +
+                sample
+            ] +
+          secondPhaseDelay[secondDelayOffset + mirrored] *
+            QMF_SYNTHESIS_COEFFICIENTS[
+              QMF_SYNTHESIS_SECOND_DELAY_COEFFICIENT_OFFSET +
+                coefficientOffset +
+                sample
+            ] +
           output[outputOffset + sample]
       }
     }
-    delayRow = delayRow === 0 ? 23 : delayRow - 1
+    delayRow = delayRow === 0 ? QMF_SYNTHESIS_DELAY_ROWS - 1 : delayRow - 1
   }
-  state.delayRingIndex = delayRow
-  return output
+  return delayRow
 }
