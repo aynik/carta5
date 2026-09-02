@@ -21,7 +21,7 @@ function checksum(values, rawValue = (value) => value) {
 
 describe('canonical ATRAC3plus tables', () => {
   it('centralizes every canonical ATRAC3plus lookup table', () => {
-    expect(Object.keys(tables)).toHaveLength(206)
+    expect(Object.keys(tables)).toHaveLength(203)
   })
 
   it('preserves codec table shapes and typed ownership', () => {
@@ -51,9 +51,6 @@ describe('canonical ATRAC3plus tables', () => {
     expect(transformTables.QMF_SYNTHESIS_COEFFICIENT_BITS).toHaveLength(640)
     expect(transformTables.DFT_16_TWIDDLES).toHaveLength(8)
     expect(transformTables.DFT_256_TWIDDLES).toHaveLength(128)
-    expect(transformTables.MDCT_COSINE_COEFFICIENTS).toHaveLength(128)
-    expect(transformTables.MDCT_SINE_COEFFICIENTS).toHaveLength(128)
-    expect(transformTables.MDCT_REORDER_INDICES).toBeInstanceOf(Int16Array)
     for (const table of [
       transformTables.MDCT_WINDOW_BOTH_TRANSIENT,
       transformTables.MDCT_WINDOW_PREVIOUS_TRANSIENT,

@@ -9,11 +9,11 @@ import {
   reconstructInverseGainScale,
 } from '../codec/signal/gain.js'
 import {
-  mdctWindow,
-  forwardMdct128,
-  inverseMdctFrame,
+  transformMdctSubband,
   writeMdctOutputs,
-} from '../codec/signal/spectrum.js'
+} from '../codec/analysis/spectrum.js'
+import { inverseMdctFrame } from '../codec/synthesis/spectrum.js'
+import { selectMdctWindow } from '../codec/signal/window.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
 const U64_MASK = 0xffffffffffffffffn
@@ -133,10 +133,10 @@ describe('ATRAC3plus gain scale and forward MDCT', () => {
       endpoints,
     ] of expected) {
       output.fill(0)
-      forwardMdct128(
+      transformMdctSubband(
         input,
         output,
-        mdctWindow(previous, current),
+        selectMdctWindow(previous, current),
         reverse,
         scratch
       )
@@ -273,7 +273,7 @@ describe('ATRAC3plus gain scale and forward MDCT', () => {
     channel.analysis.bandSlots[1][1].set(input.subarray(128))
     const scaled = pool.encoder.frame.gainScaledSpectra[0]
     const unscaled = pool.encoder.frame.gainUnscaledSpectra[0]
-    const fftIdentity = pool.encoder.scratch.mdct.fftWork
+    const buffersIdentity = pool.encoder.scratch.mdct.buffers
 
     expect(
       writeMdctOutputs(
@@ -302,16 +302,16 @@ describe('ATRAC3plus gain scale and forward MDCT', () => {
     )
     expect(scaled.slice(0, 128)).not.toEqual(unscaled.slice(0, 128))
     expect(scaled.slice(128, 256)).toEqual(unscaled.slice(128, 256))
-    expect(pool.encoder.scratch.mdct.fftWork).toBe(fftIdentity)
+    expect(pool.encoder.scratch.mdct.buffers).toBe(buffersIdentity)
   })
 
   it('rejects incomplete transform geometry before writing output', () => {
     const output = new Float32Array(128)
     expect(() =>
-      forwardMdct128(
+      transformMdctSubband(
         new Float32Array(255),
         output,
-        mdctWindow(0, 0),
+        selectMdctWindow(0, 0),
         false,
         new BufferPool().encoder.scratch.mdct
       )

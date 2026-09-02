@@ -615,8 +615,10 @@ describe('ATRAC3plus persistent state', () => {
     expect(pool.encoder.scratch.tone.detection.dftWork).toBeInstanceOf(
       Float32Array
     )
-    expect(pool.encoder.scratch.mdct.fftWork).toHaveLength(128)
+    expect(pool.encoder.scratch.mdct.buffers[128]).toHaveLength(128)
+    expect(pool.encoder.scratch.mdct.spectrum).toHaveLength(128)
     expect(pool.encoder.scratch.mdct.timeSamples).toHaveLength(256)
+    expect(pool.encoder.scratch.mdct.windowedSamples).toHaveLength(256)
     expect(pool.decoder.scratch.inverseMdct).toBeInstanceOf(MdctScratch)
     expect(pool.decoder.scratch.spectralReconstruction).toBeInstanceOf(
       SpectralReconstructionScratch

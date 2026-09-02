@@ -497,15 +497,6 @@ export const MAX_ENTRIES = 16
 /** Max iteration. */
 export const MAX_ITERATION = 7
 
-/** MDCT coefficients. */
-export const MDCT_COEFFICIENTS = MDCT_COEFFICIENT_COUNT
-
-/** MDCT scale. */
-export const MDCT_SCALE = 0.015625
-
-/** MDCT time samples. */
-export const MDCT_TIME_SAMPLES = MDCT_TIME_SAMPLE_COUNT
-
 /** Mix curve scale. */
 export const MIX_CURVE_SCALE = Math.fround(0.3640598)
 

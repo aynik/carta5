@@ -32,8 +32,12 @@ export class MdctScratch {
    * Allocate one reusable MDCT kernel and its nested gain-scale storage.
    */
   constructor() {
-    this.fftWork = new Float32Array(MDCT_COEFFICIENT_COUNT)
+    this.buffers = {
+      [MDCT_COEFFICIENT_COUNT]: new Float32Array(MDCT_COEFFICIENT_COUNT),
+    }
+    this.spectrum = new Float32Array(MDCT_COEFFICIENT_COUNT)
     this.timeSamples = new Float32Array(MDCT_TIME_SAMPLE_COUNT)
+    this.windowedSamples = new Float32Array(MDCT_TIME_SAMPLE_COUNT)
     this.gainScale = new GainScaleScratch()
   }
 }
