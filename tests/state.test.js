@@ -56,7 +56,7 @@ import {
 } from '../codec/state/tone.js'
 import {
   MdctScratch,
-  QmfAnalysisScratch,
+  QmfScratch,
   SpectralReconstructionScratch,
   ToneSynthesisScratch,
 } from '../codec/state/transform.js'
@@ -464,8 +464,8 @@ describe('ATRAC3plus persistent state', () => {
     source.sharedCodingUnits[3].bandLimit = 27
     source.channelBlocks[6].syntax.scaleFactors[4] = 38
     source.synthesisCodingUnits[3][1].inverseTransformOverlap[1024] = -8.5
-    source.synthesisCodingUnits[3][1].firstPhaseDelay[17] = 1.25
-    source.synthesisCodingUnits[3][1].delayRingIndex = 19
+    source.synthesisCodingUnits[3][1].qmfDelay[17] = 1.25
+    source.synthesisCodingUnits[3][1].qmfDelayRow = 19
     copyDecoderState(source, staged)
 
     expect(staged.synthesisCodingUnits[3][1].inverseTransformOverlap).toBe(
@@ -474,10 +474,10 @@ describe('ATRAC3plus persistent state', () => {
     expect(staged.sharedCodingUnits[3].bandLimit).toBe(27)
     expect(staged.channelBlocks[6].syntax.scaleFactors[4]).toBe(38)
     expect(overlap[1024]).toBe(-8.5)
-    expect(staged.synthesisCodingUnits[3][1].firstPhaseDelay[17]).toBe(1.25)
-    expect(staged.synthesisCodingUnits[3][1].delayRingIndex).toBe(19)
-    staged.synthesisCodingUnits[3][1].firstPhaseDelay[17] = 0
-    expect(source.synthesisCodingUnits[3][1].firstPhaseDelay[17]).toBe(1.25)
+    expect(staged.synthesisCodingUnits[3][1].qmfDelay[17]).toBe(1.25)
+    expect(staged.synthesisCodingUnits[3][1].qmfDelayRow).toBe(19)
+    staged.synthesisCodingUnits[3][1].qmfDelay[17] = 0
+    expect(source.synthesisCodingUnits[3][1].qmfDelay[17]).toBe(1.25)
   })
 
   it('allocates explicit maximum state, frame, and scratch lifetimes', () => {
@@ -607,7 +607,7 @@ describe('ATRAC3plus persistent state', () => {
     expect(pool.decoder.scratch).not.toHaveProperty('codingUnit')
     expect(pool.decoder.scratch).not.toHaveProperty('frameDecode')
     expect(pool.encoder.scratch.packedFrame.length).toBeGreaterThan(4464)
-    expect(pool.encoder.scratch.qmf).toBeInstanceOf(QmfAnalysisScratch)
+    expect(pool.encoder.scratch.qmf).toBeInstanceOf(QmfScratch)
     expect(pool.encoder.scratch.mdct).toBeInstanceOf(MdctScratch)
     expect(pool.encoder.scratch.tone.synthesis).toBeInstanceOf(
       ToneSynthesisScratch

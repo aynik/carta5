@@ -91,9 +91,10 @@ function synthesizePcm(context) {
       for (let ordinal = 0; ordinal < channels.length; ordinal++) {
         const channelIndex = channels.at(ordinal)
         synthesizeQmfChannel(
-          frame.subbandSamples[channelIndex],
+          decoder.frame.qmfBands[channelIndex],
           decoder.frame.synthesisCodingUnits[unit][ordinal],
-          decoder.frame.outputChannels[channelIndex]
+          decoder.frame.outputChannels[channelIndex],
+          decoder.scratch.qmf
         )
       }
     }

@@ -7,14 +7,14 @@ import {
   MAX_CHANNELS,
   QMF_WINDOW_SAMPLES,
 } from '../core/constants.js'
-import { analyzeQmf } from '../signal/bands.js'
+import { analyzeQmf } from '../signal/qmf.js'
 
 /**
  * Stage one channel window, transform it, and publish chronological history.
  *
  * @param {EncodeAnalysisState} analysisState Detached channel analysis state.
  * @param {Float32Array} pcm One frame of PCM samples.
- * @param {QmfAnalysisScratch} scratch Reusable QMF work.
+ * @param {QmfScratch} scratch Reusable QMF work.
  * @returns {EncodeAnalysisState} The updated analysis state.
  */
 export function analyzeQmfChannel(analysisState, pcm, scratch) {
@@ -52,7 +52,7 @@ export function analyzeQmfChannel(analysisState, pcm, scratch) {
  * @param {Float32Array[]} pcmChannels Active planar PCM frame.
  * @param {EncodeAnalysisState[]} analysisStates Detached channel analysis states.
  * @param {number} channelCount Active stream channel count.
- * @param {QmfAnalysisScratch} scratch Reusable QMF work.
+ * @param {QmfScratch} scratch Reusable QMF work.
  * @returns {EncodeAnalysisState[]} The updated analysis states.
  */
 export function analyzeQmfFrame(

@@ -5,6 +5,8 @@ import {
   MAX_CHANNELS,
   MAX_CODING_UNITS,
   QMF_SYNTHESIS_DELAY_SAMPLES,
+  QMF_BANDS,
+  SUBBAND_SAMPLES,
 } from '../../core/constants.js'
 import { GainRecord } from '../gain/coding.js'
 import { ChannelSyntaxState, SharedState, StreamTopology } from '../shared.js'
@@ -74,7 +76,7 @@ export class DecodeGainFrame {
 }
 
 /**
- * Persistent inverse-transform overlap and two-phase synthesis delay rings.
+ * Persistent inverse-transform overlap and QMF synthesis delay ring.
  */
 export class SynthesisState {
   /**
@@ -82,9 +84,8 @@ export class SynthesisState {
    */
   constructor() {
     this.inverseTransformOverlap = new Float32Array(FRAME_SAMPLES)
-    this.firstPhaseDelay = new Float32Array(QMF_SYNTHESIS_DELAY_SAMPLES)
-    this.secondPhaseDelay = new Float32Array(QMF_SYNTHESIS_DELAY_SAMPLES)
-    this.delayRingIndex = 0
+    this.qmfDelay = new Float32Array(QMF_SYNTHESIS_DELAY_SAMPLES)
+    this.qmfDelayRow = 0
   }
 
   /**
@@ -94,9 +95,8 @@ export class SynthesisState {
    */
   copyTo(destination) {
     destination.inverseTransformOverlap.set(this.inverseTransformOverlap)
-    destination.firstPhaseDelay.set(this.firstPhaseDelay)
-    destination.secondPhaseDelay.set(this.secondPhaseDelay)
-    destination.delayRingIndex = this.delayRingIndex
+    destination.qmfDelay.set(this.qmfDelay)
+    destination.qmfDelayRow = this.qmfDelayRow
   }
 }
 
@@ -225,6 +225,16 @@ export class DecoderFrameState extends DecoderStateImage {
     this.subbandSamples = Array.from(
       { length: MAX_CHANNELS },
       () => new Float32Array(FRAME_SAMPLES)
+    )
+    this.qmfBands = this.subbandSamples.map((samples) =>
+      Object.freeze(
+        Array.from({ length: QMF_BANDS }, (_, band) =>
+          samples.subarray(
+            band * SUBBAND_SAMPLES,
+            band * SUBBAND_SAMPLES + SUBBAND_SAMPLES
+          )
+        )
+      )
     )
   }
 }

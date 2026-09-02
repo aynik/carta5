@@ -21,7 +21,7 @@ function checksum(values, rawValue = (value) => value) {
 
 describe('canonical ATRAC3plus tables', () => {
   it('centralizes every canonical ATRAC3plus lookup table', () => {
-    expect(Object.keys(tables)).toHaveLength(203)
+    expect(Object.keys(tables)).toHaveLength(210)
   })
 
   it('preserves codec table shapes and typed ownership', () => {

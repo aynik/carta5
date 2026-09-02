@@ -8,7 +8,7 @@ import { beginEncoderFrame } from '../codec/state/stream.js'
 import { EncodeAnalysisState } from '../codec/state/encoder.js'
 import { SynthesisState } from '../codec/state/decoder/image.js'
 import { analyzeQmfChannel, analyzeQmfFrame } from '../codec/analysis/bands.js'
-import { analyzeQmf, synthesizeQmf } from '../codec/signal/bands.js'
+import { analyzeQmf, synthesizeQmf } from '../codec/signal/qmf.js'
 
 const rawBits = new DataView(new ArrayBuffer(4))
 const U64_MASK = 0xffffffffffffffffn
@@ -78,40 +78,39 @@ describe('ATRAC3plus 16-band QMF analysis', () => {
           (((band * 131 + sample * 37 + 11) % 509) - 254) / 32
       }
     }
+    const bands = Array.from({ length: 16 }, (_, band) =>
+      subbands.subarray(band * 128, band * 128 + 128)
+    )
     const state = new SynthesisState()
-    state.delayRingIndex = 7
+    state.qmfDelayRow = 7
     for (let row = 0; row < 24; row++) {
       for (let sample = 0; sample < 8; sample++) {
-        state.firstPhaseDelay[row * 8 + sample] =
+        state.qmfDelay[row * 16 + sample] =
           (((row * 17 + sample * 7 + 3) % 113) - 56) / 64
-        state.secondPhaseDelay[row * 8 + sample] =
+        state.qmfDelay[row * 16 + 8 + sample] =
           (((row * 19 + sample * 11 + 5) % 127) - 63) / 32
       }
     }
     const output = new Float32Array(2048)
-    state.delayRingIndex = synthesizeQmf(
-      subbands,
-      state.firstPhaseDelay,
-      state.secondPhaseDelay,
-      state.delayRingIndex,
-      output
+    const scratch = new BufferPool().decoder.scratch.qmf
+    state.qmfDelayRow = synthesizeQmf(
+      bands,
+      state.qmfDelay,
+      state.qmfDelayRow,
+      output,
+      scratch
     )
     expect(rawSummary(output)).toEqual({
       sum: 4380829605050n,
       xor: 2258100032n,
       hash: 8454069191439297757n,
     })
-    expect(rawSummary(state.firstPhaseDelay)).toEqual({
-      sum: 433330122270n,
-      xor: 4240207770n,
-      hash: 12351766520106812622n,
+    expect(rawSummary(state.qmfDelay)).toEqual({
+      sum: 871548266717n,
+      xor: 2017166553n,
+      hash: 12824159644019648611n,
     })
-    expect(rawSummary(state.secondPhaseDelay)).toEqual({
-      sum: 438218144447n,
-      xor: 2223500099n,
-      hash: 10397829147764515496n,
-    })
-    expect(state.delayRingIndex).toBe(23)
+    expect(state.qmfDelayRow).toBe(23)
     expect(
       [0, 1, 15, 16, 511, 1023, 2046, 2047].map((index) =>
         float32Bits(output[index])

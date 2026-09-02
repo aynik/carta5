@@ -9,7 +9,7 @@ import { DecoderFrameState, DecoderState } from './decoder/image.js'
 import { FrameDecodeStorage } from './decoder/syntax.js'
 import {
   MdctScratch,
-  QmfAnalysisScratch,
+  QmfScratch,
   SpectralReconstructionScratch,
   ToneSynthesisScratch,
 } from './transform.js'
@@ -38,7 +38,7 @@ export class BufferPool {
       state: new EncoderState(),
       frame: new EncoderFrameState(),
       scratch: {
-        qmf: new QmfAnalysisScratch(),
+        qmf: new QmfScratch(),
         intensity: new IntensityScratch(),
         tone: new ToneAnalysisScratch(),
         toneSwapGates: Array.from(
@@ -61,6 +61,7 @@ export class BufferPool {
         syntax: new FrameDecodeStorage(),
         spectralReconstruction: new SpectralReconstructionScratch(),
         inverseMdct: new MdctScratch(),
+        qmf: new QmfScratch(),
         toneSynthesis: new ToneSynthesisScratch(),
       },
     }

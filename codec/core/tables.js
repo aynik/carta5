@@ -1,4 +1,8 @@
 import {
+  QMF_ANALYSIS_TERMS,
+  QMF_BANDS,
+  QMF_SYNTHESIS_DELAY_ROWS,
+  QMF_SYNTHESIS_TERMS,
   SINE_SAMPLES,
   TONE_HEADER_FREQUENCY_ARRAY_WORD,
   TONE_HEADER_FREQUENCY_ENABLE_WORD,
@@ -520,35 +524,6 @@ export const CHANNEL_COUNT_BY_MODE_AND_BLOCK = new Uint8Array([
 /**
  * Canonical ATRAC3plus QMF, DFT, and MDCT transform tables.
  */
-
-/* eslint-disable no-loss-of-precision -- Float32Array applies the intended float32 rounding. */
-
-export const QMF_ANALYSIS_PI_OVER_8_BUTTERFLY_SCALES = new Float32Array([
-  1.8477590084075928, 0.7653668522834778, 1.8477590084075928,
-  0.7653668522834778,
-])
-
-export const QMF_ANALYSIS_HALF_BUTTERFLY_SCALES = new Float32Array([
-  0.7071067690849304, 0.2071067839860916, 1.2071068286895752,
-])
-
-export const QMF_ANALYSIS_ODD_PI_OVER_32_COSINES = new Float32Array([
-  1.990369439125061, 1.913880705833435, 1.7638425827026367, 1.5460208654403687,
-  1.2687865495681763, 0.9427934885025024, 0.5805693864822388,
-  0.1960342824459076,
-])
-
-export const QMF_ANALYSIS_ODD_PI_OVER_16_COSINES = new Float32Array([
-  1.9615705013275146, 1.662939190864563, 1.111140489578247, 0.39018064737319946,
-])
-
-export const QMF_ANALYSIS_ODD_PI_OVER_64_COSINES = new Float32Array([
-  1.9975908994674683, 1.9783530235290527, 1.9400625228881836,
-  1.8830881118774414, 1.807978630065918, 1.7154572010040283, 1.606415033340454,
-  1.4819022417068481, 1.3431179523468018, 1.1913986206054688,
-  1.0282055139541626, 0.8551101684570312, 0.6737797260284424,
-  0.48596036434173584, 0.2934609651565552, 0.09813535213470459,
-])
 
 export const QMF_ANALYSIS_COEFFICIENT_BITS = new Uint32Array([
   3046938710, 3050856142, 3043066828, 3015619314, 864719094, 865576492,
@@ -2455,6 +2430,152 @@ export const QMF_SYNTHESIS_COEFFICIENTS = Float64Array.from(
   QMF_SYNTHESIS_COEFFICIENT_BITS,
   float32FromBits
 )
+
+const QMF_ANALYSIS_FILTER_COEFFICIENT_COUNT = QMF_BANDS * QMF_ANALYSIS_TERMS
+const QMF_ANALYSIS_MODULATION_COEFFICIENT_OFFSET =
+  QMF_ANALYSIS_FILTER_COEFFICIENT_COUNT
+const QMF_SYNTHESIS_PHASE_SIZE = QMF_BANDS / 2
+const QMF_SYNTHESIS_TAPS = QMF_SYNTHESIS_DELAY_ROWS / 2
+const QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET =
+  QMF_BANDS * QMF_SYNTHESIS_PHASE_SIZE
+const QMF_SYNTHESIS_FIRST_FILTER_COEFFICIENT_OFFSET =
+  QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET * 2
+const QMF_SYNTHESIS_SECOND_FILTER_COEFFICIENT_OFFSET =
+  QMF_SYNTHESIS_FIRST_FILTER_COEFFICIENT_OFFSET + QMF_BANDS * QMF_SYNTHESIS_TAPS
+
+/** Sample positions read by each component of the configurable QMF analysis. */
+export const QMF_ANALYSIS_SAMPLE_OFFSETS = (() => {
+  const offsets = new Uint16Array(QMF_ANALYSIS_FILTER_COEFFICIENT_COUNT)
+  for (let component = 0; component < QMF_BANDS; component++) {
+    const componentOffset = component * QMF_ANALYSIS_TERMS
+    for (let segment = 0; segment < QMF_SYNTHESIS_TAPS; segment++) {
+      const term = componentOffset + segment * 2
+      const sampleOffset = segment * QMF_BANDS * 2
+      if (component < QMF_SYNTHESIS_PHASE_SIZE) {
+        offsets[term] = sampleOffset + component
+        offsets[term + 1] = sampleOffset + QMF_BANDS - 1 - component
+      } else {
+        offsets[term] = sampleOffset + component + QMF_SYNTHESIS_PHASE_SIZE
+        offsets[term + 1] =
+          sampleOffset +
+          QMF_BANDS * 2 +
+          QMF_SYNTHESIS_PHASE_SIZE -
+          1 -
+          component
+      }
+    }
+  }
+  return offsets
+})()
+
+/** Prototype-filter coefficients in component-major QMF analysis order. */
+export const QMF_ANALYSIS_FILTER_COEFFICIENTS = (() => {
+  const coefficients = new Float32Array(QMF_ANALYSIS_FILTER_COEFFICIENT_COUNT)
+  const secondHalf = QMF_ANALYSIS_FILTER_COEFFICIENT_COUNT / 2
+  for (let component = 0; component < QMF_BANDS; component++) {
+    const componentOffset = component * QMF_ANALYSIS_TERMS
+    for (let segment = 0; segment < QMF_SYNTHESIS_TAPS; segment++) {
+      const term = componentOffset + segment * 2
+      const coefficient = segment * QMF_BANDS + component
+      coefficients[term] = QMF_ANALYSIS_COEFFICIENTS[coefficient]
+      coefficients[term + 1] =
+        QMF_ANALYSIS_COEFFICIENTS[secondHalf + coefficient]
+    }
+  }
+  return coefficients
+})()
+
+/** Dense cosine modulation applied after Carta5 QMF analysis filtering. */
+export const QMF_ANALYSIS_MODULATION_COEFFICIENTS =
+  QMF_ANALYSIS_COEFFICIENTS.subarray(QMF_ANALYSIS_MODULATION_COEFFICIENT_OFFSET)
+
+/* eslint-disable no-loss-of-precision -- Float32Array applies the intended float32 rounding. */
+
+/** Reference factors used by the optimized sixteen-band modulation path. */
+export const QMF_ANALYSIS_PI_OVER_8_BUTTERFLY_SCALES = new Float32Array([
+  1.8477590084075928, 0.7653668522834778, 1.8477590084075928,
+  0.7653668522834778,
+])
+
+/** Reference half-angle factors used by sixteen-band modulation. */
+export const QMF_ANALYSIS_HALF_BUTTERFLY_SCALES = new Float32Array([
+  0.7071067690849304, 0.2071067839860916, 1.2071068286895752,
+])
+
+/** Reference odd pi/32 cosines used by sixteen-band modulation. */
+export const QMF_ANALYSIS_ODD_PI_OVER_32_COSINES = new Float32Array([
+  1.990369439125061, 1.913880705833435, 1.7638425827026367, 1.5460208654403687,
+  1.2687865495681763, 0.9427934885025024, 0.5805693864822388,
+  0.1960342824459076,
+])
+
+/** Reference odd pi/16 cosines used by sixteen-band modulation. */
+export const QMF_ANALYSIS_ODD_PI_OVER_16_COSINES = new Float32Array([
+  1.9615705013275146, 1.662939190864563, 1.111140489578247, 0.39018064737319946,
+])
+
+/** Reference odd pi/64 cosines used by sixteen-band modulation. */
+export const QMF_ANALYSIS_ODD_PI_OVER_64_COSINES = new Float32Array([
+  1.9975908994674683, 1.9783530235290527, 1.9400625228881836,
+  1.8830881118774414, 1.807978630065918, 1.7154572010040283, 1.606415033340454,
+  1.4819022417068481, 1.3431179523468018, 1.1913986206054688,
+  1.0282055139541626, 0.8551101684570312, 0.6737797260284424,
+  0.48596036434173584, 0.2934609651565552, 0.09813535213470459,
+])
+
+/* eslint-enable no-loss-of-precision */
+
+/** Delay-row offsets read by each sample of configurable QMF synthesis. */
+export const QMF_SYNTHESIS_DELAY_ROW_OFFSETS = (() => {
+  const offsets = new Uint8Array(QMF_BANDS * QMF_SYNTHESIS_TERMS)
+  for (let sample = 0; sample < QMF_BANDS; sample++) {
+    const sampleOffset = sample * QMF_SYNTHESIS_TERMS
+    for (let tap = 0; tap < QMF_SYNTHESIS_TAPS; tap++) {
+      offsets[sampleOffset + tap * 2] = tap * 2
+      offsets[sampleOffset + tap * 2 + 1] = tap * 2 + 1
+    }
+  }
+  return offsets
+})()
+
+/** Delay components read by each sample of configurable QMF synthesis. */
+export const QMF_SYNTHESIS_DELAY_COMPONENTS = (() => {
+  const components = new Uint8Array(QMF_BANDS * QMF_SYNTHESIS_TERMS)
+  for (let sample = 0; sample < QMF_BANDS; sample++) {
+    const phase =
+      sample < QMF_SYNTHESIS_PHASE_SIZE ? sample : QMF_BANDS - 1 - sample
+    const sampleOffset = sample * QMF_SYNTHESIS_TERMS
+    for (let tap = 0; tap < QMF_SYNTHESIS_TAPS; tap++) {
+      components[sampleOffset + tap * 2] = phase
+      components[sampleOffset + tap * 2 + 1] = QMF_SYNTHESIS_PHASE_SIZE + phase
+    }
+  }
+  return components
+})()
+
+/** Prototype-filter coefficients in output-sample-major QMF synthesis order. */
+export const QMF_SYNTHESIS_FILTER_COEFFICIENTS = (() => {
+  const coefficients = new Float64Array(QMF_BANDS * QMF_SYNTHESIS_TERMS)
+  for (let sample = 0; sample < QMF_BANDS; sample++) {
+    const sampleOffset = sample * QMF_SYNTHESIS_TERMS
+    for (let tap = 0; tap < QMF_SYNTHESIS_TAPS; tap++) {
+      const coefficient = tap * QMF_BANDS + sample
+      coefficients[sampleOffset + tap * 2] =
+        QMF_SYNTHESIS_COEFFICIENTS[
+          QMF_SYNTHESIS_FIRST_FILTER_COEFFICIENT_OFFSET + coefficient
+        ]
+      coefficients[sampleOffset + tap * 2 + 1] =
+        QMF_SYNTHESIS_COEFFICIENTS[
+          QMF_SYNTHESIS_SECOND_FILTER_COEFFICIENT_OFFSET + coefficient
+        ]
+    }
+  }
+  return coefficients
+})()
+
+/** Dense modulation applied before Carta5 QMF synthesis filtering. */
+export const QMF_SYNTHESIS_MODULATION_COEFFICIENTS =
+  QMF_SYNTHESIS_COEFFICIENTS.subarray(0, QMF_BANDS * QMF_BANDS)
 
 export const HALF_HANN_WINDOW = Object.freeze(
   [

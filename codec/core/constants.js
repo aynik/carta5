@@ -578,33 +578,26 @@ export const POWER_SLOT = 6
 /** Previous tone slot. */
 export const PREVIOUS_TONE_SLOT = 3
 
-/** QMF analysis startup skip samples. */
-export const QMF_ANALYSIS_STARTUP_SKIP_SAMPLES = 16
-
-/** QMF startup skip samples. */
-export const QMF_STARTUP_SKIP_SAMPLES = 16
-
 /** QMF window samples. */
 export const QMF_WINDOW_SAMPLES = ANALYSIS_TAIL_SAMPLES + FRAME_SAMPLES
-/** Samples held in each phase of a QMF synthesis delay row. */
-export const QMF_SYNTHESIS_PHASE_SAMPLES = ANALYSIS_BANDS / 2
+/** QMF subbands produced by the configurable transform. */
+export const QMF_BANDS = ANALYSIS_BANDS
+/** Initial sample position of the QMF analysis window. */
+export const QMF_ANALYSIS_START_SAMPLE = 16
+/** Input samples advanced by one QMF analysis step. */
+export const QMF_ANALYSIS_STEP_SAMPLES = QMF_BANDS
+/** Input samples consumed by one QMF analysis step. */
+export const QMF_ANALYSIS_WINDOW_SAMPLES = ANALYSIS_TAIL_SAMPLES
+/** Scale applied after dense QMF analysis modulation. */
+export const QMF_ANALYSIS_MODULATION_SCALE = 0.25
+/** Filter products accumulated into each QMF analysis component. */
+export const QMF_ANALYSIS_TERMS = 24
 /** Circular delay rows retained by QMF synthesis. */
 export const QMF_SYNTHESIS_DELAY_ROWS = 24
-/** Polyphase taps accumulated from the QMF synthesis delay rings. */
-export const QMF_SYNTHESIS_TAPS = QMF_SYNTHESIS_DELAY_ROWS / 2
-/** Samples retained in each QMF synthesis delay ring. */
-export const QMF_SYNTHESIS_DELAY_SAMPLES =
-  QMF_SYNTHESIS_DELAY_ROWS * QMF_SYNTHESIS_PHASE_SAMPLES
-/** Start of the second instantaneous synthesis-phase coefficient row. */
-export const QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET =
-  ANALYSIS_BANDS * QMF_SYNTHESIS_PHASE_SAMPLES
-/** Start of coefficients applied to the first synthesis delay ring. */
-export const QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET =
-  QMF_SYNTHESIS_SECOND_PHASE_COEFFICIENT_OFFSET * 2
-/** Start of coefficients applied to the second synthesis delay ring. */
-export const QMF_SYNTHESIS_SECOND_DELAY_COEFFICIENT_OFFSET =
-  QMF_SYNTHESIS_FIRST_DELAY_COEFFICIENT_OFFSET +
-  ANALYSIS_BANDS * QMF_SYNTHESIS_TAPS
+/** Filter products accumulated into each QMF synthesis output sample. */
+export const QMF_SYNTHESIS_TERMS = 24
+/** Samples retained in the complete QMF synthesis delay ring. */
+export const QMF_SYNTHESIS_DELAY_SAMPLES = QMF_SYNTHESIS_DELAY_ROWS * QMF_BANDS
 
 /** Raw bits. */
 export const RAW_BITS = 3
@@ -901,7 +894,7 @@ export const WORD_MASK = 7
 
 /** Analysis residual overlap samples. */
 export const ANALYSIS_RESIDUAL_OVERLAP_SAMPLES =
-  ANALYSIS_TAIL_SAMPLES - QMF_ANALYSIS_STARTUP_SKIP_SAMPLES
+  ANALYSIS_TAIL_SAMPLES - QMF_ANALYSIS_START_SAMPLE
 
 /** Analysis sample count. */
 export const ANALYSIS_SAMPLE_COUNT = ANALYSIS_BANDS * BAND_STRIDE

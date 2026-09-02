@@ -8,6 +8,7 @@ import {
   GAIN_SCALE_STEP_COUNT,
   MDCT_COEFFICIENT_COUNT,
   MDCT_TIME_SAMPLE_COUNT,
+  QMF_BANDS,
   SUBBAND_SAMPLES,
 } from '../core/constants.js'
 
@@ -43,17 +44,17 @@ export class MdctScratch {
 }
 
 /**
- * Reusable window, polyphase, and band work for QMF analysis.
+ * Reusable window, polyphase, and band work for QMF analysis or synthesis.
  */
-export class QmfAnalysisScratch {
+export class QmfScratch {
   /**
    * Allocate one full analysis window and all per-step accumulator rows.
    */
   constructor() {
     this.window = new Float32Array(ANALYSIS_TAIL_SAMPLES + FRAME_SAMPLES)
-    this.polyphaseSums = new Float32Array(ANALYSIS_BANDS)
-    this.extendedPolyphaseSums = new Float64Array(ANALYSIS_BANDS)
-    this.bands = new Float32Array(ANALYSIS_BANDS)
+    this.polyphase = new Float32Array(QMF_BANDS)
+    this.extended = new Float64Array(QMF_BANDS)
+    this.bands = new Float32Array(QMF_BANDS)
   }
 }
 

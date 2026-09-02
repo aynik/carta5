@@ -80,16 +80,14 @@ describe('ATRAC3plus detached streaming frame encoder', () => {
     expect(pcm[0]).toHaveLength(2048)
     expect(pcm[0].buffer).not.toBe(pool.decoder.frame.outputChannels[0].buffer)
     expect(pcm[0].every(Number.isFinite)).toBe(true)
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(
-      16
-    )
+    expect(pool.decoder.state.synthesisCodingUnits[0][0].qmfDelayRow).toBe(16)
     const secondPcm = decodeCommitted(output)
     expect(secondPcm[0].buffer).not.toBe(pcm[0].buffer)
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(8)
+    expect(pool.decoder.state.synthesisCodingUnits[0][0].qmfDelayRow).toBe(8)
     const malformed = output.slice()
     malformed[0] |= 0x80
     expect(() => decodeCommitted(malformed)).toThrow('frame header is invalid')
-    expect(pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex).toBe(8)
+    expect(pool.decoder.state.synthesisCodingUnits[0][0].qmfDelayRow).toBe(8)
   })
 
   it('is invariant to arbitrary chunk boundaries and drains exactly once', () => {

@@ -83,7 +83,7 @@ describe('ATRAC3plus normalized PCM boundaries', () => {
     for (const pool of [expectedPool, actualPool]) {
       pool.decoder.state.channelBlocks[0].syntax.wordLengths[0] = 7
       pool.decoder.state.synthesisCodingUnits[0][0].inverseTransformOverlap[0] = 19
-      pool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex = 7
+      pool.decoder.state.synthesisCodingUnits[0][0].qmfDelayRow = 7
     }
     const expected = decode(OPTIONS, expectedPool)(encoded)
 
@@ -123,10 +123,10 @@ describe('ATRAC3plus normalized PCM boundaries', () => {
         .inverseTransformOverlap[0]
     ).toBe(19)
     expect(
-      actualPool.decoder.state.synthesisCodingUnits[0][0].delayRingIndex
+      actualPool.decoder.state.synthesisCodingUnits[0][0].qmfDelayRow
     ).toBe(7)
     expect(
-      actualPool.decoder.frame.synthesisCodingUnits[0][0].delayRingIndex
+      actualPool.decoder.frame.synthesisCodingUnits[0][0].qmfDelayRow
     ).toBe(23)
   })
 })
