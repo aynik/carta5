@@ -1,28 +1,28 @@
 /** Configurable polyphase quadrature-mirror analysis and synthesis. */
 
 import {
-  QMF_ANALYSIS_MODULATION_SCALE as analysisModulationScale,
-  QMF_ANALYSIS_START_SAMPLE as analysisStartSample,
-  QMF_ANALYSIS_STEP_SAMPLES as analysisStepSamples,
-  QMF_ANALYSIS_TERMS as analysisTermCount,
-  QMF_ANALYSIS_WINDOW_SAMPLES as analysisWindowSamples,
-  QMF_BANDS as bandCount,
-  QMF_SYNTHESIS_DELAY_ROWS as synthesisDelayRows,
-  QMF_SYNTHESIS_TERMS as synthesisTermCount,
+  QMF_ANALYSIS_MODULATION_SCALE,
+  QMF_ANALYSIS_START_SAMPLE,
+  QMF_ANALYSIS_STEP_SAMPLES,
+  QMF_ANALYSIS_TERMS,
+  QMF_ANALYSIS_WINDOW_SAMPLES,
+  QMF_BANDS,
+  QMF_SYNTHESIS_DELAY_ROWS,
+  QMF_SYNTHESIS_TERMS,
 } from '../core/constants.js'
 import {
-  QMF_ANALYSIS_HALF_BUTTERFLY_SCALES as analysisHalfButterflyScales,
-  QMF_ANALYSIS_ODD_PI_OVER_16_COSINES as analysisOddPiOver16Cosines,
-  QMF_ANALYSIS_ODD_PI_OVER_32_COSINES as analysisOddPiOver32Cosines,
-  QMF_ANALYSIS_ODD_PI_OVER_64_COSINES as analysisOddPiOver64Cosines,
-  QMF_ANALYSIS_PI_OVER_8_BUTTERFLY_SCALES as analysisPiOver8ButterflyScales,
-  QMF_ANALYSIS_FILTER_COEFFICIENTS as analysisFilterCoefficients,
-  QMF_ANALYSIS_MODULATION_COEFFICIENTS as analysisModulationCoefficients,
-  QMF_ANALYSIS_SAMPLE_OFFSETS as analysisSampleOffsets,
-  QMF_SYNTHESIS_DELAY_COMPONENTS as synthesisDelayComponents,
-  QMF_SYNTHESIS_DELAY_ROW_OFFSETS as synthesisDelayRowOffsets,
-  QMF_SYNTHESIS_FILTER_COEFFICIENTS as synthesisFilterCoefficients,
-  QMF_SYNTHESIS_MODULATION_COEFFICIENTS as synthesisModulationCoefficients,
+  QMF_ANALYSIS_HALF_BUTTERFLY_SCALES,
+  QMF_ANALYSIS_ODD_PI_OVER_16_COSINES,
+  QMF_ANALYSIS_ODD_PI_OVER_32_COSINES,
+  QMF_ANALYSIS_ODD_PI_OVER_64_COSINES,
+  QMF_ANALYSIS_PI_OVER_8_BUTTERFLY_SCALES,
+  QMF_ANALYSIS_FILTER_COEFFICIENTS,
+  QMF_ANALYSIS_MODULATION_COEFFICIENTS,
+  QMF_ANALYSIS_SAMPLE_OFFSETS,
+  QMF_SYNTHESIS_DELAY_COMPONENTS,
+  QMF_SYNTHESIS_DELAY_ROW_OFFSETS,
+  QMF_SYNTHESIS_FILTER_COEFFICIENTS,
+  QMF_SYNTHESIS_MODULATION_COEFFICIENTS,
 } from '../core/tables.js'
 
 const float32Round = Math.fround
@@ -37,10 +37,10 @@ const float32Round = Math.fround
  * @param {Float64Array} extended
  */
 function filter16Band(input, inputOffset, accumulator, extended) {
-  const c = analysisFilterCoefficients
+  const c = QMF_ANALYSIS_FILTER_COEFFICIENTS
 
   for (let component = 0; component < 16; component++) {
-    const coefficientOffset = component * analysisTermCount
+    const coefficientOffset = component * QMF_ANALYSIS_TERMS
     const firstSample = component < 8 ? component : component + 8
     const secondSample = component < 8 ? 15 - component : 39 - component
     const firstProduct = input[inputOffset + firstSample] * c[coefficientOffset]
@@ -68,92 +68,92 @@ function filter16Band(input, inputOffset, accumulator, extended) {
       accumulator[0] + product0 + input[inputBase + 15] * c[term + 1]
     )
     accumulator[1] = float32Round(
-      input[inputBase + 1] * c[analysisTermCount + term] +
+      input[inputBase + 1] * c[QMF_ANALYSIS_TERMS + term] +
         float32Round(
-          input[inputBase + 14] * c[analysisTermCount + term + 1] +
+          input[inputBase + 14] * c[QMF_ANALYSIS_TERMS + term + 1] +
             accumulator[1]
         )
     )
     const product2 = float32Round(
-      input[inputBase + 2] * c[analysisTermCount * 2 + term]
+      input[inputBase + 2] * c[QMF_ANALYSIS_TERMS * 2 + term]
     )
     accumulator[2] = float32Round(
       accumulator[2] +
         product2 +
-        input[inputBase + 13] * c[analysisTermCount * 2 + term + 1]
+        input[inputBase + 13] * c[QMF_ANALYSIS_TERMS * 2 + term + 1]
     )
     accumulator[3] = float32Round(
       accumulator[3] +
-        input[inputBase + 3] * c[analysisTermCount * 3 + term] +
-        input[inputBase + 12] * c[analysisTermCount * 3 + term + 1]
+        input[inputBase + 3] * c[QMF_ANALYSIS_TERMS * 3 + term] +
+        input[inputBase + 12] * c[QMF_ANALYSIS_TERMS * 3 + term + 1]
     )
     const product4 = float32Round(
-      input[inputBase + 4] * c[analysisTermCount * 4 + term]
+      input[inputBase + 4] * c[QMF_ANALYSIS_TERMS * 4 + term]
     )
     const product4Sum =
-      product4 + input[inputBase + 11] * c[analysisTermCount * 4 + term + 1]
+      product4 + input[inputBase + 11] * c[QMF_ANALYSIS_TERMS * 4 + term + 1]
     accumulator[4] = float32Round(accumulator[4] + product4Sum)
     accumulator[5] = float32Round(
-      input[inputBase + 5] * c[analysisTermCount * 5 + term] +
+      input[inputBase + 5] * c[QMF_ANALYSIS_TERMS * 5 + term] +
         float32Round(
-          input[inputBase + 10] * c[analysisTermCount * 5 + term + 1] +
+          input[inputBase + 10] * c[QMF_ANALYSIS_TERMS * 5 + term + 1] +
             accumulator[5]
         )
     )
     const product6 = float32Round(
-      input[inputBase + 6] * c[analysisTermCount * 6 + term]
+      input[inputBase + 6] * c[QMF_ANALYSIS_TERMS * 6 + term]
     )
     accumulator[6] = float32Round(
       accumulator[6] +
         product6 +
-        input[inputBase + 9] * c[analysisTermCount * 6 + term + 1]
+        input[inputBase + 9] * c[QMF_ANALYSIS_TERMS * 6 + term + 1]
     )
     extended7 =
       accumulator[7] +
-      (input[inputBase + 7] * c[analysisTermCount * 7 + term] +
-        input[inputBase + 8] * c[analysisTermCount * 7 + term + 1])
+      (input[inputBase + 7] * c[QMF_ANALYSIS_TERMS * 7 + term] +
+        input[inputBase + 8] * c[QMF_ANALYSIS_TERMS * 7 + term + 1])
     accumulator[7] = float32Round(extended7)
 
     extended8 =
-      input[inputBase + 31] * c[analysisTermCount * 8 + term + 1] +
-      input[inputBase + 16] * c[analysisTermCount * 8 + term] +
+      input[inputBase + 31] * c[QMF_ANALYSIS_TERMS * 8 + term + 1] +
+      input[inputBase + 16] * c[QMF_ANALYSIS_TERMS * 8 + term] +
       accumulator[8]
     accumulator[8] = float32Round(extended8)
     accumulator[9] = float32Round(
-      input[inputBase + 17] * c[analysisTermCount * 9 + term] +
+      input[inputBase + 17] * c[QMF_ANALYSIS_TERMS * 9 + term] +
         float32Round(
-          input[inputBase + 30] * c[analysisTermCount * 9 + term + 1] +
+          input[inputBase + 30] * c[QMF_ANALYSIS_TERMS * 9 + term + 1] +
             accumulator[9]
         )
     )
     extended10 =
       accumulator[10] +
-      (input[inputBase + 18] * c[analysisTermCount * 10 + term] +
-        input[inputBase + 29] * c[analysisTermCount * 10 + term + 1])
+      (input[inputBase + 18] * c[QMF_ANALYSIS_TERMS * 10 + term] +
+        input[inputBase + 29] * c[QMF_ANALYSIS_TERMS * 10 + term + 1])
     accumulator[10] = float32Round(extended10)
     extended11 =
       accumulator[11] +
-      (input[inputBase + 19] * c[analysisTermCount * 11 + term] +
-        input[inputBase + 28] * c[analysisTermCount * 11 + term + 1])
+      (input[inputBase + 19] * c[QMF_ANALYSIS_TERMS * 11 + term] +
+        input[inputBase + 28] * c[QMF_ANALYSIS_TERMS * 11 + term + 1])
     accumulator[11] = float32Round(extended11)
     extended12 =
       accumulator[12] +
-      (input[inputBase + 20] * c[analysisTermCount * 12 + term] +
-        input[inputBase + 27] * c[analysisTermCount * 12 + term + 1])
+      (input[inputBase + 20] * c[QMF_ANALYSIS_TERMS * 12 + term] +
+        input[inputBase + 27] * c[QMF_ANALYSIS_TERMS * 12 + term + 1])
     accumulator[12] = float32Round(extended12)
     extended13 =
       accumulator[13] +
-      (input[inputBase + 21] * c[analysisTermCount * 13 + term] +
-        input[inputBase + 26] * c[analysisTermCount * 13 + term + 1])
+      (input[inputBase + 21] * c[QMF_ANALYSIS_TERMS * 13 + term] +
+        input[inputBase + 26] * c[QMF_ANALYSIS_TERMS * 13 + term + 1])
     accumulator[13] = float32Round(extended13)
     extended14 =
       accumulator[14] +
-      (input[inputBase + 22] * c[analysisTermCount * 14 + term] +
-        input[inputBase + 25] * c[analysisTermCount * 14 + term + 1])
+      (input[inputBase + 22] * c[QMF_ANALYSIS_TERMS * 14 + term] +
+        input[inputBase + 25] * c[QMF_ANALYSIS_TERMS * 14 + term + 1])
     accumulator[14] = float32Round(extended14)
     const product15 =
-      input[inputBase + 24] * c[analysisTermCount * 15 + term + 1] +
-      input[inputBase + 23] * c[analysisTermCount * 15 + term]
+      input[inputBase + 24] * c[QMF_ANALYSIS_TERMS * 15 + term + 1] +
+      input[inputBase + 23] * c[QMF_ANALYSIS_TERMS * 15 + term]
     extended15 = accumulator[15] + product15
     accumulator[15] = float32Round(extended15)
   }
@@ -175,11 +175,11 @@ function filter16Band(input, inputOffset, accumulator, extended) {
  * @param {Float32Array} output
  */
 function modulate16Band(polyphase, extended, output) {
-  const half = analysisHalfButterflyScales
-  const cos32 = analysisOddPiOver32Cosines
-  const cos16 = analysisOddPiOver16Cosines
-  const cos64 = analysisOddPiOver64Cosines
-  const pi8 = analysisPiOver8ButterflyScales
+  const half = QMF_ANALYSIS_HALF_BUTTERFLY_SCALES
+  const cos32 = QMF_ANALYSIS_ODD_PI_OVER_32_COSINES
+  const cos16 = QMF_ANALYSIS_ODD_PI_OVER_16_COSINES
+  const cos64 = QMF_ANALYSIS_ODD_PI_OVER_64_COSINES
+  const pi8 = QMF_ANALYSIS_PI_OVER_8_BUTTERFLY_SCALES
 
   const twoCosPi8 = pi8[0]
   const cosPi4 = half[0]
@@ -354,24 +354,24 @@ function modulate16Band(polyphase, extended, output) {
 export function analyzeQmf(input, outputBands, scratch) {
   if (
     !(input instanceof Float32Array) ||
-    outputBands?.length !== bandCount ||
+    outputBands?.length !== QMF_BANDS ||
     outputBands.some(
       (band) =>
         !(band instanceof Float32Array) || band.length !== outputBands[0].length
     ) ||
     !scratch ||
-    scratch.polyphase?.length !== bandCount ||
-    scratch.extended?.length !== bandCount ||
-    scratch.bands?.length !== bandCount
+    scratch.polyphase?.length !== QMF_BANDS ||
+    scratch.extended?.length !== QMF_BANDS ||
+    scratch.bands?.length !== QMF_BANDS
   ) {
     throw new RangeError('QMF analysis geometry is invalid')
   }
 
   const sampleCount = outputBands[0].length
   const requiredSamples =
-    analysisStartSample +
-    Math.max(0, sampleCount - 1) * analysisStepSamples +
-    analysisWindowSamples
+    QMF_ANALYSIS_START_SAMPLE +
+    Math.max(0, sampleCount - 1) * QMF_ANALYSIS_STEP_SAMPLES +
+    QMF_ANALYSIS_WINDOW_SAMPLES
   if (input.length < requiredSamples) {
     throw new RangeError('QMF analysis window is incomplete')
   }
@@ -379,61 +379,62 @@ export function analyzeQmf(input, outputBands, scratch) {
   const { polyphase, extended, bands } = scratch
 
   for (let sample = 0; sample < sampleCount; sample++) {
-    const inputOffset = analysisStartSample + sample * analysisStepSamples
-    if (bandCount === 2) {
-      for (let component = 0; component < bandCount; component++) {
-        const termOffset = component * analysisTermCount
+    const inputOffset =
+      QMF_ANALYSIS_START_SAMPLE + sample * QMF_ANALYSIS_STEP_SAMPLES
+    if (QMF_BANDS === 2) {
+      for (let component = 0; component < QMF_BANDS; component++) {
+        const termOffset = component * QMF_ANALYSIS_TERMS
         let sum = 0
-        for (let term = 0; term < analysisTermCount; term++) {
+        for (let term = 0; term < QMF_ANALYSIS_TERMS; term++) {
           const index = termOffset + term
           sum +=
-            input[inputOffset + analysisSampleOffsets[index]] *
-            analysisFilterCoefficients[index]
+            input[inputOffset + QMF_ANALYSIS_SAMPLE_OFFSETS[index]] *
+            QMF_ANALYSIS_FILTER_COEFFICIENTS[index]
         }
         extended[component] = sum
       }
-      for (let band = 0; band < bandCount; band++) {
-        const coefficientOffset = band * bandCount
+      for (let band = 0; band < QMF_BANDS; band++) {
+        const coefficientOffset = band * QMF_BANDS
         let sum = 0
-        for (let component = 0; component < bandCount; component++) {
+        for (let component = 0; component < QMF_BANDS; component++) {
           sum +=
             extended[component] *
-            analysisModulationCoefficients[coefficientOffset + component]
+            QMF_ANALYSIS_MODULATION_COEFFICIENTS[coefficientOffset + component]
         }
-        outputBands[band][sample] = sum * analysisModulationScale
+        outputBands[band][sample] = sum * QMF_ANALYSIS_MODULATION_SCALE
       }
       continue
     }
-    if (bandCount === 16) {
+    if (QMF_BANDS === 16) {
       filter16Band(input, inputOffset, polyphase, extended)
       modulate16Band(polyphase, extended, bands)
-      for (let band = 0; band < bandCount; band++) {
+      for (let band = 0; band < QMF_BANDS; band++) {
         outputBands[band][sample] = bands[band]
       }
       continue
     }
 
-    for (let component = 0; component < bandCount; component++) {
-      const termOffset = component * analysisTermCount
+    for (let component = 0; component < QMF_BANDS; component++) {
+      const termOffset = component * QMF_ANALYSIS_TERMS
       let sum = 0
-      for (let term = 0; term < analysisTermCount; term++) {
+      for (let term = 0; term < QMF_ANALYSIS_TERMS; term++) {
         const index = termOffset + term
         sum +=
-          input[inputOffset + analysisSampleOffsets[index]] *
-          analysisFilterCoefficients[index]
+          input[inputOffset + QMF_ANALYSIS_SAMPLE_OFFSETS[index]] *
+          QMF_ANALYSIS_FILTER_COEFFICIENTS[index]
       }
       polyphase[component] = sum
     }
 
-    for (let band = 0; band < bandCount; band++) {
-      const coefficientOffset = band * bandCount
+    for (let band = 0; band < QMF_BANDS; band++) {
+      const coefficientOffset = band * QMF_BANDS
       let sum = 0
-      for (let component = 0; component < bandCount; component++) {
+      for (let component = 0; component < QMF_BANDS; component++) {
         sum +=
           polyphase[component] *
-          analysisModulationCoefficients[coefficientOffset + component]
+          QMF_ANALYSIS_MODULATION_COEFFICIENTS[coefficientOffset + component]
       }
-      bands[band] = sum * analysisModulationScale
+      bands[band] = sum * QMF_ANALYSIS_MODULATION_SCALE
       outputBands[band][sample] = bands[band]
     }
   }
@@ -452,21 +453,21 @@ export function analyzeQmf(input, outputBands, scratch) {
  */
 export function synthesizeQmf(inputBands, delay, delayRow, output, scratch) {
   if (
-    inputBands?.length !== bandCount ||
+    inputBands?.length !== QMF_BANDS ||
     inputBands.some(
       (band) =>
         !(band instanceof Float32Array) || band.length !== inputBands[0].length
     ) ||
     !(delay instanceof Float32Array) ||
-    delay.length !== synthesisDelayRows * bandCount ||
+    delay.length !== QMF_SYNTHESIS_DELAY_ROWS * QMF_BANDS ||
     !Number.isInteger(delayRow) ||
     delayRow < 0 ||
-    delayRow >= synthesisDelayRows ||
+    delayRow >= QMF_SYNTHESIS_DELAY_ROWS ||
     !(output instanceof Float32Array) ||
-    output.length < inputBands[0].length * bandCount ||
+    output.length < inputBands[0].length * QMF_BANDS ||
     !scratch ||
-    scratch.polyphase?.length !== bandCount ||
-    scratch.bands?.length !== bandCount
+    scratch.polyphase?.length !== QMF_BANDS ||
+    scratch.bands?.length !== QMF_BANDS
   ) {
     throw new RangeError('QMF synthesis geometry is invalid')
   }
@@ -475,57 +476,64 @@ export function synthesizeQmf(inputBands, delay, delayRow, output, scratch) {
   const sampleCount = inputBands[0].length
 
   for (let sample = 0; sample < sampleCount; sample++) {
-    for (let band = 0; band < bandCount; band++) {
+    for (let band = 0; band < QMF_BANDS; band++) {
       bands[band] = inputBands[band][sample]
     }
 
-    const delayOffset = delayRow * bandCount
-    for (let component = 0; component < bandCount; component++) {
-      const coefficientOffset = component * bandCount
+    const delayOffset = delayRow * QMF_BANDS
+    for (let component = 0; component < QMF_BANDS; component++) {
+      const coefficientOffset = component * QMF_BANDS
       let sum = 0
-      for (let band = 0; band < bandCount; band++) {
+      for (let band = 0; band < QMF_BANDS; band++) {
         sum +=
-          synthesisModulationCoefficients[coefficientOffset + band] *
+          QMF_SYNTHESIS_MODULATION_COEFFICIENTS[coefficientOffset + band] *
           bands[band]
       }
       polyphase[component] = sum
       delay[delayOffset + component] = polyphase[component]
     }
 
-    const outputOffset = sample * bandCount
-    for (let outputSample = 0; outputSample < bandCount; outputSample++) {
-      const termOffset = outputSample * synthesisTermCount
+    const outputOffset = sample * QMF_BANDS
+    for (let outputSample = 0; outputSample < QMF_BANDS; outputSample++) {
+      const termOffset = outputSample * QMF_SYNTHESIS_TERMS
       let sum = 0
-      if (bandCount === 16) {
-        for (let term = 0; term < synthesisTermCount; term += 2) {
+      if (QMF_BANDS === 16) {
+        for (let term = 0; term < QMF_SYNTHESIS_TERMS; term += 2) {
           const first = termOffset + term
           const second = first + 1
           const firstRow =
-            (delayRow + synthesisDelayRowOffsets[first]) % synthesisDelayRows
+            (delayRow + QMF_SYNTHESIS_DELAY_ROW_OFFSETS[first]) %
+            QMF_SYNTHESIS_DELAY_ROWS
           const secondRow =
-            (delayRow + synthesisDelayRowOffsets[second]) % synthesisDelayRows
+            (delayRow + QMF_SYNTHESIS_DELAY_ROW_OFFSETS[second]) %
+            QMF_SYNTHESIS_DELAY_ROWS
           sum = float32Round(
-            delay[firstRow * bandCount + synthesisDelayComponents[first]] *
-              synthesisFilterCoefficients[first] +
-              delay[secondRow * bandCount + synthesisDelayComponents[second]] *
-                synthesisFilterCoefficients[second] +
+            delay[
+              firstRow * QMF_BANDS + QMF_SYNTHESIS_DELAY_COMPONENTS[first]
+            ] *
+              QMF_SYNTHESIS_FILTER_COEFFICIENTS[first] +
+              delay[
+                secondRow * QMF_BANDS + QMF_SYNTHESIS_DELAY_COMPONENTS[second]
+              ] *
+                QMF_SYNTHESIS_FILTER_COEFFICIENTS[second] +
               sum
           )
         }
         output[outputOffset + outputSample] = sum
         continue
       }
-      for (let term = 0; term < synthesisTermCount; term++) {
+      for (let term = 0; term < QMF_SYNTHESIS_TERMS; term++) {
         const index = termOffset + term
         const row =
-          (delayRow + synthesisDelayRowOffsets[index]) % synthesisDelayRows
+          (delayRow + QMF_SYNTHESIS_DELAY_ROW_OFFSETS[index]) %
+          QMF_SYNTHESIS_DELAY_ROWS
         sum +=
-          delay[row * bandCount + synthesisDelayComponents[index]] *
-          synthesisFilterCoefficients[index]
+          delay[row * QMF_BANDS + QMF_SYNTHESIS_DELAY_COMPONENTS[index]] *
+          QMF_SYNTHESIS_FILTER_COEFFICIENTS[index]
       }
       output[outputOffset + outputSample] = sum
     }
-    delayRow = delayRow === 0 ? synthesisDelayRows - 1 : delayRow - 1
+    delayRow = delayRow === 0 ? QMF_SYNTHESIS_DELAY_ROWS - 1 : delayRow - 1
   }
   return delayRow
 }
