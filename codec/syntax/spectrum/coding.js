@@ -1,6 +1,6 @@
 /** ATRAC3plus spectral descriptor selection and entropy payload traversal. */
 
-import { readCanonicalSymbol, writeCanonicalSymbol } from '../entropy.js'
+import { canonicalCodes, readCanonicalSymbol } from '../entropy.js'
 import { BitReader } from '../bitstream.js'
 import {
   QUANTIZATION_UNIT_OFFSETS,
@@ -39,6 +39,7 @@ class SpectrumDescriptor {
     const value = SPECTRAL_CODEBOOK_VALUE_METADATA[index]
     this.index = index
     this.codeLengths = SPECTRAL_CODEBOOK_CODE_LENGTHS[index]
+    this.codes = canonicalCodes(this.codeLengths)
     this.symbolCount = SPECTRAL_CODEBOOK_SYMBOL_METADATA[index] & 0xffff
     this.maximumCodeBits = grouping & 0xff
     this.valuesPerCodeword = (grouping >>> 8) & 0xff
@@ -254,11 +255,13 @@ function buildSpectrumSymbol(coefficients, start, descriptor, scratch, slot) {
  */
 function writeSpectrumSymbol(descriptor, scratch, slot, packedIndex, sink) {
   const symbol = scratch.symbols[slot]
-  if (!writeCanonicalSymbol(descriptor.codeLengths, symbol, sink)) {
+  const bits = descriptor.codeLengths[symbol]
+  if (bits === undefined || bits === 0 || bits === 0xff) {
     throw new RangeError(
       `ATRAC3plus spectrum symbol ${symbol} at ${packedIndex} is not packable`
     )
   }
+  sink.write(descriptor.codes[symbol], bits)
   const extraCount = scratch.extraCounts[slot]
   if (symbol !== 0 && extraCount !== 0) {
     sink.write(scratch.extraBits[slot], extraCount)

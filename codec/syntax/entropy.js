@@ -65,6 +65,22 @@ function tableFor(codeLengths) {
 }
 
 /**
+ * Return the immutable canonical code row paired with a code-length table.
+ *
+ * Format-specific descriptors can retain this row once instead of resolving
+ * the same canonical table for every emitted symbol.
+ *
+ * @param {Uint8Array} codeLengths Canonical length table.
+ * @returns {Uint32Array} Canonical code by symbol.
+ */
+export function canonicalCodes(codeLengths) {
+  if (!(codeLengths instanceof Uint8Array)) {
+    throw new TypeError('ATRAC3plus canonical lengths must be bytes')
+  }
+  return tableFor(codeLengths).codes
+}
+
+/**
  * Emit one canonical symbol, returning false when it is absent.
  *
  * @param {Uint8Array} codeLengths Canonical length table.
