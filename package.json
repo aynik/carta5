@@ -1,6 +1,6 @@
 {
   "name": "carta5",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "A streaming ATRAC3plus audio codec implementation in JavaScript",
   "type": "module",
   "sideEffects": false,
