@@ -136,6 +136,14 @@ function buildSymbolPreparations(descriptors, mode) {
     }
     shared.candidateSlots.push(slot)
   }
+  for (const preparation of preparations) {
+    preparation.histogramSlots = preparation.candidateSlots.filter(
+      (slot) => descriptors[slot].zeroRunChunk <= 1
+    )
+    preparation.sequenceSlots = preparation.candidateSlots.filter(
+      (slot) => descriptors[slot].zeroRunChunk > 1
+    )
+  }
   return preparations
 }
 
@@ -150,7 +158,10 @@ function buildSpectrumPricingPlan(context, mode) {
   if (mode === 0) return null
   const descriptors = buildCandidateDescriptors(context, mode)
   const preparations = buildSymbolPreparations(descriptors, mode)
-  return { descriptors, preparations }
+  const requiresMagnitudes = preparations.some(
+    (preparation) => preparation.usesMagnitudes
+  )
+  return { descriptors, preparations, requiresMagnitudes }
 }
 
 const spectrumPricingPlans = Array.from({ length: 2 }, (_unused, context) =>
@@ -231,16 +242,16 @@ function signed16(value) {
  * @param {SpectrumPricingState} state
  * @param {number} rowStart
  * @param {number} count
- * @returns {number}
+ * @returns {number} Number of nonzero coefficients.
  */
 function prepareMagnitudeRow(state, rowStart, count) {
-  let nonzero = 0
+  let nonzeroCount = 0
   for (let index = 0; index < count; index++) {
     const value = signed16(state.quantizedRows[rowStart + index])
-    nonzero += Number(value !== 0)
+    nonzeroCount += Number(value !== 0)
     state.magnitudeCoefficients[index] = Math.abs(value)
   }
-  return nonzero
+  return nonzeroCount
 }
 
 /**
@@ -289,6 +300,55 @@ function measurePreparedSpectrumCost(
 }
 
 /**
+ * Price simple entropy candidates from one exact prepared-symbol histogram.
+ *
+ * Codebooks without zero-run chunks depend only on symbol multiplicity. Building
+ * that sufficient statistic once avoids traversing the same coefficient row for
+ * every compatible code table.
+ *
+ * @param {SpectrumPricingState} state Per-channel pricing workspace.
+ * @param {ArrayLike<number>} data Prepared symbol storage.
+ * @param {number} dataStart First prepared symbol.
+ * @param {number} packedCount Number of prepared symbols to price.
+ * @param {object} preparation Shared symbol preparation.
+ * @param {object} plan Read-only context/mode pricing plan.
+ * @param {number} nonzeroCount Sign-bit payload count for magnitude codebooks.
+ * @param {PricedSpectrumBand} destination Candidate costs to overwrite.
+ */
+function priceHistogramCandidates(
+  state,
+  data,
+  dataStart,
+  packedCount,
+  preparation,
+  plan,
+  nonzeroCount,
+  destination
+) {
+  const counts = state.symbolCounts
+  const usedSymbols = state.usedSymbols
+  let usedCount = 0
+  for (let index = 0; index < packedCount; index++) {
+    let symbol = data[dataStart + index]
+    if (preparation.masksSymbols) symbol &= preparation.symbolMask
+    if (counts[symbol] === 0) usedSymbols[usedCount++] = symbol
+    counts[symbol]++
+  }
+  for (const slot of preparation.histogramSlots) {
+    const descriptor = plan.descriptors[slot]
+    let entropyBits = descriptor.hasSignBits ? nonzeroCount : 0
+    for (let index = 0; index < usedCount; index++) {
+      const symbol = usedSymbols[index]
+      entropyBits += (descriptor.codeLengths[symbol] ?? 0) * counts[symbol]
+    }
+    destination.costs[slot] = entropyBits
+  }
+  for (let index = 0; index < usedCount; index++) {
+    counts[usedSymbols[index]] = 0
+  }
+}
+
+/**
  * Price all code-table candidates while sharing identical symbol preparation.
  *
  * Candidate slots retain their original order so lowest-cost tie behavior is
@@ -333,7 +393,32 @@ function pricePreparedSpectrumCandidates(
       dataCount,
       128
     )
-    for (const slot of preparation.candidateSlots) {
+    if (preparation.histogramSlots.length > 1) {
+      priceHistogramCandidates(
+        state,
+        data,
+        dataStart,
+        packedCount,
+        preparation,
+        plan,
+        nonzeroCount,
+        destination
+      )
+    } else {
+      for (const slot of preparation.histogramSlots) {
+        const descriptor = plan.descriptors[slot]
+        destination.costs[slot] = measurePreparedSpectrumCost(
+          data,
+          dataStart,
+          packedCount,
+          descriptor,
+          preparation.masksSymbols,
+          preparation.symbolMask,
+          nonzeroCount
+        )
+      }
+    }
+    for (const slot of preparation.sequenceSlots) {
       const descriptor = plan.descriptors[slot]
       destination.costs[slot] = measurePreparedSpectrumCost(
         data,
@@ -425,6 +510,7 @@ export function priceSpectrumBand(
       destination.costs[slot] = state.cacheCosts[cachedOffset + slot]
     }
   } else {
+    const plan = spectrumPricingPlan(entropyContext, mode)
     const rowStart = ensureQuantizedRow(
       state,
       spectrum,
@@ -435,8 +521,9 @@ export function priceSpectrumBand(
     )
     const count =
       QUANTIZATION_UNIT_OFFSETS[band + 1] - QUANTIZATION_UNIT_OFFSETS[band]
-    const nonzeroCount = prepareMagnitudeRow(state, rowStart, count)
-    const plan = spectrumPricingPlan(entropyContext, mode)
+    const nonzeroCount = plan.requiresMagnitudes
+      ? prepareMagnitudeRow(state, rowStart, count)
+      : 0
     pricePreparedSpectrumCandidates(
       state,
       rowStart,

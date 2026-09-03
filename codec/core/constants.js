@@ -269,6 +269,9 @@ export const SPECTRUM_PRICING_MODE_COUNT = 7
 /** Maximum spectrum pricing band work length. */
 export const SPECTRUM_PRICING_MAX_BAND_LENGTH = 128
 
+/** Spectrum pricing histogram symbol count. */
+export const SPECTRUM_PRICING_SYMBOL_COUNT = 256
+
 /** Core mode min inclusive threshold. */
 export const CORE_MODE_MIN_INCLUSIVE_THRESHOLD = 0xdac
 

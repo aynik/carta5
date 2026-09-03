@@ -6,7 +6,6 @@ import {
   QUANTIZATION_UNIT_OFFSETS,
   QUANTIZER_SCALES,
 } from '../core/tables.js'
-import { float32ToBits } from '../utils.js'
 import { FLOAT_ROUNDING_BIAS } from '../core/constants.js'
 
 /**
@@ -18,11 +17,11 @@ import { FLOAT_ROUNDING_BIAS } from '../core/constants.js'
  * @returns {number}
  */
 function quantizeSample(sample, quantizerScale, threshold) {
-  const distance = Math.fround(threshold - Math.abs(sample))
+  if (Math.abs(sample) <= threshold) return 0
   const product = Math.fround(sample * quantizerScale)
-  const roundedBits = float32ToBits(Math.fround(product + FLOAT_ROUNDING_BIAS))
-  const distanceMask = float32ToBits(distance) >> 31 === 0 ? 0 : 0xffffffff
-  return roundedBits & distanceMask & 0xffff
+  const rounded =
+    Math.fround(product + FLOAT_ROUNDING_BIAS) - FLOAT_ROUNDING_BIAS
+  return rounded & 0xffff
 }
 
 /**

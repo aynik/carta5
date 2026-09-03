@@ -10,6 +10,7 @@ import {
   SPECTRUM_PRICING_EMPTY_KEY,
   SPECTRUM_PRICING_MODE_COUNT,
   SPECTRUM_PRICING_MAX_BAND_LENGTH,
+  SPECTRUM_PRICING_SYMBOL_COUNT,
 } from '../../core/constants.js'
 
 /**
@@ -80,6 +81,8 @@ export class SpectrumPricingState {
       SPECTRUM_PRICING_MAX_BAND_LENGTH
     )
     this.groupedSymbols = new Uint16Array(SPECTRUM_PRICING_MAX_BAND_LENGTH)
+    this.symbolCounts = new Uint16Array(SPECTRUM_PRICING_SYMBOL_COUNT)
+    this.usedSymbols = new Uint8Array(SPECTRUM_PRICING_SYMBOL_COUNT)
     this.reset()
   }
 
