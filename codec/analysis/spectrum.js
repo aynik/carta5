@@ -133,9 +133,10 @@ export function writeMdctOutputs(
     const previous = previousGainRecords[band]
     const current = currentGainRecords[band]
     if (!gainPairIsActive(previous, current)) {
-      for (let line = 0; line < MDCT_COEFFICIENT_COUNT; line++) {
-        gainUnscaledSpectrum[offset + line] = gainScaledSpectrum[offset + line]
-      }
+      gainUnscaledSpectrum.set(
+        gainScaledSpectrum.subarray(offset, offset + MDCT_COEFFICIENT_COUNT),
+        offset
+      )
       continue
     }
     analysis.copyBandSamples(band, 0, scratch.timeSamples)

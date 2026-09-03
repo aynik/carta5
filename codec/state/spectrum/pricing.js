@@ -199,9 +199,7 @@ export class SpectrumPricingState {
     ) {
       return false
     }
-    for (let index = start; index < end; index++) {
-      output[index] = this.quantizedRows[index]
-    }
+    output.set(this.quantizedRows.subarray(start, end), start)
     return true
   }
 

@@ -155,9 +155,7 @@ export function writeQuantizedBand(symbols, band, output) {
   ) {
     throw new RangeError('ATRAC3plus quantized band copy is invalid')
   }
-  for (let index = start; index < end; index++) {
-    output[index] = symbols[index - start]
-  }
+  output.set(symbols.subarray(0, end - start), start)
 }
 
 /**
