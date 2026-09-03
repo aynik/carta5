@@ -272,6 +272,9 @@ export const SPECTRUM_PRICING_MAX_BAND_LENGTH = 128
 /** Spectrum pricing histogram symbol count. */
 export const SPECTRUM_PRICING_SYMBOL_COUNT = 256
 
+/** Minimum row length at which direct four-value spectrum grouping wins. */
+export const SPECTRUM_GROUP4_DIRECT_MIN_COUNT = 64
+
 /** Core mode min inclusive threshold. */
 export const CORE_MODE_MIN_INCLUSIVE_THRESHOLD = 0xdac
 

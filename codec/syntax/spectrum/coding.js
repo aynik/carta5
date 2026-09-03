@@ -20,6 +20,7 @@ import {
   CODE_TABLE_CONTEXT_STRIDE,
   CODE_TABLE_MODE_STRIDE,
   DESCRIPTORS_PER_CONTEXT,
+  SPECTRUM_GROUP4_DIRECT_MIN_COUNT,
   SPECTRUM_CODE_TABLE_COUNT,
   SPECTRUM_MODE_COUNT,
 } from '../../core/constants.js'
@@ -165,6 +166,38 @@ export function groupSpectrumCoefficients(
   const base = 2 ** valueBits
   const mask = base - 1
   let output = 0
+  if (group === 2) {
+    for (let coefficient = 0; coefficient < count; coefficient += 8) {
+      const start = sourceStart + coefficient
+      destination[output++] =
+        ((source[start] & mask) * base + (source[start + 1] & mask)) & 0xffff
+      destination[output++] =
+        ((source[start + 2] & mask) * base + (source[start + 3] & mask)) &
+        0xffff
+      destination[output++] =
+        ((source[start + 4] & mask) * base + (source[start + 5] & mask)) &
+        0xffff
+      destination[output++] =
+        ((source[start + 6] & mask) * base + (source[start + 7] & mask)) &
+        0xffff
+    }
+    return output
+  }
+  // Direct packing removes the generic lane loop. Short four-value rows remain
+  // faster on V8's compact generic path, while longer rows amortize this branch.
+  if (group === 4 && count >= SPECTRUM_GROUP4_DIRECT_MIN_COUNT) {
+    for (let coefficient = 0; coefficient < count; coefficient += 16) {
+      const start = sourceStart + coefficient
+      for (let symbol = 0; symbol < 4; symbol++) {
+        const index = start + symbol * 4
+        let packed = (source[index] & mask) * base + (source[index + 1] & mask)
+        packed = packed * base + (source[index + 2] & mask)
+        packed = packed * base + (source[index + 3] & mask)
+        destination[output++] = packed & 0xffff
+      }
+    }
+    return output
+  }
   for (let coefficient = 0; coefficient < count; coefficient += group * 4) {
     for (let symbol = 0; symbol < 4; symbol++) {
       let packed = 0
