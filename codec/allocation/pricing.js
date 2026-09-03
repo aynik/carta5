@@ -334,7 +334,45 @@ function priceHistogramCandidates(
     if (counts[symbol] === 0) usedSymbols[usedCount++] = symbol
     counts[symbol]++
   }
-  for (const slot of preparation.histogramSlots) {
+  const slots = preparation.histogramSlots
+  let firstUnpricedSlot = 0
+  if (slots.length >= 4) {
+    const slot0 = slots[0]
+    const slot1 = slots[1]
+    const slot2 = slots[2]
+    const slot3 = slots[3]
+    const descriptor0 = plan.descriptors[slot0]
+    const descriptor1 = plan.descriptors[slot1]
+    const descriptor2 = plan.descriptors[slot2]
+    const descriptor3 = plan.descriptors[slot3]
+    const lengths0 = descriptor0.codeLengths
+    const lengths1 = descriptor1.codeLengths
+    const lengths2 = descriptor2.codeLengths
+    const lengths3 = descriptor3.codeLengths
+    let cost0 = descriptor0.hasSignBits ? nonzeroCount : 0
+    let cost1 = descriptor1.hasSignBits ? nonzeroCount : 0
+    let cost2 = descriptor2.hasSignBits ? nonzeroCount : 0
+    let cost3 = descriptor3.hasSignBits ? nonzeroCount : 0
+    for (let index = 0; index < usedCount; index++) {
+      const symbol = usedSymbols[index]
+      const frequency = counts[symbol]
+      cost0 += (lengths0[symbol] ?? 0) * frequency
+      cost1 += (lengths1[symbol] ?? 0) * frequency
+      cost2 += (lengths2[symbol] ?? 0) * frequency
+      cost3 += (lengths3[symbol] ?? 0) * frequency
+    }
+    destination.costs[slot0] = cost0
+    destination.costs[slot1] = cost1
+    destination.costs[slot2] = cost2
+    destination.costs[slot3] = cost3
+    firstUnpricedSlot = 4
+  }
+  for (
+    let candidate = firstUnpricedSlot;
+    candidate < slots.length;
+    candidate++
+  ) {
+    const slot = slots[candidate]
     const descriptor = plan.descriptors[slot]
     let entropyBits = descriptor.hasSignBits ? nonzeroCount : 0
     for (let index = 0; index < usedCount; index++) {
