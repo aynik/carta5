@@ -22,9 +22,10 @@
     "prepare": "husky",
     "lint": "eslint bin/ codec/ tests/",
     "format": "prettier --write .",
-    "build": "webpack --config webpack.config.js",
-    "check": "npm run lint && npm test && npm run build",
-    "prepublishOnly": "npm run check"
+    "build": "webpack --config webpack.config.js && node bin/build-wme.js",
+    "check": "npm run lint && npm test && npm run build && npm run test:wme",
+    "prepublishOnly": "npm run check",
+    "test:wme": "node --test tests/wme-build.integration.mjs"
   },
   "dependencies": {
     "cli-progress": "^3.12.0",

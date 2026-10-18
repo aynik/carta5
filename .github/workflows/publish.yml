@@ -43,14 +43,30 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
+      - name: Read release version
+        id: release
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          files: |
+            dist/carta5.wme
+            dist/carta5.min.js
+            dist/carta5.min.js.map
+            dist/carta5-worker.min.js
+            dist/carta5-worker.min.js.map
+            dist/carta5-worker-interface.min.js
+            dist/carta5-worker-interface.min.js.map
+          fail_on_unmatched_files: true
           body: |
             Changes in this release:
+            - ATRAC3PLUS WME for Hi-MD recording (48, 64, 192, 256, 352 kbps). Use Carta3 for standard MD LP2/LP4.
             - Published to npm: https://www.npmjs.com/package/carta5
 
-            CDN URLs:
-            - https://unpkg.com/carta5@latest/dist/carta5.min.js
-            - https://unpkg.com/carta5@latest/dist/carta5-worker.min.js
-            - https://unpkg.com/carta5@latest/dist/carta5-worker-interface.min.js
+            Release assets include carta5.wme, the three browser JS bundles, and source maps.
+
+            CDN URLs (this version):
+            - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5.min.js
+            - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5-worker.min.js
+            - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5-worker-interface.min.js
