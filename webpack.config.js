@@ -4,6 +4,15 @@ import TerserPlugin from 'terser-webpack-plugin'
 // Configuration for multiple builds
 const builds = [
   {
+    entry: './codec/boundary/wme.js',
+    output: {
+      path: path.resolve('dist/wme'),
+      filename: 'index.js',
+      library: { type: 'module' },
+    },
+    experiments: { outputModule: true },
+  },
+  {
     entry: './codec/index.js',
     output: {
       path: path.resolve('dist'),

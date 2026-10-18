@@ -20,11 +20,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "prepare": "husky",
-    "lint": "eslint bin/ codec/ tests/",
+    "lint": "eslint bin/ build/ codec/ tests/",
     "format": "prettier --write .",
-    "build": "webpack --config webpack.config.js",
-    "check": "npm run lint && npm test && npm run build",
-    "prepublishOnly": "npm run check"
+    "build": "webpack --config webpack.config.js && node build/wme.js",
+    "check": "npm run lint && npm test && npm run build && npm run test:wme",
+    "prepublishOnly": "npm run check",
+    "test:wme": "node --test tests/wme-build.integration.mjs"
   },
   "dependencies": {
     "cli-progress": "^3.12.0",
@@ -70,7 +71,7 @@
     "webpack-cli": "^6.0.1"
   },
   "lint-staged": {
-    "(bin|codec|tests)/**/*.js": [
+    "(bin|build|codec|tests)/**/*.js": [
       "prettier --write",
       "eslint --fix"
     ]
