@@ -14,6 +14,21 @@ import { ToneSlot } from '../tone.js'
 
 /**
  * Persistent decoded gain records plus their channel-local wire header.
+ *
+ * @property {i32} hasData Gain payload presence flag.
+ * @property {i32} hasDelta Gain delta presence flag.
+ * @property {i32} transmittedCount Transmitted subband count.
+ * @property {i32} effectiveCount Effective subband count.
+ * @property {i32} pointCountMode Point-count coding mode.
+ * @property {i32} levelMode Gain-level coding mode.
+ * @property {i32} locationMode Point-location coding mode.
+ * @property {i32} countWidth Point-count bit width.
+ * @property {i32} countBase Point-count base value.
+ * @property {i32} levelWidth Gain-level bit width.
+ * @property {i32} levelBase Gain-level base value.
+ * @property {i32} locationWidth Location bit width.
+ * @property {i32} locationBase Location base value.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class DecodeGainFrame {
   /**

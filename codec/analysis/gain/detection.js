@@ -43,12 +43,30 @@ import {
   GAIN_WINDOW_BLOCKS,
 } from '../../core/constants.js'
 
+/** @typedef {import('./measurement.js').GainIndexOrder} GainIndexOrder */
+/** @typedef {import('../../state/gain/analysis.js').GainBandState} GainBandState */
+/** @typedef {import('../../state/gain/analysis.js').GainPointSpan} GainPointSpan */
+/** @typedef {import('../../state/gain/analysis.js').GainPointBudget} GainPointBudget */
+
+/** @typedef {import('../../state/gain/analysis.js').GainDetectionRequest} GainDetectionRequest */
+/** @typedef {import('../../state/gain/analysis.js').GainMergeFrontier} GainMergeFrontier */
+/** @typedef {import('../../state/gain/analysis.js').GainProbeSet} GainProbeSet */
+/** @typedef {import('../../state/gain/analysis.js').GainReductionCandidate} GainReductionCandidate */
+/** @typedef {import('../../state/gain/analysis.js').GainReductionAction} GainReductionAction */
+
+/**
+ * @typedef {object} GainActiveRemoval
+ * @property {boolean} previousIsSentinel Whether the preceding link is a list head.
+ * @property {i32} previous Preceding active index, or the no-entry sentinel.
+ * @property {i32} next Following active index, or the no-entry sentinel.
+ */
+
 /**
  * Translate a history generation and point ordinal into the flat gain-point arena index.
  *
- * @param {number} generation
- * @param {number} index
- * @returns {number}
+ * @param {i32} generation
+ * @param {i32} index
+ * @returns {i32}
  */
 function generationSlot(generation, index) {
   return generation * ANALYSIS_GAIN_DETECTION_GROUP_ENTRIES + index
@@ -84,8 +102,8 @@ function loadBandState(persisted, state) {
  * @param {GainDetectionBand} persisted
  * @param {number} maximumIndex
  * @param {number} maximumValue
- * @param {ArrayLike<number>} absoluteLevels
- * @param {ArrayLike<number>} scaleFactors
+ * @param {Float32Array} absoluteLevels
+ * @param {Float32Array} scaleFactors
  */
 function commitBandState(
   state,
@@ -180,9 +198,10 @@ export function configureGainDetectionRequest(
 /**
  * Translate a candidate and sort position into the flat ordering workspace.
  *
- * @param {ArrayLike<number>} order
- * @param {number} position
- * @returns {number}
+ * @param {GainIndexOrder} order
+ * @param {i32} position
+ * @returns {i32}
+ * @nativeUnchecked Search positions identify a populated ordering entry or the no-entry sentinel.
  */
 function orderIndex(order, position) {
   return position !== ANALYSIS_GAIN_DETECTION_NO_ENTRY
@@ -193,9 +212,9 @@ function orderIndex(order, position) {
 /**
  * Advance to the next live entry in the candidate ordering.
  *
- * @param {ArrayLike<number>} order
- * @param {number} position
- * @returns {number}
+ * @param {GainIndexOrder} order
+ * @param {i32} position
+ * @returns {i32}
  */
 function orderNext(order, position) {
   const next = position + 1
@@ -209,12 +228,12 @@ function orderNext(order, position) {
  *
  * @param {PointSearchState} state
  * @param {number} value
- * @param {number} windowStart
- * @param {number} windowEnd
- * @param {number} indexPosition
- * @param {number} startBits
- * @param {number} endBits
- * @param {number} expansion
+ * @param {i32} windowStart
+ * @param {i32} windowEnd
+ * @param {i32} indexPosition
+ * @param {i32} startBits
+ * @param {i32} endBits
+ * @param {i32} expansion
  */
 function initializePointState(
   state,
@@ -242,9 +261,10 @@ function initializePointState(
  * Materialize derived gain-point links, spans, and syntax costs from the compact persisted state.
  *
  * @param {PointSearchState} source
- * @param {ArrayLike<number>} order
- * @param {number} expansion
+ * @param {GainIndexOrder} order
+ * @param {i32} expansion
  * @param {PointSearchState} destination
+ * @nativeUnchecked Live ordering positions come from the detector-owned bounded index list.
  */
 function expandPointState(source, order, expansion, destination) {
   destination.reset()
@@ -281,8 +301,8 @@ function expandPointState(source, order, expansion, destination) {
 /**
  * Map a wrapped gain index to the syntax group used for delta coding.
  *
- * @param {number} index
- * @returns {number}
+ * @param {i32} index
+ * @returns {i32}
  */
 function gainIndexGroup(index) {
   return index > 0x1f ? 1 : 0
@@ -292,7 +312,7 @@ function gainIndexGroup(index) {
  * Report whether two gain-point spans overlap or share a boundary.
  *
  * @param {GainPointSpan} span Candidate gain-point span.
- * @param {number} boundary
+ * @param {i32} boundary
  * @param {PointSearchState} state
  * @returns {boolean}
  */
@@ -305,8 +325,8 @@ function spanTouches(span, boundary, state) {
 /**
  * Convert a gain-point span into its compact stored offset.
  *
- * @param {number} start
- * @param {number} end
+ * @param {i32} start
+ * @param {i32} end
  * @param {PointSearchState} state
  * @returns {number}
  */
@@ -323,10 +343,10 @@ function gainSpanOffset(start, end, state) {
 /**
  * Return the irreducible syntax cost of the active gain-point set.
  *
- * @param {number} start
- * @param {number} end
+ * @param {i32} start
+ * @param {i32} end
  * @param {PointSearchState} state
- * @returns {number}
+ * @returns {i32}
  */
 function gainMinimumBits(start, end, state) {
   if (start === state.windowStart || end === state.windowEnd) return 1
@@ -340,8 +360,8 @@ function gainMinimumBits(start, end, state) {
 /**
  * Wrap a gain index into the six-bit syntax domain.
  *
- * @param {number} index
- * @returns {number}
+ * @param {i32} index
+ * @returns {i32}
  */
 function wrapGainIndex(index) {
   if (index < 0) {
@@ -355,10 +375,10 @@ function wrapGainIndex(index) {
  * Populate one arena entry from a detected gain event and reset all graph links.
  *
  * @param {GainPointWorkEntry} entry
- * @param {number} pointCount
- * @param {number} index
- * @param {number} step
- * @param {number} delta
+ * @param {i32} pointCount
+ * @param {i32} index
+ * @param {i32} step
+ * @param {i32} delta
  */
 function initializeGainPointEntry(entry, pointCount, index, step, delta) {
   entry.disabled = 0
@@ -374,12 +394,12 @@ function initializeGainPointEntry(entry, pointCount, index, step, delta) {
  * Connect adjacent gain-point entries in both active and index order.
  *
  * @param {GainPointWorkArena} arena
- * @param {number} startEntry
- * @param {number} endEntry
- * @param {number} startGroup
- * @param {number} endGroup
- * @param {number} startIndex
- * @param {number} endIndex
+ * @param {i32} startEntry
+ * @param {i32} endEntry
+ * @param {i32} startGroup
+ * @param {i32} endGroup
+ * @param {i32} startIndex
+ * @param {i32} endIndex
  */
 function linkGainPointPair(
   arena,
@@ -404,7 +424,7 @@ function linkGainPointPair(
  * Derive the sample span influenced by one gain point and its neighbors.
  *
  * @param {PointSearchState} destination
- * @param {ArrayLike<number>} order
+ * @param {GainIndexOrder} order
  * @param {GainPointSpan} span Reusable destination for the derived bounds.
  * @returns {GainPointSpan} The populated span destination.
  */
@@ -438,9 +458,10 @@ function computePointSpan(destination, order, span) {
  * Return the syntax cost contributed by one gain-point boundary.
  *
  * @param {PointSearchState} state
- * @param {number} boundary
- * @param {number} group
- * @returns {number}
+ * @param {i32} boundary
+ * @param {i32} group
+ * @returns {i32}
+ * @nativeUnchecked Boundary selectors and history groups are zero or one.
  */
 function boundaryBits(state, boundary, group) {
   return boundary === BOUNDARY_START
@@ -452,9 +473,10 @@ function boundaryBits(state, boundary, group) {
  * Accumulate the syntax cost introduced by a gain-point boundary.
  *
  * @param {PointSearchState} state
- * @param {number} boundary
- * @param {number} group
- * @param {number} bits
+ * @param {i32} boundary
+ * @param {i32} group
+ * @param {i32} bits
+ * @nativeUnchecked Boundary selectors and history groups are zero or one.
  */
 function addBoundaryBits(state, boundary, group, bits) {
   if (boundary === BOUNDARY_START) state.boundaryStart[group] += bits
@@ -466,7 +488,7 @@ function addBoundaryBits(state, boundary, group, bits) {
  *
  * @param {GainDetectionBand} history
  * @param {PointSearchState} source
- * @param {ArrayLike<number>} order
+ * @param {GainIndexOrder} order
  * @param {PointSearchState} destination
  * @param {GainPointSpan} span Derived sample and group bounds.
  * @param {number} spanShift
@@ -514,7 +536,7 @@ function computePointBudget(
   let bitCount = requestedBitCount
   let saturationStart = false
   let saturationEnd = false
-  for (const boundary of [BOUNDARY_END, BOUNDARY_START]) {
+  for (let boundary = BOUNDARY_END; boundary >= BOUNDARY_START; boundary--) {
     if (spanTouches(span, boundary, destination)) continue
     const group = boundary === BOUNDARY_START ? span.startGroup : span.endGroup
     const used = boundaryBits(destination, boundary, group)
@@ -541,7 +563,7 @@ function computePointBudget(
  * @param {GainPointBudget} budget Saturated syntax budget for the point.
  * @param {PointSearchState} destination
  * @param {GainPointWorkArena} arena
- * @param {ArrayLike<number>} counts
+ * @param {Int32Array} counts
  */
 function emitGainPointEntries(span, budget, destination, arena, counts) {
   const step = (budget.bitCount * destination.stride) | 0
@@ -595,13 +617,13 @@ function emitGainPointEntries(span, budget, destination, arena, counts) {
  *
  * @param {GainDetectionBand} history
  * @param {PointSearchState} source
- * @param {ArrayLike<number>} order
+ * @param {GainIndexOrder} order
  * @param {PointSearchState} destination
  * @param {GainPointWorkArena} arena
- * @param {ArrayLike<number>} counts
+ * @param {Int32Array} counts
  * @param {number} spanShift
  * @param {GainDetectionScratch} scratch
- * @returns {number}
+ * @returns {i32}
  */
 function placeGainPoint(
   history,
@@ -645,9 +667,9 @@ function placeGainPoint(
 /**
  * Resolve the first index-ordered entry represented by a sentinel node.
  *
- * @param {GainPointSentinel[]} sentinels
- * @param {number} sentinel
- * @returns {number}
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {i32} sentinel
+ * @returns {i32}
  */
 function sentinelNextByIndex(sentinels, sentinel) {
   const offset = sentinels[sentinel].nextByIndexOffset
@@ -657,9 +679,9 @@ function sentinelNextByIndex(sentinels, sentinel) {
 /**
  * Update the sentinel link that anchors the index-ordered gain-point list.
  *
- * @param {GainPointSentinel[]} sentinels
- * @param {number} sentinel
- * @param {number} target
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {i32} sentinel
+ * @param {i32} target
  */
 function setSentinelNextByIndex(sentinels, sentinel, target) {
   sentinels[sentinel].nextByIndexOffset =
@@ -669,9 +691,9 @@ function setSentinelNextByIndex(sentinels, sentinel, target) {
 /**
  * Resolve the first active entry represented by a sentinel node.
  *
- * @param {GainPointSentinel[]} sentinels
- * @param {number} sentinel
- * @returns {number}
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {i32} sentinel
+ * @returns {i32}
  */
 function sentinelNextActive(sentinels, sentinel) {
   const offset = sentinels[sentinel].nextActiveOffset
@@ -681,9 +703,9 @@ function sentinelNextActive(sentinels, sentinel) {
 /**
  * Update the sentinel link that anchors the active gain-point list.
  *
- * @param {GainPointSentinel[]} sentinels
- * @param {number} sentinel
- * @param {number} target
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {i32} sentinel
+ * @param {i32} target
  */
 function setSentinelNextActive(sentinels, sentinel, target) {
   sentinels[sentinel].nextActiveOffset =
@@ -714,7 +736,7 @@ function buildActiveList(arena, generation, count) {
  * Insert a gain point into stable index order while retaining the active ordering.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} sentinel
  * @param {number} tail
  * @param {number} entry
@@ -780,7 +802,7 @@ function insertByIndex(arena, sentinels, sentinel, tail, entry) {
  * Link every gain point in stable gain-index order for duplicate and merge searches.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} sentinel
  * @param {number} generation
  * @param {number} count
@@ -821,8 +843,8 @@ function duplicateKeyCountReverse(arena, tail) {
  *
  * @param {GainPointWorkArena} arena
  * @param {number} tail
- * @param {ArrayLike<number>} sums
- * @returns {ArrayLike<number>}
+ * @param {Int32Array} sums
+ * @returns {Int32Array}
  */
 function fillDeltaSumsReverse(arena, tail, sums) {
   sums.fill(0)
@@ -842,8 +864,8 @@ function fillDeltaSumsReverse(arena, tail, sums) {
  *
  * @param {GainPointWorkArena} arena
  * @param {number} head
- * @param {ArrayLike<number>} locations
- * @param {ArrayLike<number>} deltas
+ * @param {Int32Array} locations
+ * @param {Int32Array} deltas
  * @returns {number}
  */
 function collectDeltaEvents(arena, head, locations, deltas) {
@@ -906,7 +928,8 @@ function pushUniqueCandidate(frontier, cost, first, second) {
   if (frontier.length >= 4) {
     throw new Error('ATRAC3plus merge frontier exceeded fixed capacity')
   }
-  const index = frontier.length++
+  const index = frontier.length
+  frontier.length = index + 1
   frontier.cost[index] = cost
   frontier.first[index] = first
   frontier.second[index] = second
@@ -920,7 +943,7 @@ function pushUniqueCandidate(frontier, cost, first, second) {
  * @param {number} target
  * @param {number} direction
  * @param {number} linkedTarget
- * @param {ArrayLike<number>} deltaSums
+ * @param {Int32Array} deltaSums
  * @param {number} baseline
  * @param {GainMergeFrontier} frontier
  */
@@ -965,7 +988,7 @@ function considerMergeCandidate(
  * @param {GainPointWorkArena} arena
  * @param {number} entry
  * @param {number} baseline
- * @param {ArrayLike<number>} deltaSums
+ * @param {Int32Array} deltaSums
  * @param {GainMergeFrontier} frontier
  * @returns {GainMergeFrontier}
  */
@@ -1039,7 +1062,7 @@ function linkedPartner(arena, entry) {
  * Snapshot the unreduced gain envelope used to measure every merge candidate consistently.
  *
  * @param {GainDetectionScratch} scratch
- * @param {ArrayLike<number>} amplitudes
+ * @param {Float32Array} amplitudes
  */
 function prepareReductionReference(scratch, amplitudes) {
   if (!scratch.referencePrepared) {
@@ -1066,7 +1089,7 @@ function prepareReductionReference(scratch, amplitudes) {
  * @param {GainPointWorkArena} arena
  * @param {number} first
  * @param {number} second
- * @param {ArrayLike<number>} deltaSums
+ * @param {Int32Array} deltaSums
  * @param {GainEnvelopeScratch} envelope
  * @returns {number}
  */
@@ -1101,7 +1124,7 @@ function scoreMergeCandidate(arena, first, second, deltaSums, envelope) {
  * @param {GainPointWorkArena} arena
  * @param {GainMergeFrontier} frontier
  * @param {GainDetectionScratch} scratch
- * @param {ArrayLike<number>} amplitudes
+ * @param {Float32Array} amplitudes
  * @param {GainReductionCandidate} output
  * @returns {boolean}
  */
@@ -1140,7 +1163,7 @@ function selectMergeCandidate(arena, frontier, scratch, amplitudes, output) {
  * @param {number} start
  * @param {number} end
  * @param {GainDetectionScratch} scratch
- * @param {ArrayLike<number>} amplitudes
+ * @param {Float32Array} amplitudes
  * @returns {number}
  */
 function selectProbeRange(arena, probes, start, end, scratch, amplitudes) {
@@ -1178,9 +1201,9 @@ function selectProbeRange(arena, probes, start, end, scratch, amplitudes) {
  * Choose whether the next reduction step merges, disables, or retains a gain point.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} activeHead
- * @param {ArrayLike<number>} amplitudes
+ * @param {Float32Array} amplitudes
  * @param {GainDetectionScratch} scratch
  * @returns {GainReductionAction}
  */
@@ -1196,6 +1219,7 @@ function selectReductionAction(
   probes.length = 0
   probes.hasCandidate.fill(0)
   let entry = sentinelNextActive(sentinels, 1)
+  /** @type {GainReductionCandidate} */
   const selectedCandidate = { cost: 0, first: 0, second: 0 }
   while (
     entry !== ANALYSIS_GAIN_DETECTION_NO_ENTRY &&
@@ -1212,7 +1236,8 @@ function selectReductionAction(
       entry = arena.nextActive(entry)
       continue
     }
-    const index = probes.length++
+    const index = probes.length
+    probes.length = index + 1
     probes.entry[index] = entry
     const frontier = mergeCandidatesForEntry(
       arena,
@@ -1307,7 +1332,7 @@ function duplicateIndexRun(arena, entry) {
  * Remove one gain-point entry from the active linked list without disturbing index order.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} activeHead
  * @param {number} entry
  * @returns {GainActiveRemoval|null}
@@ -1332,7 +1357,7 @@ function unlinkActiveEntry(arena, sentinels, activeHead, entry) {
  * Reinsert an edited gain point by scanning forward from its prior active position.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} entry
  * @param {GainActiveRemoval} removal
  */
@@ -1366,7 +1391,7 @@ function reinsertActiveForward(arena, sentinels, entry, removal) {
  * Reinsert an edited gain point from the stable active-list head after its order changes.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
+ * @param {GainPointWorkEntry[]} sentinels
  * @param {number} activeHead
  * @param {number} entry
  */
@@ -1391,9 +1416,9 @@ function reinsertActiveFromStableHead(arena, sentinels, activeHead, entry) {
  * Apply the selected gain-point merge and repair both linked-list orderings.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
- * @param {ArrayLike<number>} duplicateCounts
- * @param {ArrayLike<number>} deltaSums
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {Int32Array} duplicateCounts
+ * @param {Int32Array} deltaSums
  * @param {number} activeHead
  * @param {GainReductionAction} action
  */
@@ -1441,8 +1466,8 @@ function applyMergeCandidate(
  * Remove a gain point from reduction consideration while retaining its arena storage.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
- * @param {ArrayLike<number>} disabledCounts
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {Int32Array} disabledCounts
  * @param {number} activeHead
  * @param {number} entry
  */
@@ -1481,12 +1506,12 @@ function disableReductionEntry(
  * Iteratively merge or disable gain points until the record satisfies its syntax budget.
  *
  * @param {GainPointWorkArena} arena
- * @param {GainPointSentinel[]} sentinels
- * @param {ArrayLike<number>} pointCounts
- * @param {ArrayLike<number>} duplicateCounts
- * @param {ArrayLike<number>} disabledCounts
+ * @param {GainPointWorkEntry[]} sentinels
+ * @param {Int32Array} pointCounts
+ * @param {Int32Array} duplicateCounts
+ * @param {Int32Array} disabledCounts
  * @param {number} activeHead
- * @param {ArrayLike<number>} amplitudes
+ * @param {Float32Array} amplitudes
  * @param {GainDetectionScratch} scratch
  */
 function reduceGainPoints(
@@ -1543,17 +1568,20 @@ function reduceGainPoints(
  * @param {Float32Array} analysis
  * @param {number} spanShift
  * @param {GainDetectionScratch} scratch
- * @param {object} record
- * @returns {object}
+ * @param {GainRecord} record
+ * @returns {GainRecord}
+ * @nativeUnchecked The detector owns complete history, ordering, arena and peak workspaces.
  */
 function detectGainBand(persisted, analysis, spanShift, scratch, record) {
   const state = loadBandState(persisted, scratch.bandState)
+  const measurementScratch = scratch.measurement
   const measurement = measureGainBlockPeaks(
     analysis,
     scratch.absoluteLevels,
-    scratch.measurement.peakResult,
+    measurementScratch.peakResult,
     ANALYSIS_GAIN_DETECTION_GAIN_PREFIX_SAMPLES
   )
+  const activeBlocks = measurement.activity | 0
 
   const scaleFactors = scratch.scaleFactors
   scaleFactors[0] = 0
@@ -1567,12 +1595,12 @@ function detectGainBand(persisted, analysis, spanShift, scratch, record) {
       0xff
   }
   for (let block = 0; block < GAIN_WINDOW_BLOCKS; block++) {
-    const currentActivity = (measurement.activity >>> block) & 1
+    const currentActivity = (activeBlocks >> block) & 1
     let scale = 1
     if ((activity | currentActivity) !== 0) {
       scale = computeGainFlatnessScale(
         analysis,
-        scratch.measurement,
+        measurementScratch,
         block * GAIN_FLOATS_PER_BLOCK
       )
     }
@@ -1585,8 +1613,11 @@ function detectGainBand(persisted, analysis, spanShift, scratch, record) {
   const previousPeakIndex = state.previousPeakIndex
   const currentPeakIndex = state.currentPeakIndex
   const nextWindowPeakIndex = currentPeakIndex + 0x20
+  /** @type {i32} */
   let headIndex
+  /** @type {i32} */
   let insertionStart
+  /** @type {i32} */
   let insertionEnd
   if (state.previousPeak < state.currentPeak) {
     headIndex = nextWindowPeakIndex
@@ -1603,7 +1634,7 @@ function detectGainBand(persisted, analysis, spanShift, scratch, record) {
     headIndex,
     insertionStart,
     insertionEnd,
-    scratch.measurement.sortedOrder
+    measurementScratch.sortedOrder
   )
   let indexCount = order.length
   const states = scratch.pointStates
@@ -1638,7 +1669,11 @@ function detectGainBand(persisted, analysis, spanShift, scratch, record) {
     let outputIndex = 0
     while (outputIndex < indexCount - 1) {
       const source = states[sourceStateIndex]
-      for (const expansion of [EXPAND_BEFORE, EXPAND_AFTER]) {
+      for (
+        let expansion = EXPAND_BEFORE;
+        expansion <= EXPAND_AFTER;
+        expansion <<= 1
+      ) {
         if ((source.expansions & expansion) === 0) continue
         outputIndex++
         const destination = states[outputIndex]
@@ -1753,7 +1788,7 @@ function detectGainBand(persisted, analysis, spanShift, scratch, record) {
 /**
  * Measure the windowed energy represented by one gain-analysis interval.
  *
- * @param {ArrayLike<number>} samples
+ * @param {Float32Array} samples
  * @returns {number}
  */
 function gainEnergy(samples) {

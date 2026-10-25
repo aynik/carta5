@@ -158,7 +158,7 @@ function validatePlan(transaction, shared, plan) {
 /**
  * Accumulate absolute coefficient magnitude using the codec's four-sample grouping.
  *
- * @param {ArrayLike<number>} values
+ * @param {Float32Array|Int16Array} values
  * @param {number} start
  * @param {number} quarterLength
  * @param {number} [scale]

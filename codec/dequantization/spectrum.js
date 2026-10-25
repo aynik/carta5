@@ -116,7 +116,7 @@ function reusePrimaryBands(channelBlocks, channels, bandCount) {
  * Expand quantized coefficients into the channel spectrum using its scale factors and word lengths.
  *
  * @param {DecodeChannelState} channel
- * @param {ArrayLike<number>} spectrum
+ * @param {Float32Array} spectrum
  * @param {number} bandCount
  */
 function dequantizeChannel(channel, spectrum, bandCount) {
@@ -144,10 +144,10 @@ function dequantizeChannel(channel, spectrum, bandCount) {
  * @param {CodingUnitChannels} channels
  * @param {SharedState} shared
  * @param {number} targetOrdinal
- * @param {ArrayLike<number>} map
+ * @param {i32} map
  * @param {number} seed
- * @param {ArrayLike<number>} spectrum
- * @param {ArrayLike<number>} noise
+ * @param {Float32Array} spectrum
+ * @param {Float32Array} noise
  */
 function applySpectralPowerCompensation(
   channelBlocks,
@@ -201,7 +201,7 @@ function applySpectralPowerCompensation(
  * @param {DecodeChannelState[]} channelBlocks
  * @param {CodingUnitChannels} channels
  * @param {SharedState} shared
- * @param {ArrayLike<number>} spectra
+ * @param {Float32Array[]} spectra
  */
 function applyStereoMaps(channelBlocks, channels, shared, spectra) {
   if (channels.length !== 2) return
@@ -233,7 +233,7 @@ function applyStereoMaps(channelBlocks, channels, shared, spectra) {
  * Secondary symbol reuse deliberately updates only the staged channel image.
  *
  * @param {DecodeChannelState[]} channelBlocks Detached decoder channel blocks.
- * @param {ArrayLike<number>} channels Coding-unit channel indices.
+ * @param {CodingUnitChannels} channels Coding-unit channel indices.
  * @param {SharedState} shared Shared coding-unit syntax.
  * @param {Float32Array[]} spectra Pool-owned float spectra.
  * @param {SpectralReconstructionScratch} scratch Reusable reconstruction work.

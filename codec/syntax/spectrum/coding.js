@@ -1,7 +1,7 @@
 /** ATRAC3plus spectral descriptor selection and entropy payload traversal. */
 
 import { canonicalCodes, readCanonicalSymbol } from '../entropy.js'
-import { BitReader } from '../bitstream.js'
+import { BitReader, BitWriter, writeBitsAt } from '../bitstream.js'
 import {
   QUANTIZATION_UNIT_OFFSETS,
   SPECTRUM_BAND_LIMITS,
@@ -25,8 +25,21 @@ import {
   SPECTRUM_MODE_COUNT,
 } from '../../core/constants.js'
 
+const bitWriterWrite = BitWriter.prototype.write
+
 /**
- * Mutable description of one packed spectrum symbol and its optional escape payload.
+ * Immutable description of one packed spectrum symbol and its optional escape payload.
+ *
+ * @property {i32} index Maintained codebook index.
+ * @property {i32} symbolCount Number of symbols in the codebook.
+ * @property {i32} maximumCodeBits Maximum entropy width, at most 32.
+ * @property {i32} valuesPerCodeword Coefficients represented by one symbol.
+ * @property {i32} zeroRunChunk Symbols represented by one zero-run flag.
+ * @property {i32} valueBits Width of one grouped coefficient.
+ * @property {i32} valueMask Mask for one grouped coefficient.
+ * @property {boolean} hasSignBits Whether nonzero magnitudes carry escape sign bits.
+ * @property {Uint8Array} costLengths Zero-padded symbol costs for bounded pricing lookups.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 class SpectrumDescriptor {
   /**
@@ -39,6 +52,8 @@ class SpectrumDescriptor {
     const value = SPECTRAL_CODEBOOK_VALUE_METADATA[index]
     this.index = index
     this.codeLengths = SPECTRAL_CODEBOOK_CODE_LENGTHS[index]
+    this.costLengths = new Uint8Array(Math.max(256, this.codeLengths.length))
+    this.costLengths.set(this.codeLengths)
     this.codes = canonicalCodes(this.codeLengths)
     this.symbolCount = SPECTRAL_CODEBOOK_SYMBOL_METADATA[index] & 0xffff
     this.maximumCodeBits = grouping & 0xff
@@ -149,12 +164,13 @@ export function spectrumCostCodeTableIndex(
  * Group signed low-byte coefficients into packed entropy symbols.
  *
  * @param {Uint16Array} source Unsigned coefficient symbols.
- * @param {number} sourceStart First source coefficient.
- * @param {number} count Active coefficient count.
- * @param {number} group Values per codeword.
- * @param {number} valueBits Bits per grouped value.
+ * @param {i32} sourceStart First source coefficient.
+ * @param {i32} count Active coefficient count.
+ * @param {i32} group Values per codeword.
+ * @param {i32} valueBits Bits per grouped value.
  * @param {Uint16Array} destination Caller-owned grouped symbols.
- * @returns {number} Grouped symbol count.
+ * @returns {i32} Grouped symbol count.
+ * @nativeUnchecked Pricing supplies full channel storage and scratch capacity for four-symbol batches.
  */
 export function groupSpectrumCoefficients(
   source,
@@ -164,6 +180,7 @@ export function groupSpectrumCoefficients(
   valueBits,
   destination
 ) {
+  /** @type {i32} Maintained codebooks use at most six bits per grouped value. */
   const base = 2 ** valueBits
   const mask = base - 1
   let output = 0
@@ -214,58 +231,90 @@ export function groupSpectrumCoefficients(
 }
 
 /**
- * Combine quantized coefficients into the entropy symbol and escape fields for one group.
+ * Prepare up to four entropy symbols and their escape fields in reusable scratch.
  *
- * @param {ArrayLike<number>} coefficients
- * @param {number} start
+ * @param {Int16Array|Uint16Array} coefficients
+ * @param {i32} start
  * @param {SpectrumDescriptor} descriptor
  * @param {SpectrumSymbolScratch} scratch
- * @param {number} slot
+ * @param {i32} count Number of complete groups, at most the scratch capacity.
+ * @nativeUnchecked The caller supplies complete coefficient groups and bounded scratch capacity.
  */
-function buildSpectrumSymbol(coefficients, start, descriptor, scratch, slot) {
-  let symbol = 0
-  let extraBits = 0
-  let extraCount = 0
-  for (let lane = 0; lane < descriptor.valuesPerCodeword; lane++) {
-    const stored = coefficients[start + lane]
-    const coefficient =
-      coefficients instanceof Uint16Array ? (stored << 16) >> 16 : stored
-    const encoded = descriptor.hasSignBits
-      ? Math.abs(coefficient) & descriptor.valueMask
-      : coefficient & descriptor.valueMask
-    symbol = (symbol * 2 ** descriptor.valueBits + encoded) & 0xffff
-    if (descriptor.hasSignBits && encoded !== 0) {
-      extraBits = (extraBits * 2 + Number(coefficient < 0)) >>> 0
-      extraCount++
+function buildSpectrumSymbols(coefficients, start, descriptor, scratch, count) {
+  const { valuesPerCodeword, valueBits, valueMask, hasSignBits } = descriptor
+  const { symbols, extraBits: signs, extraCounts } = scratch
+  for (let slot = 0; slot < count; slot++) {
+    let symbol = 0
+    /** @type {i32} At most one sign bit for each of four grouped coefficients. */
+    let extraBits = 0
+    let extraCount = 0
+    const groupStart = start + slot * valuesPerCodeword
+    for (let lane = 0; lane < valuesPerCodeword; lane++) {
+      const coefficient = (coefficients[groupStart + lane] << 16) >> 16
+      /** @type {i32} Signed 16-bit coefficient or its magnitude, at most 32768. */
+      const magnitude = hasSignBits ? Math.abs(coefficient) : coefficient
+      const encoded = magnitude & valueMask
+      symbol = ((symbol << valueBits) | encoded) & 0xffff
+      if (hasSignBits && encoded !== 0) {
+        extraBits = (extraBits << 1) | (coefficient < 0 ? 1 : 0)
+        extraCount++
+      }
     }
+    symbols[slot] = symbol
+    signs[slot] = extraBits
+    extraCounts[slot] = extraCount
   }
-  scratch.symbols[slot] = symbol
-  scratch.extraBits[slot] = extraBits
-  scratch.extraCounts[slot] = extraCount
 }
 
 /**
- * Emit one canonical spectrum symbol and fail with its packed coefficient position when the codebook forbids it.
+ * Emit prepared spectrum symbols, reporting the position of any forbidden code.
  *
- * @param {SpectrumDescriptor} descriptor
+ * @param {Uint8Array} codeLengths Canonical widths, including absent markers.
+ * @param {Uint32Array} codes Canonical codes in the same symbol order.
  * @param {SpectrumSymbolScratch} scratch
- * @param {number} slot
- * @param {number} packedIndex
+ * @param {i32} count Prepared symbols, starting at scratch slot zero.
+ * @param {i32} packedIndex Position of the first prepared symbol.
  * @param {BitWriter|BitCounter} sink
+ * @param {Uint8Array|null} buffer Cached bytes for the standard bit writer.
+ * @param {i32} bitPosition Cached writer cursor; unused for custom sinks.
+ * @returns {i32} Next standard-writer cursor.
+ * @nativeUnchecked Scratch slots are bounded; the checked width rejects absent symbols before code lookup.
  */
-function writeSpectrumSymbol(descriptor, scratch, slot, packedIndex, sink) {
-  const symbol = scratch.symbols[slot]
-  const bits = descriptor.codeLengths[symbol]
-  if (bits === undefined || bits === 0 || bits === 0xff) {
-    throw new RangeError(
-      `ATRAC3plus spectrum symbol ${symbol} at ${packedIndex} is not packable`
-    )
+function writeSpectrumSymbols(
+  codeLengths,
+  codes,
+  scratch,
+  count,
+  packedIndex,
+  sink,
+  buffer,
+  bitPosition
+) {
+  for (let slot = 0; slot < count; slot++) {
+    const symbol = scratch.symbols[slot]
+    const bits = codeLengths[symbol] ?? 0
+    if (bits === 0 || bits === 0xff) {
+      throw new RangeError(
+        `ATRAC3plus spectrum symbol ${symbol} at ${packedIndex + slot} is not packable`
+      )
+    }
+    if (buffer) {
+      bitPosition = writeBitsAt(sink, buffer, bitPosition, codes[symbol], bits)
+    } else sink.write(codes[symbol], bits)
+    const extraCount = scratch.extraCounts[slot]
+    if (symbol !== 0 && extraCount !== 0) {
+      if (buffer) {
+        bitPosition = writeBitsAt(
+          sink,
+          buffer,
+          bitPosition,
+          scratch.extraBits[slot],
+          extraCount
+        )
+      } else sink.write(scratch.extraBits[slot], extraCount)
+    }
   }
-  sink.write(descriptor.codes[symbol], bits)
-  const extraCount = scratch.extraCounts[slot]
-  if (symbol !== 0 && extraCount !== 0) {
-    sink.write(scratch.extraBits[slot], extraCount)
-  }
+  return bitPosition
 }
 
 /**
@@ -301,108 +350,78 @@ export function packSpectrumPayload(
   ) {
     throw new TypeError('ATRAC3plus spectrum payload arguments are invalid')
   }
-  const group = descriptor.valuesPerCodeword
+  const { valuesPerCodeword: group, codeLengths, codes } = descriptor
   if (group !== 1 && group !== 2 && group !== 4) {
     throw new RangeError('ATRAC3plus spectrum grouping is invalid')
   }
+  /** @type {i32} At most 128 complete coefficient groups. */
   const packedCount = Math.min(Math.trunc(count / group), 128)
   const chunk = Math.max(descriptor.zeroRunChunk, 1)
+  /** @type {Uint8Array|null} Preserve custom sink methods through the generic path. */
+  const buffer = sink.write === bitWriterWrite ? sink.buffer : null
+  /** @type {i32} */
+  let bitPosition = buffer ? sink.bitPosition : 0
   if (chunk === 1) {
-    for (let packed = 0; packed < packedCount; packed++) {
-      buildSpectrumSymbol(
+    // Aliased destinations and custom sinks retain one-group read/write order.
+    /** @type {i32} */
+    const batch = buffer && buffer.buffer !== coefficients.buffer ? 4 : 1
+    for (let packed = 0; packed < packedCount; packed += batch) {
+      /** @type {i32} */
+      const count = Math.min(batch, packedCount - packed)
+      buildSpectrumSymbols(
         coefficients,
         start + packed * group,
         descriptor,
         scratch,
-        0
+        count
       )
-      writeSpectrumSymbol(descriptor, scratch, 0, packed, sink)
+      bitPosition = writeSpectrumSymbols(
+        codeLengths,
+        codes,
+        scratch,
+        count,
+        packed,
+        sink,
+        buffer,
+        bitPosition
+      )
     }
     return
   }
   for (let chunkStart = 0; chunkStart < packedCount; chunkStart += chunk) {
     const chunkEnd = Math.min(chunkStart + chunk, packedCount)
+    buildSpectrumSymbols(
+      coefficients,
+      start + chunkStart * group,
+      descriptor,
+      scratch,
+      chunkEnd - chunkStart
+    )
     let anyNonzero = false
     for (let packed = chunkStart; packed < chunkEnd; packed++) {
       const slot = packed - chunkStart
-      buildSpectrumSymbol(
-        coefficients,
-        start + packed * group,
-        descriptor,
-        scratch,
-        slot
-      )
       anyNonzero ||= scratch.symbols[slot] !== 0
     }
-    sink.write(Number(anyNonzero), 1)
-    if (!anyNonzero) continue
-    for (let packed = chunkStart; packed < chunkEnd; packed++) {
-      writeSpectrumSymbol(
-        descriptor,
-        scratch,
-        packed - chunkStart,
-        packed,
-        sink
+    if (buffer) {
+      bitPosition = writeBitsAt(
+        sink,
+        buffer,
+        bitPosition,
+        Number(anyNonzero),
+        1
       )
-    }
-  }
-}
-
-/**
- * Return how many escape values accompany a decoded spectrum symbol.
- *
- * @param {SpectrumDescriptor} descriptor
- * @param {number} symbol
- * @returns {number}
- */
-function spectrumExtraCount(descriptor, symbol) {
-  if (!descriptor.hasSignBits || symbol === 0) return 0
-  let count = 0
-  for (let lane = 0; lane < descriptor.valuesPerCodeword; lane++) {
-    const shift =
-      descriptor.valueBits * (descriptor.valuesPerCodeword - lane - 1)
-    if (((symbol >>> shift) & descriptor.valueMask) !== 0) count++
-  }
-  return count
-}
-
-/**
- * Expand one entropy symbol and its escape fields back into signed coefficients.
- *
- * @param {ArrayLike<number>} coefficients
- * @param {number} start
- * @param {SpectrumDescriptor} descriptor
- * @param {number} symbol
- * @param {number} extraBits
- * @param {number} extraCount
- */
-function expandSpectrumSymbol(
-  coefficients,
-  start,
-  descriptor,
-  symbol,
-  extraBits,
-  extraCount
-) {
-  let signMask =
-    descriptor.hasSignBits && extraCount !== 0 ? 2 ** (extraCount - 1) : 0
-  for (let lane = 0; lane < descriptor.valuesPerCodeword; lane++) {
-    const shift =
-      descriptor.valueBits * (descriptor.valuesPerCodeword - lane - 1)
-    const raw = (symbol >>> shift) & descriptor.valueMask
-    let value = raw
-    if (descriptor.hasSignBits) {
-      if (raw !== 0) {
-        if ((extraBits & signMask) !== 0) value = -raw
-        signMask >>>= 1
-      }
-    } else if (
-      descriptor.valueBits !== 0 &&
-      raw >= 2 ** (descriptor.valueBits - 1)
-    ) {
-      value = raw - 2 ** descriptor.valueBits
-    }
-    coefficients[start + lane] = value
+    } else sink.write(Number(anyNonzero), 1)
+    if (!anyNonzero) continue
+    bitPosition = writeSpectrumSymbols(
+      codeLengths,
+      codes,
+      scratch,
+      chunkEnd - chunkStart,
+      chunkStart,
+      sink,
+      buffer,
+      bitPosition
+    )
   }
 }
 
@@ -415,6 +434,7 @@ function expandSpectrumSymbol(
  * @param {SpectrumDescriptor} descriptor Entropy descriptor.
  * @param {BitReader} reader Source bit reader.
  * @returns {void}
+ * @nativeUnchecked The entry guard bounds every complete coefficient group in the destination.
  */
 export function unpackSpectrumPayload(
   coefficients,
@@ -435,27 +455,48 @@ export function unpackSpectrumPayload(
   ) {
     throw new TypeError('ATRAC3plus spectrum decode arguments are invalid')
   }
-  const group = descriptor.valuesPerCodeword
+  const {
+    valuesPerCodeword: group,
+    valueBits,
+    valueMask,
+    hasSignBits,
+    codeLengths,
+  } = descriptor
   if (group !== 1 && group !== 2 && group !== 4) {
     throw new RangeError('ATRAC3plus spectrum grouping is invalid')
   }
+  /** @type {i32} At most 128 complete coefficient groups. */
   const packedCount = Math.min(Math.trunc(count / group), 128)
   const chunk = Math.max(descriptor.zeroRunChunk, 1)
   for (let chunkStart = 0; chunkStart < packedCount; chunkStart += chunk) {
     const chunkEnd = Math.min(chunkStart + chunk, packedCount)
     if (chunk > 1 && reader.read(1) === 0) continue
     for (let packed = chunkStart; packed < chunkEnd; packed++) {
-      const symbol = readCanonicalSymbol(descriptor.codeLengths, reader)
-      const extraCount = spectrumExtraCount(descriptor, symbol)
-      const extraBits = reader.read(extraCount)
-      expandSpectrumSymbol(
-        coefficients,
-        start + packed * group,
-        descriptor,
-        symbol,
-        extraBits,
-        extraCount
-      )
+      /** @type {i32} Validated canonical symbol in this codebook. */
+      const symbol = readCanonicalSymbol(codeLengths, reader)
+      let extraCount = 0
+      if (hasSignBits && symbol !== 0) {
+        for (let lane = 0; lane < group; lane++) {
+          const shift = valueBits * (group - lane - 1)
+          if (((symbol >>> shift) & valueMask) !== 0) extraCount++
+        }
+      }
+      const extraBits = extraCount === 0 ? 0 : reader.read(extraCount)
+      let signMask = extraCount !== 0 ? 1 << (extraCount - 1) : 0
+      for (let lane = 0; lane < group; lane++) {
+        const shift = valueBits * (group - lane - 1)
+        const raw = (symbol >>> shift) & valueMask
+        let value = raw
+        if (hasSignBits) {
+          if (raw !== 0) {
+            if ((extraBits & signMask) !== 0) value = -raw
+            signMask >>= 1
+          }
+        } else if (valueBits !== 0 && raw >= 1 << (valueBits - 1)) {
+          value = raw - (1 << valueBits)
+        }
+        coefficients[start + packed * group + lane] = value
+      }
     }
   }
 }

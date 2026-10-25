@@ -35,10 +35,10 @@ import {
 /**
  * Map a channel and delta-mode variant into the flat cost table.
  *
- * @param {number} row
- * @param {number} column
- * @param {number} codebook
- * @returns {number}
+ * @param {i32} row
+ * @param {i32} column
+ * @param {i32} codebook
+ * @returns {i32}
  */
 function deltaModeCostIndex(row, column, codebook) {
   return (row * 16 + column * 4 + codebook) | 0
@@ -47,10 +47,10 @@ function deltaModeCostIndex(row, column, codebook) {
 /**
  * Map a channel and syntax mode into the flat comparison table.
  *
- * @param {number} relation
- * @param {number} group
- * @param {number} codebook
- * @returns {number}
+ * @param {i32} relation
+ * @param {i32} group
+ * @param {i32} codebook
+ * @returns {i32}
  */
 function channelCostIndex(relation, group, codebook) {
   return (relation * 16 + group * 4 + codebook) | 0
@@ -73,8 +73,8 @@ function updateMask(mask, index, enabled) {
  * Return the first inactive band after a mask's contiguous low-order prefix.
  *
  * @param {number} mask
- * @param {number} count
- * @returns {number}
+ * @param {i32} count
+ * @returns {i32}
  */
 function prefixEnd(mask, count) {
   const prefix = count >= 32 ? 0xffffffff : (2 ** count - 1) >>> 0
@@ -85,9 +85,10 @@ function prefixEnd(mask, count) {
 /**
  * Return the first candidate mode attaining the minimum cost within the requested prefix.
  *
- * @param {ArrayLike<number>} costs
- * @param {number} [count]
- * @returns {number}
+ * @param {Int32Array} costs
+ * @param {i32} [count]
+ * @returns {i32}
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function lowestCostMode(costs, count = costs.length) {
   let selected = 0
@@ -100,9 +101,10 @@ function lowestCostMode(costs, count = costs.length) {
 /**
  * Return the fixed-width payload cost for one coded word length.
  *
- * @param {number} codebook
- * @param {number} symbol
- * @returns {number}
+ * @param {i32} codebook
+ * @param {i32} symbol
+ * @returns {i32}
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function wordLengthBits(codebook, symbol) {
   return WORD_LENGTH_CODEBOOKS[codebook][symbol & WORD_MASK]
@@ -111,9 +113,9 @@ function wordLengthBits(codebook, symbol) {
 /**
  * Wrap a predictor-relative value into the fixed-width unsigned syntax domain.
  *
- * @param {number} value
- * @param {number} reference
- * @returns {number}
+ * @param {i32} value
+ * @param {i32} reference
+ * @returns {i32}
  */
 function maskedDelta(value, reference) {
   return (value - reference) & WORD_MASK
@@ -122,10 +124,11 @@ function maskedDelta(value, reference) {
 /**
  * Evaluate the word-length predictor curve at one quantization band.
  *
- * @param {number} channelOrdinal
- * @param {number} delta
- * @param {number} band
- * @returns {number}
+ * @param {i32} channelOrdinal
+ * @param {i32} delta
+ * @param {i32} band
+ * @returns {i32}
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function deltaCurveValue(channelOrdinal, delta, band) {
   if (delta === 0) return 0
@@ -136,8 +139,8 @@ function deltaCurveValue(channelOrdinal, delta, band) {
 /**
  * Map a quantization band to its word-length shape slot.
  *
- * @param {number} band
- * @returns {number}
+ * @param {i32} band
+ * @returns {i32}
  */
 function shapeSlotForBand(band) {
   return SHAPE_INDEX_BY_QUANTIZATION_UNIT[band] ?? 0
@@ -146,8 +149,8 @@ function shapeSlotForBand(band) {
 /**
  * Return the number of shape slots needed for the active band count.
  *
- * @param {number} count
- * @returns {number}
+ * @param {i32} count
+ * @returns {i32}
  */
 function shapeSlotCount(count) {
   return count === 0 ? 0 : shapeSlotForBand(count - 1) + 1
@@ -156,10 +159,11 @@ function shapeSlotCount(count) {
 /**
  * Evaluate the selected shape adjustment for one quantization band.
  *
- * @param {number} base
- * @param {number} shift
- * @param {number} slot
- * @returns {number}
+ * @param {i32} base
+ * @param {i32} shift
+ * @param {i32} slot
+ * @returns {i32}
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function shapeAdjustment(base, shift, slot) {
   if (slot === 0) return 0
@@ -172,10 +176,10 @@ function shapeAdjustment(base, shift, slot) {
 /**
  * Reconstruct the base word length represented by one shape slot.
  *
- * @param {number} base
- * @param {number} shift
- * @param {number} band
- * @returns {number}
+ * @param {i32} base
+ * @param {i32} shift
+ * @param {i32} band
+ * @returns {i32}
  */
 function shapeBaseValue(base, shift, band) {
   return base - shapeAdjustment(base, shift, shapeSlotForBand(band))
@@ -184,8 +188,8 @@ function shapeBaseValue(base, shift, band) {
 /**
  * Compute escape-bit overhead for a word-length tail value.
  *
- * @param {number} mode
- * @returns {number}
+ * @param {i32} mode
+ * @returns {i32}
  */
 function tailExtraBits(mode) {
   return mode === TAIL_MODE_NONE ? 0 : mode === TAIL_MODE_RUN ? 7 : 5
@@ -194,11 +198,11 @@ function tailExtraBits(mode) {
 /**
  * Compute the complete literal cost of the uncoded word-length tail.
  *
- * @param {number} mode
- * @param {number} count
- * @param {number} channelOrdinal
- * @param {number} limit
- * @returns {number}
+ * @param {i32} mode
+ * @param {i32} count
+ * @param {i32} channelOrdinal
+ * @param {i32} limit
+ * @returns {i32}
  */
 function tailLiteralBits(mode, count, channelOrdinal, limit) {
   return channelOrdinal === 1 && mode === TAIL_MODE_ONES_OR_BITS
@@ -209,13 +213,13 @@ function tailLiteralBits(mode, count, channelOrdinal, limit) {
 /**
  * Convert a channel value to the predictor-relative symbol used by the selected syntax mode.
  *
- * @param {number} relation
- * @param {number} band
- * @param {number} value
- * @param {number} base
- * @param {number} previousValue
- * @param {number} previousBase
- * @returns {number}
+ * @param {i32} relation
+ * @param {i32} band
+ * @param {i32} value
+ * @param {i32} base
+ * @param {i32} previousValue
+ * @param {i32} previousBase
+ * @returns {i32}
  */
 function channelSymbol(
   relation,
@@ -253,9 +257,10 @@ function validateGeometry(bandLimit, sideDataBandCount) {
  * Refresh the active-band mask after a word-length row changes.
  *
  * @param {WordLengthScratch} scratch
- * @param {number} row
- * @param {number} band
- * @param {number} value
+ * @param {i32} row
+ * @param {i32} band
+ * @param {i32} value
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function updateRowMask(scratch, row, band, value) {
   scratch.rowNonzeroMasks[row] = updateMask(
@@ -279,10 +284,11 @@ function updateRowMask(scratch, row, band, value) {
  * Extract the uncoded word-length suffix and its literal/escape costs.
  *
  * @param {WordLengthScratch} scratch
- * @param {number} row
- * @param {number} channelOrdinal
- * @param {number} bandLimit
- * @param {ArrayLike<number>} destination
+ * @param {i32} row
+ * @param {i32} channelOrdinal
+ * @param {i32} bandLimit
+ * @param {Int32Array} destination
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function buildTailProfile(
   scratch,
@@ -445,11 +451,12 @@ function selectShapeShift(base, shapeCountValue, averages) {
 /**
  * Reduce word lengths to grouped shape values and their local residuals.
  *
- * @param {ArrayLike<number>} values
+ * @param {Int32Array} values
  * @param {WordLengthScratch} scratch
  * @param {WordLengthCostWork} work
- * @param {number} sideDataBandCount
- * @param {number} bandLimit
+ * @param {i32} sideDataBandCount
+ * @param {i32} bandLimit
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function buildShapeGroups(values, scratch, work, sideDataBandCount, bandLimit) {
   let band = 0
@@ -532,9 +539,10 @@ function buildShapeGroups(values, scratch, work, sideDataBandCount, bandLimit) {
 /**
  * Choose the coded prefix and literal tail split with the lowest exact cost.
  *
- * @param {ArrayLike<number>} values
- * @param {number} count
+ * @param {Int32Array} values
+ * @param {i32} count
  * @param {WordLengthCostWork} work
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function selectPrefixRange(values, count, work) {
   work.rangeLeads.fill(count)
@@ -584,9 +592,10 @@ function selectPrefixRange(values, count, work) {
  *
  * @param {WordLengthScratch} scratch
  * @param {WordLengthCostWork} work
- * @param {number} channelOrdinal
- * @param {number} bandLimit
+ * @param {i32} channelOrdinal
+ * @param {i32} bandLimit
  * @returns {number}
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function priceCurveMode(scratch, work, channelOrdinal, bandLimit) {
   work.rowCosts.fill(0)
@@ -788,22 +797,26 @@ function priceShapeMode(scratch, work, channelOrdinal, bandLimit) {
  * Recompute delta-mode word-length costs for one row after its values change.
  *
  * @param {WordLengthScratch} scratch
- * @param {number} row
+ * @param {i32} row
  * @param {WordLengthCostWork} work
+ * @nativeUnchecked Internal syntax candidates bound the table and work indices.
  */
 function refreshDeltaModeRow(scratch, row, work) {
+  const deltaBits = scratch.deltaModeHuffmanBits
   const baseSlot = row * 4
   if (scratch.rowNegativeCounts[row] !== 0) {
     for (let column = 0; column < 4; column++) {
       for (let codebook = 0; codebook < 4; codebook++) {
-        scratch.deltaModeHuffmanBits[
-          deltaModeCostIndex(row, column, codebook)
-        ] = 0
+        deltaBits[deltaModeCostIndex(row, column, codebook)] = 0
       }
     }
     return
   }
-  work.tempCosts.fill(0)
+  const tempCosts = work.tempCosts
+  const bandCounts = scratch.bandCounts
+  const mapIndices = scratch.mapIndices
+  const values = scratch.rows[row]
+  tempCosts.fill(0)
   let processed = 0
   let accumulatedCount = 1
   for (let step = 0; step < 4; step++) {
@@ -812,43 +825,33 @@ function refreshDeltaModeRow(scratch, row, work) {
       if ((processed & (1 << candidate)) !== 0) continue
       if (
         column < 0 ||
-        scratch.bandCounts[baseSlot + candidate] <
-          scratch.bandCounts[baseSlot + column] ||
-        (scratch.bandCounts[baseSlot + candidate] ===
-          scratch.bandCounts[baseSlot + column] &&
+        bandCounts[baseSlot + candidate] < bandCounts[baseSlot + column] ||
+        (bandCounts[baseSlot + candidate] === bandCounts[baseSlot + column] &&
           candidate < column)
       ) {
         column = candidate
       }
     }
     processed |= 1 << column
-    const mapped = scratch.mapIndices[baseSlot + column]
+    const mapped = mapIndices[baseSlot + column]
     if (mapped >= 0) {
       for (let codebook = 0; codebook < 4; codebook++) {
-        scratch.deltaModeHuffmanBits[
-          deltaModeCostIndex(row, column, codebook)
-        ] =
-          scratch.deltaModeHuffmanBits[
-            deltaModeCostIndex(row, mapped, codebook)
-          ]
+        deltaBits[deltaModeCostIndex(row, column, codebook)] =
+          deltaBits[deltaModeCostIndex(row, mapped, codebook)]
       }
       continue
     }
-    const count = scratch.bandCounts[baseSlot + column]
+    const count = bandCounts[baseSlot + column]
     if (count === 0) continue
     for (let band = accumulatedCount; band < count; band++) {
-      const symbol = maskedDelta(
-        scratch.rows[row][band],
-        scratch.rows[row][band - 1]
-      )
+      const symbol = maskedDelta(values[band], values[band - 1])
       for (let codebook = 0; codebook < 4; codebook++) {
-        work.tempCosts[codebook] += wordLengthBits(codebook, symbol)
+        tempCosts[codebook] += wordLengthBits(codebook, symbol)
       }
     }
     accumulatedCount = count
     for (let codebook = 0; codebook < 4; codebook++) {
-      scratch.deltaModeHuffmanBits[deltaModeCostIndex(row, column, codebook)] =
-        work.tempCosts[codebook]
+      deltaBits[deltaModeCostIndex(row, column, codebook)] = tempCosts[codebook]
     }
   }
 }

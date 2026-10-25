@@ -73,10 +73,16 @@ export class CodingUnitAllocationWorkspace {
 
 /**
  * Complete stable identity root for one coding-unit allocation transaction.
+ *
+ * @property {Array<EncodeChannelState|null>} channelBlocks Channels bound for this transaction.
+ * @property {Array<Float32Array|null>} gainScaledSpectra Bound gain-scaled input rows.
+ * @property {Array<Float32Array|null>} gainUnscaledSpectra Bound unscaled input rows.
  */
 export class CodingUnitAllocationTransaction {
   /**
    * Bind detached source, candidate, syntax, and accounting state for one coding-unit allocation.
+   *
+   * @param {CodingUnitAllocationWorkspace} [workspace] Reusable allocation storage.
    */
   constructor(workspace = new CodingUnitAllocationWorkspace()) {
     if (!(workspace instanceof CodingUnitAllocationWorkspace)) {

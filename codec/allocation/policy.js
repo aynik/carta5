@@ -129,7 +129,7 @@ export function usesSinglePostScaleFactorFill(channelMode, bitrateKbps) {
  * @param {number} coreMode Profile core-mode selector.
  * @param {number} sampleRateHz Stream sample rate.
  * @param {number} bitAllocationMode Selected allocation mode.
- * @param {number} averageBandLevel Prior finite average, or non-finite input.
+ * @param {number|null} averageBandLevel Prior average, or null without history.
  * @returns {number} Float32-rounded seed bump.
  */
 export function initialLowBandBump(

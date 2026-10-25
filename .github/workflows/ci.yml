@@ -30,3 +30,8 @@ jobs:
 
       - name: Run contributor gate
         run: npm run check
+
+  native:
+    if: github.ref_type != 'tag'
+    needs: check
+    uses: ./.github/workflows/native.yml

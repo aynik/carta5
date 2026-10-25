@@ -25,7 +25,7 @@ import {
   QMF_SYNTHESIS_MODULATION_COEFFICIENTS,
 } from '../core/tables.js'
 
-const float32Round = Math.fround
+import { float32Round } from '../utils.js'
 
 /**
  * Preserve the reference spill order of the native sixteen-band polyphase sum.
@@ -35,6 +35,7 @@ const float32Round = Math.fround
  * @param {number} inputOffset
  * @param {Float32Array} accumulator
  * @param {Float64Array} extended
+ * @nativeUnchecked The analysis entry point validates the complete input window.
  */
 function filter16Band(input, inputOffset, accumulator, extended) {
   const c = QMF_ANALYSIS_FILTER_COEFFICIENTS
@@ -173,6 +174,7 @@ function filter16Band(input, inputOffset, accumulator, extended) {
  * @param {Float32Array} polyphase
  * @param {Float64Array} extended
  * @param {Float32Array} output
+ * @nativeUnchecked The analysis entry point validates all sixteen component rows.
  */
 function modulate16Band(polyphase, extended, output) {
   const half = QMF_ANALYSIS_HALF_BUTTERFLY_SCALES
@@ -350,6 +352,7 @@ function modulate16Band(polyphase, extended, output) {
  * @param {Float32Array[]} outputBands Caller-owned chronological subband rows.
  * @param {QmfScratch} scratch Reusable component and modulation storage.
  * @returns {Float32Array[]} The completed subband rows.
+ * @nativeUnchecked Input windows and every output row are validated below.
  */
 export function analyzeQmf(input, outputBands, scratch) {
   if (
@@ -442,14 +445,65 @@ export function analyzeQmf(input, outputBands, scratch) {
 }
 
 /**
+ * Filter mirrored output phases together while preserving each spill sequence.
+ * The sixteen-band table maps both phases to the same delayed components.
+ *
+ * @param {Float32Array} delay Validated synthesis delay ring.
+ * @param {i32} delayRow Current delay-ring row.
+ * @param {Float32Array} output PCM storage independent of the delay ring.
+ * @param {i32} outputOffset First output sample in this block.
+ * @nativeUnchecked The synthesis entry point validates both buffer capacities.
+ */
+function filterSynthesis16(delay, delayRow, output, outputOffset) {
+  for (let sample = 0; sample < 8; sample++) {
+    const firstOffset = sample * QMF_SYNTHESIS_TERMS
+    const mirroredOffset = (15 - sample) * QMF_SYNTHESIS_TERMS
+    let firstSum = 0
+    let mirroredSum = 0
+    for (let term = 0; term < QMF_SYNTHESIS_TERMS; term += 2) {
+      const first = firstOffset + term
+      const second = first + 1
+      // Paired taps consume consecutive ring rows and the two phase halves.
+      // Both offsets are below twice the ring size, so one subtraction wraps.
+      const firstOffsetRow = delayRow + term
+      const secondOffsetRow = firstOffsetRow + 1
+      const firstRow =
+        firstOffsetRow < QMF_SYNTHESIS_DELAY_ROWS
+          ? firstOffsetRow
+          : firstOffsetRow - QMF_SYNTHESIS_DELAY_ROWS
+      const secondRow =
+        secondOffsetRow < QMF_SYNTHESIS_DELAY_ROWS
+          ? secondOffsetRow
+          : secondOffsetRow - QMF_SYNTHESIS_DELAY_ROWS
+      const firstValue = delay[firstRow * 16 + sample]
+      const secondValue = delay[secondRow * 16 + 8 + sample]
+      firstSum = float32Round(
+        firstValue * QMF_SYNTHESIS_FILTER_COEFFICIENTS[first] +
+          secondValue * QMF_SYNTHESIS_FILTER_COEFFICIENTS[second] +
+          firstSum
+      )
+      mirroredSum = float32Round(
+        firstValue * QMF_SYNTHESIS_FILTER_COEFFICIENTS[mirroredOffset + term] +
+          secondValue *
+            QMF_SYNTHESIS_FILTER_COEFFICIENTS[mirroredOffset + term + 1] +
+          mirroredSum
+      )
+    }
+    output[outputOffset + sample] = firstSum
+    output[outputOffset + 15 - sample] = mirroredSum
+  }
+}
+
+/**
  * Fold caller-owned QMF subband rows through one circular synthesis delay.
  *
  * @param {Float32Array[]} inputBands Chronological subband rows.
  * @param {Float32Array} delay Caller-owned component delay ring.
- * @param {number} delayRow Current delay-ring row.
+ * @param {i32} delayRow Current delay-ring row.
  * @param {Float32Array} output Caller-owned interleaved PCM output.
  * @param {QmfScratch} scratch Reusable component and modulation storage.
- * @returns {number} Next delay-ring row.
+ * @returns {i32} Next delay-ring row.
+ * @nativeUnchecked Validated geometry bounds the delay ring and component rows.
  */
 export function synthesizeQmf(inputBands, delay, delayRow, output, scratch) {
   if (
@@ -474,6 +528,7 @@ export function synthesizeQmf(inputBands, delay, delayRow, output, scratch) {
 
   const { polyphase, bands } = scratch
   const sampleCount = inputBands[0].length
+  const mirroredOutputs = QMF_BANDS === 16 && output.buffer !== delay.buffer
 
   for (let sample = 0; sample < sampleCount; sample++) {
     for (let band = 0; band < QMF_BANDS; band++) {
@@ -494,6 +549,11 @@ export function synthesizeQmf(inputBands, delay, delayRow, output, scratch) {
     }
 
     const outputOffset = sample * QMF_BANDS
+    if (mirroredOutputs) {
+      filterSynthesis16(delay, delayRow, output, outputOffset)
+      delayRow = delayRow === 0 ? QMF_SYNTHESIS_DELAY_ROWS - 1 : delayRow - 1
+      continue
+    }
     for (let outputSample = 0; outputSample < QMF_BANDS; outputSample++) {
       const termOffset = outputSample * QMF_SYNTHESIS_TERMS
       let sum = 0

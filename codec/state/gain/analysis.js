@@ -42,6 +42,20 @@ function generationSlot(generation, index) {
 
 /**
  * One relinkable gain-point node shared by detector ordering and overflow reduction.
+ *
+ * @property {i32} index Gain-window block index.
+ * @property {i32} delta Integral gain-level change.
+ * @property {i32} nextActiveOffset Relative link to the next active point.
+ * @property {i32} nextByIndexOffset Relative link to the next indexed point.
+ * @property {i32} previousByIndexOffset Relative link to the preceding point.
+ * @property {i32} disabled Whether reduction disabled this point.
+ * @property {i32} step Integral weighted gain change.
+ * @property {i32} hasLink Whether the point has a paired boundary.
+ * @property {i32} linkGroupDelta Relative generation of the paired boundary.
+ * @property {i32} linkIndex Ordinal of the paired boundary.
+ * @property {i32} spanCost Accumulated bounded merge cost.
+ * @property {i32} pointCount Number of detected points represented here.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 class GainPointWorkEntry {
   /**
@@ -72,6 +86,7 @@ class GainPointWorkEntry {
 
 /**
  * Relative-offset arena preserving detector point identity across searches.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainPointWorkArena {
   /**
@@ -252,6 +267,17 @@ export class GainPointWorkArena {
 
 /**
  * Detached interval, boundary cost, and predecessor state for one gain-point search candidate.
+ *
+ * @property {number} value Interpolated gain-envelope value.
+ * @property {i32} stride Integral span weight for gain-step costs.
+ * @property {i32} start First block of the candidate interval.
+ * @property {i32} end Last block of the candidate interval.
+ * @property {i32} windowStart First block of the containing window.
+ * @property {i32} windowEnd Last block of the containing window.
+ * @property {i32} expansions Permitted boundary expansion flags.
+ * @property {i32} indexPosition Candidate position, or the no-entry sentinel.
+ * @property {i32} pointCount Number of represented gain points.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 class PointSearchState {
   /**
@@ -292,6 +318,18 @@ class PointSearchState {
 }
 
 /**
+ * @typedef {object} GainBandState
+ * @property {Int32Array} pointCounts Points in each history generation.
+ * @property {Int32Array} disabledCounts Disabled points by generation.
+ * @property {Int32Array} duplicateCounts Duplicate indices by generation.
+ * @property {number} previousAbsoluteLevel Retained absolute detector level.
+ * @property {i32} previousPeakIndex Previous window's peak location.
+ * @property {i32} currentPeakIndex Current window's peak location.
+ * @property {number} previousPeak Previous window's peak amplitude.
+ * @property {number} currentPeak Current window's peak amplitude.
+ */
+
+/**
  * Allocate compact gain-band counters and previous/current peak metadata.
  *
  * @returns {GainBandState} Fresh counters and peak history for one detector band.
@@ -310,7 +348,80 @@ function createBandState() {
 }
 
 /**
+ * @typedef {object} GainPointSpan
+ * @property {i32} index Candidate block index.
+ * @property {i32} start First affected block.
+ * @property {i32} end Last affected block.
+ * @property {i32} startGroup History generation of the first boundary.
+ * @property {i32} endGroup History generation of the last boundary.
+ * @property {i32} skip Blocks consumed by this span.
+ */
+
+/**
+ * @typedef {object} GainPointBudget
+ * @property {i32} requestedBitCount Unclipped integral gain change.
+ * @property {i32} bitCount Gain change after boundary saturation.
+ * @property {boolean} saturationStart Whether the first boundary saturated.
+ * @property {boolean} saturationEnd Whether the last boundary saturated.
+ * @property {number} value Reference envelope magnitude.
+ * @property {number} interpolationScale Envelope interpolation factor.
+ */
+
+/**
+ * @typedef {object} GainDetectionRequest
+ * @property {number} correlationStartBand First stereo-correlation band.
+ * @property {number} bandCount Configured gain-band count, validated by the detector.
+ * @property {number} spanShift Fractional gain-placement adjustment.
+ * @property {i32} coreMode Resolved profile core-mode selector.
+ * @property {boolean} lowMode Whether low-rate adjustment is active.
+ * @property {number} channelCount Configured coding-unit channel count.
+ */
+
+/**
+ * @typedef {object} GainMergeFrontier
+ * @property {Uint32Array} cost Unsigned candidate costs.
+ * @property {Int32Array} first First gain-point indices.
+ * @property {Int32Array} second Second gain-point indices.
+ * @property {i32} length Populated candidate count, at most four.
+ */
+
+/**
+ * @typedef {object} GainProbeSet
+ * @property {Int32Array} entry Active gain-point indices.
+ * @property {Uint8Array} hasCandidate Whether a probe has a legal merge.
+ * @property {Uint32Array} cost Unsigned candidate costs.
+ * @property {Int32Array} first First candidate gain-point indices.
+ * @property {Int32Array} second Second candidate gain-point indices.
+ * @property {i32} length Populated probe count, bounded by arena capacity.
+ */
+
+/**
+ * @typedef {object} GainReductionCandidate
+ * @property {number} cost Unsigned merge cost, including the full 32-bit range.
+ * @property {i32} first First gain-point index.
+ * @property {i32} second Second gain-point index.
+ */
+
+/**
+ * @typedef {object} GainReductionAction
+ * @property {boolean} merge Whether to merge rather than remove a point.
+ * @property {i32} entry Point to remove when no merge is selected.
+ * @property {number} cost Unsigned merge cost.
+ * @property {i32} first First point of the selected merge.
+ * @property {i32} second Second point of the selected merge.
+ */
+
+/**
  * Stage-private owner for one coding-unit gain detector transaction.
+ *
+ * @property {GainBandState} bandState Counters and peak history for the active band.
+ * @property {GainPointSpan} span Reusable candidate interval.
+ * @property {GainPointBudget} budget Reusable candidate bit budget.
+ * @property {GainDetectionRequest} request Configured detector geometry.
+ * @property {GainMergeFrontier} frontier Fixed-capacity merge candidates.
+ * @property {GainProbeSet} probes Fixed-capacity active-point probes.
+ * @property {GainReductionAction} action Reusable reduction decision.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainDetectionScratch {
   /**
@@ -385,6 +496,7 @@ export class GainDetectionScratch {
 
 /**
  * Fixed storage shared by low-rate gain-record merge policy.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainRecordPolicyScratch {
   /**
@@ -453,6 +565,23 @@ export class GainOverflowScratch {
     this.candidateCount = 0
   }
 }
+
+/**
+ * Common gain-record fields of an encoder channel or detached candidate.
+ *
+ * @typedef {object} GainCandidateBlock
+ * @property {i32} channelOrdinal Coding-unit channel ordinal.
+ * @property {GainRecord[]} currentGainRecords Current-frame gain records.
+ * @property {GainRecord[]} previousGainRecords Previous-frame gain records.
+ */
+
+/**
+ * @typedef {object} GainOverflowIncumbent
+ * @property {GainRecord} record Detached candidate record.
+ * @property {number} peak Gain-scaled peak measurement.
+ * @property {SignalComparison} effect Measured signal change.
+ * @property {number|null} syntaxBits Cached syntax cost, or null before counting.
+ */
 
 /**
  * Allocate detached previous/current gain records for one candidate channel block.

@@ -508,9 +508,10 @@ function tonePhaseBucket(phase) {
  * Compute a float32-rounded dot product for deterministic sinusoid fitting.
  *
  * @param {Float32Array} source
- * @param {number} start
- * @param {number} count
+ * @param {i32} start
+ * @param {i32} count
  * @returns {number}
+ * @nativeUnchecked Candidate extraction validates the window and its four-sample alignment.
  */
 function dotProductF32(source, start, count) {
   let lane0 = 0
@@ -536,16 +537,19 @@ function dotProductF32(source, start, count) {
 /**
  * Evaluate the residual gradient with respect to sinusoid magnitude.
  *
- * @param {ArrayLike<number>} samples
- * @param {number} start
- * @param {number} end
+ * @param {Float32Array} samples
+ * @param {i32} start
+ * @param {i32} end
  * @param {number} omega
  * @returns {number}
+ * @nativeUnchecked Candidate extraction validates the source window before frequency fitting.
  */
 function toneMagnitudeGradient(samples, start, end, omega) {
   const sineStep = Math.sin(omega)
   const cosineStep = Math.cos(omega)
+  /** @type {f64} */
   let sine
+  /** @type {f64} */
   let cosine
   if (start === 0) {
     sine = 0
@@ -596,7 +600,7 @@ function emittedToneStep(omega) {
  * Refine a coarse tone frequency by minimizing residual energy locally.
  *
  * @param {number} initialAngularFrequency
- * @param {ArrayLike<number>} samples
+ * @param {Float32Array} samples
  * @param {number} start
  * @param {number} end
  * @param {number} iterations
@@ -658,7 +662,7 @@ function refineToneFrequency(
 /**
  * Solve the sine/cosine least-squares fit for one candidate frequency.
  *
- * @param {ArrayLike<number>} samples
+ * @param {Float32Array} samples
  * @param {number} start
  * @param {number} end
  * @param {number} omega
@@ -729,7 +733,7 @@ function fitToneLeastSquares(samples, start, end, omega, destination) {
 /**
  * Fit frequency, magnitude, and phase for the strongest sinusoid candidate.
  *
- * @param {ArrayLike<number>} samples
+ * @param {Float32Array} samples
  * @param {number} peakBin
  * @param {number} start
  * @param {number} end
@@ -768,13 +772,13 @@ function estimateToneSinusoid(
 /**
  * Subtract a fitted tone candidate and return the resulting residual power.
  *
- * @param {ArrayLike<number>} residual
+ * @param {Float32Array} residual
  * @param {number} scaleFactorIndex
  * @param {number} phaseBase
  * @param {number} frequency
  * @param {number} start
  * @param {number} end
- * @param {ArrayLike<number>} sourceGroupPeaks
+ * @param {Float32Array} sourceGroupPeaks
  * @param {number} protectedGroupCount
  * @returns {number}
  */
@@ -856,6 +860,7 @@ function lowerToneCandidateResidual(
  * @param {ToneDetectionScratch} scratch Reusable candidate work.
  * @param {ToneEntryPlan} [destination] Entry plan to overwrite.
  * @returns {ToneEntryPlan} The destination plan.
+ * @nativeUnchecked The entry guard validates the source window; scratch owns full candidate rows.
  */
 export function extractToneCandidates(
   source,

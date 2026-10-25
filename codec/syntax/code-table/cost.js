@@ -45,7 +45,7 @@ export function codeTableBandType(valueMask, oneBitMask, band) {
 /**
  * Return the encoded width of one symbol, treating an unavailable symbol as zero.
  *
- * @param {ArrayLike<number>} codebook
+ * @param {Uint8Array} codebook
  * @param {number} symbol
  * @returns {number}
  */
@@ -95,14 +95,14 @@ function usedValueCount(positiveValueMask, maxCount) {
 /**
  * Measure every legal code-table payload mode for one band and store the per-mode costs.
  *
- * @param {string} type
+ * @param {i32} type Coded payload category.
  * @param {number} band
  * @param {number} value
  * @param {number} reference
  * @param {number} previous
  * @param {boolean} pairAvailable
  * @param {number} fixIndex
- * @param {ArrayLike<number>} destination
+ * @param {Int32Array} destination
  */
 function payloadBitsForBand(
   type,
@@ -137,6 +137,7 @@ function payloadBitsForBand(
 
 /**
  * Fixed exact payload-cost ledger for one channel.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class CodeTableCodingCostState {
   /**
@@ -229,6 +230,9 @@ export class CodeTableCodingCostState {
     this.usedCount = entropyModes
       ? usedValueCount(this.positiveValueMask, maxCount)
       : maxCount
+    const bandBits = this.bandBits
+    const fullBits = this.fullBits
+    const prefixBits = this.prefixBits
     let previous = 0
     for (let band = 0; band < maxCount; band++) {
       const type = codeTableBandType(this.valueMask, this.oneBitMask, band)
@@ -241,12 +245,12 @@ export class CodeTableCodingCostState {
         previous,
         channelOrdinal !== 0,
         fixIndex,
-        this.bandBits
+        bandBits
       )
       for (let mode = 0; mode < 4; mode++) {
-        this.fullBits[mode] += this.bandBits[mode]
+        fullBits[mode] += bandBits[mode]
         if (band < this.usedCount) {
-          this.prefixBits[mode] += this.bandBits[mode]
+          prefixBits[mode] += bandBits[mode]
         }
       }
       if (type === CODE_TABLE_TYPE_VALUE) previous = value
@@ -307,6 +311,8 @@ export class CodeTableCodingCostState {
    */
   rebuildPrefix(values, referenceValues, changedBand, newValue, newUsedCount) {
     this.prefixBits.fill(0)
+    const bandBits = this.bandBits
+    const prefixBits = this.prefixBits
     let previous = 0
     for (let band = 0; band < newUsedCount; band++) {
       const type = codeTableBandType(this.valueMask, this.oneBitMask, band)
@@ -319,10 +325,10 @@ export class CodeTableCodingCostState {
         previous,
         this.channelOrdinal !== 0,
         this.fixIndex,
-        this.bandBits
+        bandBits
       )
       for (let mode = 0; mode < 4; mode++) {
-        this.prefixBits[mode] += this.bandBits[mode]
+        prefixBits[mode] += bandBits[mode]
       }
       if (type === CODE_TABLE_TYPE_VALUE) previous = value
     }

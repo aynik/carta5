@@ -11,6 +11,7 @@ import { MAX_FRAME_BIT_POSITION } from '../core/constants.js'
  * Reject bit widths that cannot be represented safely by the bitstream primitive.
  *
  * @param {number} bitCount
+ * @returns {i32} Validated field width.
  */
 function assertBitCount(bitCount) {
   if (!Number.isInteger(bitCount) || bitCount < 0 || bitCount > 32) {
@@ -18,10 +19,15 @@ function assertBitCount(bitCount) {
       `Bit count must be an integer in 0..32, got ${bitCount}`
     )
   }
+  return bitCount
 }
 
 /**
  * Reusable MSB-first writer used by ATRAC syntax objects.
+ *
+ * @property {i32} bitPosition Frame-local bit cursor.
+ * @property {DataView} view Reusable big-endian word access to the destination bytes.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class BitWriter {
   /**
@@ -33,6 +39,11 @@ export class BitWriter {
   constructor(buffer, bitPosition = 0) {
     this.buffer = buffer
     this.bitPosition = bitPosition
+    this.view = new DataView(
+      buffer.buffer,
+      buffer.byteOffset,
+      buffer.byteLength
+    )
   }
 
   /**
@@ -43,19 +54,39 @@ export class BitWriter {
    * @returns {void}
    */
   write(value, bitCount) {
-    if (
-      this.bitPosition < 0 ||
-      this.bitPosition + bitCount > this.buffer.length * 8
-    ) {
-      throw new RangeError('Bit write exceeds destination buffer')
-    }
-    packBits(this.buffer, this.bitPosition, value, bitCount)
-    this.bitPosition += bitCount
+    /** @type {i32} */
+    const bitPosition = this.bitPosition
+    writeBitsAt(this, this.buffer, bitPosition, value, bitCount)
   }
 }
 
 /**
+ * Write one field using a caller-cached buffer and cursor, then publish its end.
+ * Keeping the cursor current also preserves partial progress when a later field
+ * throws. Syntax loops can reuse the returned cursor without rereading state.
+ *
+ * @param {BitWriter} writer Destination owner.
+ * @param {Uint8Array} buffer Destination bytes.
+ * @param {i32} bitPosition Initial frame-local cursor.
+ * @param {number} value Unsigned low-bit field.
+ * @param {number} bitCount Field width from zero through 32, validated before packing.
+ * @returns {i32} Cursor following the successfully written field.
+ */
+export function writeBitsAt(writer, buffer, bitPosition, value, bitCount) {
+  if (bitPosition < 0 || bitPosition + bitCount > buffer.length * 8) {
+    throw new RangeError('Bit write exceeds destination buffer')
+  }
+  packField(buffer, bitPosition, value, bitCount, writer.view)
+  const next = bitPosition + bitCount
+  writer.bitPosition = next
+  return next
+}
+
+/**
  * Destination-free syntax sink used for exact bit accounting.
+ *
+ * @property {i32} bitPosition Frame-local bit count.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class BitCounter {
   /**
@@ -83,6 +114,9 @@ export class BitCounter {
 /**
  * ATRAC3plus reader with the reference decoder's 16-bit frame-position limit.
  * ATRAC3plus fields use a zero-padded 24-bit peek window and are at most 17 bits wide.
+ *
+ * @property {i32} bitPosition Cursor bounded by the format's 16-bit frame limit.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class BitReader {
   /**
@@ -100,7 +134,7 @@ export class BitReader {
    * Read low-order bits at the current cursor without advancing the bounded bitstream reader.
    *
    * @param {number} bitCount
-   * @returns {number}
+   * @returns {i32}
    */
   peek(bitCount) {
     return peekBits(this.buffer, this.bitPosition, bitCount)
@@ -110,11 +144,13 @@ export class BitReader {
    * Consume an unsigned value of the requested width from the bounded bitstream reader.
    *
    * @param {number} bitCount
-   * @returns {number}
+   * @returns {i32}
    */
   read(bitCount) {
-    const value = peekBits(this.buffer, this.bitPosition, bitCount)
-    this.bitPosition += bitCount
+    /** @type {i32} */
+    const bitPosition = this.bitPosition
+    const value = peekBits(this.buffer, bitPosition, bitCount)
+    this.bitPosition = bitPosition + bitCount
     return value
   }
 
@@ -122,7 +158,7 @@ export class BitReader {
    * Consume a fixed-width two's-complement value from the bounded bitstream reader.
    *
    * @param {number} bitCount
-   * @returns {number}
+   * @returns {i32}
    */
   readSigned(bitCount) {
     const value = this.read(bitCount)
@@ -142,23 +178,62 @@ export class BitReader {
  * @returns {void}
  */
 export function packBits(buffer, bitPosition, value, bitCount) {
-  assertBitCount(bitCount)
-  if (bitCount === 0) return
+  packField(buffer, bitPosition, value, bitCount)
+}
 
+/**
+ * Pack a field and report its written width to the cursor-owning writer.
+ *
+ * @param {Uint8Array} buffer Destination bytes.
+ * @param {i32} bitPosition Initial frame-local bit position.
+ * @param {number} value Unsigned low-bit field.
+ * @param {number} bitCount Requested width.
+ * @param {DataView|null} [wordView=null] Reusable word view for the standard writer.
+ * @returns {i32} Number of bits written.
+ * @nativeUnchecked Native callers use writer-owned bytes and a validated nonnegative frame cursor.
+ */
+function packField(buffer, bitPosition, value, bitCount, wordView = null) {
+  const width = assertBitCount(bitCount)
+  if (width === 0) return 0
+
+  /** @type {i32} Byte index within the validated frame buffer. */
   let byteIndex = Math.floor(bitPosition / 8)
-  let bitOffset = bitPosition % 8
+  /** @type {i32} Bit offset within the current byte. */
+  let bitOffset =
+    bitPosition >= 0 ? bitPosition - byteIndex * 8 : bitPosition % 8
 
-  const unsignedValue = Number(value) >>> 0
+  const fieldValue = Number(value) | 0
 
+  if (
+    wordView !== null &&
+    Number.isInteger(bitPosition) &&
+    bitOffset + width <= 32 &&
+    byteIndex + 4 <= buffer.length
+  ) {
+    /** @type {DataView} The standard writer owns this view. */
+    const view = wordView
+    const shift = 32 - width - bitOffset
+    /** @type {i32} */
+    const fieldMask = width === 32 ? -1 : (1 << width) - 1
+    const mask = fieldMask << shift
+    /** @type {i32} Signed word preserves the same 32-bit field pattern. */
+    const word = view.getInt32(byteIndex)
+    view.setInt32(byteIndex, (word & ~mask) | ((fieldValue << shift) & mask))
+    return width
+  }
+
+  /** @type {i32} */
   let bitsWritten = 0
-  while (bitsWritten < bitCount && byteIndex < buffer.length) {
+  while (bitsWritten < width && byteIndex < buffer.length) {
     const bitsAvailable = 8 - bitOffset
-    const bitsToWrite = Math.min(bitCount - bitsWritten, bitsAvailable)
+    /** @type {i32} The remaining field and byte both have integral widths. */
+    const bitsToWrite = Math.min(width - bitsWritten, bitsAvailable)
 
-    const shift = bitCount - bitsWritten - bitsToWrite
-    const valueBits = (unsignedValue >>> shift) & (2 ** bitsToWrite - 1)
+    const shift = width - bitsWritten - bitsToWrite
+    const fieldMask = (1 << bitsToWrite) - 1
+    const valueBits = (fieldValue >>> shift) & fieldMask
 
-    const mask = (2 ** bitsToWrite - 1) << (bitsAvailable - bitsToWrite)
+    const mask = fieldMask << (bitsAvailable - bitsToWrite)
     buffer[byteIndex] =
       (buffer[byteIndex] & ~mask) | (valueBits << (bitsAvailable - bitsToWrite))
 
@@ -166,6 +241,7 @@ export function packBits(buffer, bitPosition, value, bitCount) {
     byteIndex++
     bitOffset = 0
   }
+  return bitsWritten
 }
 
 /**
@@ -206,7 +282,7 @@ export function unpackBits(buffer, bitPosition, bitCount) {
  * @param {Uint8Array} buffer Source frame bytes.
  * @param {number} bitPosition Absolute source bit position.
  * @param {number} bitCount Field width from zero through 24.
- * @returns {number} Unsigned decoded field, or zero beyond the ATRAC3plus limit.
+ * @returns {i32} Unsigned decoded field, or zero beyond the ATRAC3plus limit.
  */
 export function peekBits(buffer, bitPosition, bitCount) {
   if (!Number.isInteger(bitCount) || bitCount < 0 || bitCount > 24) {

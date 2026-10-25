@@ -1,0 +1,90 @@
+name: Native binaries
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: linux-x64
+            sha256: 147d50f9ac298c264c8404cedeb060619de655c6b6c37227714e9ef86e9b7d30
+          - runner: ubuntu-24.04-arm
+            target: linux-arm64
+            sha256: 61cb8fac10ed0f2fc87e216091f13f08183db9f110c73a7adc8e7b83787011fd
+          - runner: macos-15
+            target: darwin-arm64
+            sha256: 2009205e80f1318f3ed610bdf591ac6054c0314a72ea546115adf2e8b168b5e1
+          - runner: macos-15-intel
+            target: darwin-x64
+            sha256: ff0051194a6cfadd8c5c3f36e571ea72630d66d14fa40f1b5fc2af67d8884d0b
+    env:
+      CC: clang
+      TARGET: ${{ matrix.target }}
+      COMPILER_SHA256: ${{ matrix.sha256 }}
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '20.16.0'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install pinned Porffor compiler
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/porffor" "$RUNNER_TEMP/native" "$RUNNER_TEMP/assets"
+          curl --fail --location --retry 3 \
+            "https://github.com/CanadaHonk/porffor/releases/download/alpha-19/porffor-$TARGET.tar.gz" \
+            --output "$RUNNER_TEMP/porffor.tar.gz"
+          echo "$COMPILER_SHA256  $RUNNER_TEMP/porffor.tar.gz" | shasum -a 256 --check
+          tar -xzf "$RUNNER_TEMP/porffor.tar.gz" -C "$RUNNER_TEMP/porffor"
+          echo "PORFFOR=$RUNNER_TEMP/porffor/porf" >> "$GITHUB_ENV"
+
+      - name: Compile the existing CLI
+        shell: bash
+        env:
+          NATIVE_BUILD: |
+            {
+              "name": "carta5",
+              "entry": "bin/cli.js",
+              "argv": ["carta5", "cli.js"],
+              "sources": ["codec", "bin"],
+              "constants": "codec/core/constants.js"
+            }
+        run: |
+          if [[ "$RUNNER_OS" == macOS ]]; then
+            export MACOSX_DEPLOYMENT_TARGET=11.0
+          fi
+          node build/native.js "$RUNNER_TEMP/native/carta5"
+
+      - name: Archive native binary
+        shell: bash
+        run: |
+          tar -czf "$RUNNER_TEMP/assets/carta5-$TARGET.tar.gz" -C "$RUNNER_TEMP/native" carta5
+          cd "$RUNNER_TEMP/assets"
+          shasum -a 256 "carta5-$TARGET.tar.gz" > "carta5-$TARGET.tar.gz.sha256"
+
+      - name: Upload native binary
+        uses: actions/upload-artifact@v7
+        with:
+          name: carta5-native-${{ matrix.target }}
+          path: ${{ runner.temp }}/assets/*
+          if-no-files-found: error
+          retention-days: 7

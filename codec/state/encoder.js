@@ -45,10 +45,11 @@ import {
 } from './word-length.js'
 
 /**
- * Create bounded typed-array views over a shared backing row without copying its samples.
+ * Create frozen array prefixes while retaining their element identities.
  *
- * @param {ArrayLike<number>} values
- * @returns {Float32Array[]}
+ * @template T
+ * @param {T[]} values Source elements.
+ * @returns {T[][]} Prefixes indexed by their active element count.
  */
 function createPrefixViews(values) {
   return Array.from({ length: values.length + 1 }, (_, count) =>
@@ -97,6 +98,8 @@ export class AnalysisToStreamDelay {
 
 /**
  * Per-channel nine-slot QMF analysis ring and persistent look-back tail.
+ *
+ * @property {Float32Array[][]} bandSlots Subband and time-slot views into the analysis ring.
  */
 export class EncodeAnalysisState {
   /**
@@ -235,6 +238,11 @@ export class GainPointArena {
 
 /**
  * Persistent gain detector history for one QMF analysis band.
+ *
+ * @property {i32} previousPeakIndex Previous gain-window peak position.
+ * @property {i32} currentPeakIndex Current gain-window peak position.
+ * @property {i32} duplicateCount Duplicate gain-point count.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainDetectionBand {
   /**

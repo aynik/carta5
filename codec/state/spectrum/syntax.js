@@ -2,6 +2,7 @@
 
 /**
  * Reusable fields for one four-symbol spectral zero-run chunk.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class SpectrumSymbolScratch {
   /**

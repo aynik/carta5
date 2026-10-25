@@ -14,6 +14,8 @@ import { float32Round } from '../../utils.js'
 
 import { HALF_HANN_WINDOW } from '../../core/tables.js'
 
+/** @typedef {import('../../state/analysis.js').GainPeakMeasurement} GainPeakMeasurement */
+
 /**
  * Whether a four-sample detector block contains a nonzero value or NaN.
  *
@@ -34,9 +36,10 @@ export function gainBlock4IsActive(source, offset = 0) {
  *
  * @param {Float32Array} source Detector samples.
  * @param {Float32Array} blockPeaks Caller-owned peak output.
- * @param {GainMeasurementScratch} result Caller-owned aggregate result.
+ * @param {GainPeakMeasurement} result Caller-owned aggregate result.
  * @param {number} [sourceOffset=0] First detector sample.
- * @returns {GainMeasurementScratch} The supplied aggregate result.
+ * @returns {GainPeakMeasurement} The supplied aggregate result.
+ * @nativeUnchecked The entry guard validates the detector prefix and peak output capacity.
  */
 export function measureGainBlockPeaks(
   source,
@@ -125,6 +128,7 @@ function gainFlatnessScale(firstTerm, secondTerm) {
  * @param {GainMeasurementScratch} scratch Reusable DFT work.
  * @param {number} [sourceOffset=0] First window sample.
  * @returns {number} Spectral-flatness scale.
+ * @nativeUnchecked The entry guard validates the window; scratch owns a complete 16-float DFT row.
  */
 export function computeGainFlatnessScale(
   windowSamples,
@@ -205,11 +209,12 @@ export function computeGainFlatnessScale(
 /**
  * Insert one index into the descending measurement order without allocating or resorting the full row.
  *
- * @param {ArrayLike<number>} values
- * @param {ArrayLike<number>} indices
- * @param {number} length
- * @param {number} index
- * @returns {number}
+ * @param {Float32Array} values
+ * @param {Int32Array} indices
+ * @param {i32} length
+ * @param {i32} index
+ * @returns {i32}
+ * @nativeUnchecked The caller validates the source and ordering capacities.
  */
 function insertSortedIndex(values, indices, length, index) {
   const value = values[index]
@@ -231,14 +236,20 @@ function insertSortedIndex(values, indices, length, index) {
 }
 
 /**
+ * @typedef {object} GainIndexOrder
+ * @property {Int32Array} indices Ranked indices in caller-owned storage.
+ * @property {i32} length Active prefix, including the unconditionally first index.
+ */
+
+/**
  * Build the detector's head-prefixed descending index traversal.
  *
  * @param {Float32Array} values Values used for descending ordering.
  * @param {number} headIndex Unconditionally prefixed index.
  * @param {number} startInclusive First sortable index.
  * @param {number} endExclusive End-exclusive sortable index.
- * @param {ArrayLike<number>} order Caller-owned index vector and length.
- * @returns {ArrayLike<number>} The supplied ordering storage.
+ * @param {GainIndexOrder} order Caller-owned index vector and length.
+ * @returns {GainIndexOrder} The supplied ordering storage.
  */
 export function buildSortedIndexOrder(
   values,

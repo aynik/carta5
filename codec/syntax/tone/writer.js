@@ -51,8 +51,8 @@ function frequency(record, item) {
 /**
  * Compute the header width required to signal tone presence for both channels.
  *
- * @param {boolean} enabled
- * @param {boolean} mixed
+ * @param {i32} enabled
+ * @param {i32} mixed
  * @param {number} count
  * @returns {number}
  */

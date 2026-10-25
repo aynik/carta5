@@ -6,7 +6,8 @@ import { float32Round, reverseLowBits } from '../utils.js'
 /**
  * Apply the two swaps in the fixed eight-pair bit-reversal permutation.
  *
- * @param {ArrayLike<number>} spectrum
+ * @param {Float32Array} spectrum
+ * @nativeUnchecked The caller validates the sixteen-sample input.
  */
 function bitReverseComplexPairs16(spectrum) {
   // Complex pair 1 <-> 4.
@@ -29,7 +30,8 @@ function bitReverseComplexPairs16(spectrum) {
 /**
  * Permute 128 interleaved complex pairs into radix-two bit-reversed order.
  *
- * @param {ArrayLike<number>} spectrum
+ * @param {Float32Array} spectrum
+ * @nativeUnchecked The caller validates the 256-sample input.
  */
 function bitReverseComplexPairs256(spectrum) {
   for (let sourcePair = 0; sourcePair < 128; sourcePair++) {
@@ -51,6 +53,7 @@ function bitReverseComplexPairs256(spectrum) {
  *
  * @param {Float32Array} spectrum Mutable 16-float real spectrum.
  * @returns {Float32Array} The transformed spectrum.
+ * @nativeUnchecked The entry guard validates every fixed-size transform access.
  */
 export function forwardRealDft16(spectrum) {
   if (!(spectrum instanceof Float32Array) || spectrum.length < 16) {
@@ -163,6 +166,7 @@ export function forwardRealDft16(spectrum) {
  *
  * @param {Float32Array} spectrum Mutable 256-float real spectrum.
  * @returns {Float32Array} The transformed spectrum.
+ * @nativeUnchecked The entry guard validates the transform and fixed twiddle geometry.
  */
 export function forwardRealDft256(spectrum) {
   if (!(spectrum instanceof Float32Array) || spectrum.length < 256) {
@@ -535,6 +539,7 @@ export function forwardRealDft256(spectrum) {
  * @param {Float32Array} destination Caller-owned power spectrum.
  * @param {Float32Array} scratch Reusable DFT work.
  * @returns {Float32Array} The destination spectrum.
+ * @nativeUnchecked The entry guard validates the source, work and output capacities.
  */
 export function powerSpectrum256(source, sampleCount, destination, scratch) {
   if (

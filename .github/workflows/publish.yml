@@ -70,3 +70,23 @@ jobs:
             - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5.min.js
             - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5-worker.min.js
             - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5-worker-interface.min.js
+
+  native:
+    uses: ./.github/workflows/native.yml
+
+  release-native:
+    needs: [publish, native]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download native binaries outside the npm package
+        uses: actions/download-artifact@v8
+        with:
+          pattern: carta5-native-*
+          path: ${{ runner.temp }}/native-release
+          merge-multiple: true
+
+      - name: Attach native binaries to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ runner.temp }}/native-release/*
+          fail_on_unmatched_files: true

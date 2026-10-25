@@ -64,10 +64,10 @@ function preflightRecord(record) {
  * @param {Float32Array} output
  * @param {number} offset
  * @param {number} amplitudeMode
- * @param {boolean} polarityFlip
+ * @param {i32} polarityFlip
  * @param {number} polarityMode
  * @param {number} accumulation
- * @param {ArrayLike<number>} window
+ * @param {Float32Array} window
  */
 function synthesizeRecord(
   record,

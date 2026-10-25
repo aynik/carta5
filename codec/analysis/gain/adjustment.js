@@ -42,6 +42,9 @@ import {
   STEREO_MERGE_MAX_CHANGE_ENERGY_PER_BIT,
 } from '../../core/constants.js'
 
+/** @typedef {import('../../state/gain/analysis.js').GainCandidateBlock} GainCandidateBlock */
+/** @typedef {import('../../state/gain/analysis.js').GainOverflowIncumbent} GainOverflowIncumbent */
+
 /**
  * Ordered maximum magnitude across the fixed gain window.
  *
@@ -211,10 +214,10 @@ function copySignalComparison(source, destination) {
 /**
  * Resolve the current and predictor gain records used to price one coding candidate.
  *
- * @param {(EncodeChannelState|GainCandidateBlock)[]} blocks
+ * @param {GainCandidateBlock[]} blocks
  * @param {number} channelCount
  * @param {LowRateGainScratch} scratch
- * @returns {(EncodeChannelState|GainCandidateBlock)[]}
+ * @returns {GainCandidateBlock[]}
  */
 function gainCodingSources(blocks, channelCount, scratch) {
   const sources =
@@ -228,7 +231,7 @@ function gainCodingSources(blocks, channelCount, scratch) {
 /**
  * Copy candidate block into reusable destination storage without retaining source-owned views.
  *
- * @param {EncodeChannelState|GainCandidateBlock} source
+ * @param {GainCandidateBlock} source
  * @param {GainCandidateBlock} destination
  * @returns {GainCandidateBlock}
  */
@@ -246,7 +249,7 @@ function copyCandidateBlock(source, destination) {
 /**
  * Copy candidate blocks into reusable destination storage without retaining source-owned views.
  *
- * @param {(EncodeChannelState|GainCandidateBlock)[]} source
+ * @param {GainCandidateBlock[]} source
  * @param {GainCandidateBlock[]} destination
  * @param {number} channelCount
  * @returns {GainCandidateBlock[]}
@@ -399,7 +402,7 @@ function completeAlternativeEffect(
 /**
  * Select and retain the incumbent gain price without keeping another detached record plan.
  *
- * @param {(EncodeChannelState|GainCandidateBlock)[]} sources Gain-record sources by channel.
+ * @param {GainCandidateBlock[]} sources Gain-record sources by channel.
  * @param {number} recordCount Active gain-record count.
  * @param {number} coreMode Profile core-mode selector.
  * @param {LowRateGainScratch} scratch Reusable gain adjustment storage.

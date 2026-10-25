@@ -53,9 +53,9 @@ function validateRequest(blocks, shared, reader, scratch) {
 /**
  * Ensure a decoded field vector stays within its syntax-defined inclusive range.
  *
- * @param {ArrayLike<number>} values
- * @param {number} maximum
- * @param {number} count
+ * @param {Int32Array} values
+ * @param {i32} maximum
+ * @param {i32} count
  * @param {string} field
  */
 function validateValues(values, maximum, count, field) {
@@ -72,8 +72,8 @@ function validateValues(values, maximum, count, field) {
  * Derive the coded band prefix implied by the decoded word-length and code-table fields.
  *
  * @param {DecodeChannelState[]} blocks
- * @param {number} limit
- * @returns {number}
+ * @param {i32} limit
+ * @returns {i32}
  */
 function activeBandCount(blocks, limit) {
   for (let band = limit - 1; band >= 0; band--) {
@@ -87,10 +87,10 @@ function activeBandCount(blocks, limit) {
 /**
  * Decode the compact disabled, uniform, or per-band presence header into a caller-owned flag vector.
  *
- * @param {ArrayLike<number>} flags
- * @param {number} count
+ * @param {Uint8Array} flags
+ * @param {i32} count
  * @param {BitReader} reader
- * @returns {number}
+ * @returns {i32}
  */
 function unpackPresence(flags, count, reader) {
   flags.fill(0)

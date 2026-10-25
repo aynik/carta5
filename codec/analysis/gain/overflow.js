@@ -9,6 +9,8 @@ import {
   OVERFLOW_RELATIVE_FACTOR,
 } from '../../core/constants.js'
 
+/** @typedef {import('../../state/gain/analysis.js').GainOverflowIncumbent} GainOverflowIncumbent */
+
 /**
  * Reference absolute-or-relative peak limit. NaN never overflows.
  *

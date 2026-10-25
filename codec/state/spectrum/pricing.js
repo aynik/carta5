@@ -10,7 +10,6 @@ import {
   SPECTRUM_PRICING_EMPTY_KEY,
   SPECTRUM_PRICING_MODE_COUNT,
   SPECTRUM_PRICING_MAX_BAND_LENGTH,
-  SPECTRUM_PRICING_SYMBOL_COUNT,
 } from '../../core/constants.js'
 
 /**
@@ -37,6 +36,13 @@ export function spectrumQuantizedKey(mode, offset) {
 
 /**
  * Reusable value image for one candidate-pricing and code-table selection request.
+ *
+ * @property {i32} band Quantization-unit index.
+ * @property {i32} selectedIndex Selected code-table slot.
+ * @property {number} spectrumDelta Change in spectral payload cost.
+ * @property {number} codeTableBits Code-table section cost, including rejected infinities.
+ * @property {number} delta Combined change in coded cost.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class PricedSpectrumBand {
   /**
@@ -54,6 +60,7 @@ export class PricedSpectrumBand {
 
 /**
  * Per-channel prepared-source spectrum pricing state.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class SpectrumPricingState {
   /**
@@ -81,8 +88,6 @@ export class SpectrumPricingState {
       SPECTRUM_PRICING_MAX_BAND_LENGTH
     )
     this.groupedSymbols = new Uint16Array(SPECTRUM_PRICING_MAX_BAND_LENGTH)
-    this.symbolCounts = new Uint16Array(SPECTRUM_PRICING_SYMBOL_COUNT)
-    this.usedSymbols = new Uint8Array(SPECTRUM_PRICING_SYMBOL_COUNT)
     this.reset()
   }
 

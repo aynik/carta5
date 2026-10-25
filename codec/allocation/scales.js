@@ -147,7 +147,7 @@ function prepareBandNoise(transaction, shared, plan, channel, band, mode) {
 /**
  * Reconstruct one coefficient value from its quantized sample, scale factor, and mode.
  *
- * @param {ArrayLike<number>} symbols
+ * @param {Int16Array} symbols
  * @param {number} start
  * @param {number} offset
  * @param {ReconstructionRefinementScratch} plan

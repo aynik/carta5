@@ -11,6 +11,9 @@ import {
 import { MDCT } from '../signal/mdct.js'
 import { applyForwardGainScale, gainPairIsActive } from '../signal/gain.js'
 
+/** @typedef {import('../state/transform.js').MdctScratch} MdctScratch */
+/** @typedef {import('../state/gain/coding.js').GainRecord} GainRecord */
+
 const forwardMdct = new MDCT(MDCT_TIME_SAMPLE_COUNT, 4)
 
 /**
@@ -20,9 +23,10 @@ const forwardMdct = new MDCT(MDCT_TIME_SAMPLE_COUNT, 4)
  * @param {Float32Array} destination Caller-owned spectrum.
  * @param {Float32Array} window Transform window.
  * @param {boolean} reverseOutput Whether the codec reverses this subband.
- * @param {object} scratch Reusable transform storage.
+ * @param {MdctScratch} scratch Reusable transform storage.
  * @param {number} [destinationOffset=0] First output coefficient.
  * @returns {Float32Array} Destination containing the transformed subband.
+ * @nativeUnchecked Capacities are checked below; frame callsites supply nonnegative integral output offsets.
  */
 export function transformMdctSubband(
   timeSamples,
@@ -44,11 +48,12 @@ export function transformMdctSubband(
   ) {
     throw new RangeError('ATRAC3plus MDCT buffers have invalid geometry')
   }
+  const windowedSamples = scratch.windowedSamples
   for (let sample = 0; sample < MDCT_TIME_SAMPLE_COUNT; sample++) {
-    scratch.windowedSamples[sample] = timeSamples[sample] * window[sample]
+    windowedSamples[sample] = timeSamples[sample] * window[sample]
   }
   forwardMdct.transform(
-    scratch.windowedSamples,
+    windowedSamples,
     scratch?.buffers,
     destination,
     destinationOffset
@@ -70,11 +75,11 @@ export function transformMdctSubband(
  *
  * @param {EncodeAnalysisState} analysis Staged QMF analysis state.
  * @param {number} bandCount Active analysis-band count.
- * @param {object[]} previousGainRecords Previous-frame gain records.
- * @param {object[]} currentGainRecords Current-frame gain records.
+ * @param {GainRecord[]} previousGainRecords Previous-frame gain records.
+ * @param {GainRecord[]} currentGainRecords Current-frame gain records.
  * @param {Float32Array} gainScaledSpectrum Gain-scaled output spectrum.
  * @param {Float32Array} gainUnscaledSpectrum Unscaled output spectrum.
- * @param {object} scratch Reusable transform storage.
+ * @param {MdctScratch} scratch Reusable transform storage.
  * @returns {Float32Array|null} Scaled spectrum, or `null` if gain is invalid.
  */
 export function writeMdctOutputs(
@@ -103,23 +108,20 @@ export function writeMdctOutputs(
     throw new RangeError('ATRAC3plus MDCT analysis geometry is invalid')
   }
 
+  const timeSamples = scratch.timeSamples
+  const gainScale = scratch.gainScale
   for (let band = 0; band < bandCount; band++) {
     const previous = previousGainRecords[band]
     const current = currentGainRecords[band]
-    analysis.copyBandSamples(band, 0, scratch.timeSamples)
+    analysis.copyBandSamples(band, 0, timeSamples)
     if (
       gainPairIsActive(previous, current) &&
-      applyForwardGainScale(
-        previous,
-        current,
-        scratch.timeSamples,
-        scratch.gainScale
-      ) === null
+      applyForwardGainScale(previous, current, timeSamples, gainScale) === null
     ) {
       return null
     }
     transformMdctSubband(
-      scratch.timeSamples,
+      timeSamples,
       gainScaledSpectrum,
       MDCT_WINDOW_STEADY,
       MDCT_REVERSE_FLAGS_BY_SUBBAND[band] !== 0,
@@ -139,9 +141,9 @@ export function writeMdctOutputs(
       )
       continue
     }
-    analysis.copyBandSamples(band, 0, scratch.timeSamples)
+    analysis.copyBandSamples(band, 0, timeSamples)
     transformMdctSubband(
-      scratch.timeSamples,
+      timeSamples,
       gainUnscaledSpectrum,
       MDCT_WINDOW_STEADY,
       MDCT_REVERSE_FLAGS_BY_SUBBAND[band] !== 0,

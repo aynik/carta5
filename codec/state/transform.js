@@ -14,6 +14,7 @@ import {
 
 /**
  * Reusable step and sample envelopes for gain scaling.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainScaleScratch {
   /**
@@ -27,6 +28,9 @@ export class GainScaleScratch {
 
 /**
  * Fixed FFT, time-domain, and gain-envelope work for one MDCT call.
+ *
+ * @property {Object<number, Float32Array>} buffers Work arrays indexed by transform size.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class MdctScratch {
   /**
@@ -45,6 +49,7 @@ export class MdctScratch {
 
 /**
  * Reusable window, polyphase, and band work for QMF analysis or synthesis.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class QmfScratch {
   /**
@@ -60,6 +65,7 @@ export class QmfScratch {
 
 /**
  * Reusable waveform, crossfade window, and output storage for tones.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class ToneSynthesisScratch {
   /**
@@ -75,6 +81,7 @@ export class ToneSynthesisScratch {
 
 /**
  * Fixed operation-local storage for one coding-unit reconstruction.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class SpectralReconstructionScratch {
   /**

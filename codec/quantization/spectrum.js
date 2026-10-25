@@ -14,7 +14,7 @@ import { FLOAT_ROUNDING_BIAS } from '../core/constants.js'
  * @param {number} sample
  * @param {number} quantizerScale
  * @param {number} threshold
- * @returns {number}
+ * @returns {i32}
  */
 function quantizeSample(sample, quantizerScale, threshold) {
   if (Math.abs(sample) <= threshold) return 0
@@ -46,14 +46,15 @@ function validateModeOffset(mode, offset) {
  * Quantize one multiple-of-four normalized coefficient row into wire bits.
  *
  * @param {Float32Array} spectrum Normalized source spectrum.
- * @param {number} sourceStart First source coefficient.
- * @param {number} mode Quantization mode.
- * @param {number} offset Quantizer offset.
+ * @param {i32} sourceStart First source coefficient.
+ * @param {i32} mode Quantization mode.
+ * @param {i32} offset Quantizer offset.
  * @param {number} thresholdScale Band threshold scale.
- * @param {number} count Coefficient count.
+ * @param {i32} count Coefficient count.
  * @param {Uint16Array|Int16Array} output Caller-owned symbols.
- * @param {number} [outputStart=0] First output symbol.
- * @returns {number} Quantized coefficient count.
+ * @param {i32} [outputStart=0] First output symbol.
+ * @returns {i32} Quantized coefficient count.
+ * @nativeUnchecked Validated geometry bounds both coefficient and symbol rows.
  */
 export function quantizeSpectrumCoefficients(
   spectrum,

@@ -348,6 +348,17 @@ export function activeToneSlot(block) {
 
 /**
  * Fixed-capacity sinusoidal components for one tone subband.
+ *
+ * @property {i32} hasLeftFade Left fade presence flag.
+ * @property {i32} hasRightFade Right fade presence flag.
+ * @property {i32} leftIndex Left window sample index.
+ * @property {i32} rightIndex Right window sample index.
+ * @property {i32} gateStartValid Coded start-boundary presence flag.
+ * @property {i32} gateEndValid Coded end-boundary presence flag.
+ * @property {i32} gateStartIndex Quantized gate start.
+ * @property {i32} gateEndIndex Quantized gate end.
+ * @property {i32} entryCount Active sinusoidal component count.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class ToneSynthesisRecord {
   /**

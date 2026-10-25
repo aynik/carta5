@@ -153,7 +153,7 @@ function reconstructionRamp(current, next) {
  * @param {number} previous
  * @param {number} current
  * @param {number} next
- * @param {ArrayLike<number>} input
+ * @param {Float32Array} input
  * @param {Float32Array} output
  */
 function reconstructIntensityPower(previous, current, next, input, output) {

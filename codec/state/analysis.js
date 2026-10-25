@@ -8,7 +8,17 @@ import {
 } from '../core/constants.js'
 
 /**
+ * @typedef {object} GainPeakMeasurement
+ * @property {i32} maximumIndex Block containing the largest absolute peak.
+ * @property {number} maximumValue Largest absolute sample magnitude.
+ * @property {number} activity Unsigned 32-bit block-activity mask.
+ */
+
+/**
  * Stage-private buffers reused across gain-window measurements.
+ *
+ * @property {GainPeakMeasurement} peakResult Reusable aggregate peak measurement.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainMeasurementScratch {
   /**
@@ -27,6 +37,7 @@ export class GainMeasurementScratch {
 
 /**
  * Stage-private lowering and reconstruction work for gain envelopes.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainEnvelopeScratch {
   /**
@@ -43,6 +54,7 @@ export class GainEnvelopeScratch {
 
 /**
  * Stage-private buffers for one coding-unit intensity analysis pass.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class IntensityScratch {
   /**
@@ -61,6 +73,7 @@ export class IntensityScratch {
 
 /**
  * Mutable exact aligned-signal comparison result.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class SignalComparison {
   /**

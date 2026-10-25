@@ -12,7 +12,7 @@ import {
 /**
  * Convert the weaker normalized channel correlation into decibels.
  *
- * @param {string} kind
+ * @param {i32} kind Correlation classification from zero through three.
  * @param {number} [ratio]
  * @returns {number}
  */
@@ -229,7 +229,7 @@ export function createPeakEnvelopeComparison(blockCount) {
 /**
  * Measure block peaks and store their indices in stable descending-magnitude order.
  *
- * @param {ArrayLike<number>} samples
+ * @param {Float32Array} samples
  * @param {number} sourceOffset
  * @param {number} chunkLength
  * @param {Float32Array} destination

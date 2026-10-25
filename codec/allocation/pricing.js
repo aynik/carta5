@@ -18,9 +18,32 @@ import {
   SPECTRUM_PRICING_CANDIDATE_COUNT,
   SPECTRUM_PRICING_EMPTY_KEY,
   SPECTRUM_PRICING_MODE_COUNT,
+  SPECTRUM_PRICING_SYMBOL_COUNT,
   SPECTRUM_TABLE_INDEX,
 } from '../core/constants.js'
 import { repriceCodeTableSection } from '../syntax/code-table/writer.js'
+
+/**
+ * @typedef {object} SpectrumSymbolPreparation
+ * @property {boolean} packsGroups Whether coefficients share a packed symbol.
+ * @property {boolean} usesMagnitudes Whether signs are priced separately.
+ * @property {i32} valuesPerSymbol Coefficients in each entropy symbol.
+ * @property {i32} valueBits Width of one grouped coefficient.
+ * @property {boolean} masksSymbols Whether direct symbols need a bit mask.
+ * @property {i32} symbolMask Mask for one prepared symbol.
+ * @property {i32[]} candidateSlots Code tables sharing this preparation.
+ * @property {Uint8Array} [nonRunSlots] Candidates without zero-run coding.
+ * @property {Uint8Array} [zeroRunSlots] Candidates with zero-run coding.
+ * @property {Int32Array} [packedCosts] Two independent 16-bit cost lanes.
+ */
+
+/**
+ * @typedef {object} SpectrumPricingPlan
+ * @property {SpectrumDescriptor[]} descriptors Candidates in code-table order.
+ * @property {SpectrumSymbolPreparation[]} preparations Shared symbol layouts.
+ * @property {boolean} requiresMagnitudes Whether to prepare unsigned magnitudes.
+ * @property {Uint16Array} zeroCosts Exact all-zero candidate costs, indexed by band.
+ */
 
 /**
  * Resolve all candidate descriptors for one entropy context and quantization mode.
@@ -29,7 +52,7 @@ import { repriceCodeTableSection } from '../syntax/code-table/writer.js'
  * lowest slot. The returned array therefore always retains code-table slot order.
  *
  * @param {number} context Entropy-table context.
- * @param {number} mode Quantization mode.
+ * @param {i32} mode Quantization mode.
  * @returns {SpectrumDescriptor[]}
  */
 function buildCandidateDescriptors(context, mode) {
@@ -67,9 +90,9 @@ function usesOnlyDirectMagnitudes(descriptors) {
  * Describe the symbol row required by one spectrum code-table candidate.
  *
  * @param {SpectrumDescriptor} descriptor
- * @param {number} mode Quantization mode.
+ * @param {i32} mode Quantization mode.
  * @param {boolean} directMagnitudes Whether direct magnitude reuse is legal for the mode.
- * @returns {object}
+ * @returns {SpectrumSymbolPreparation}
  */
 function candidatePreparation(descriptor, mode, directMagnitudes) {
   const group = descriptor.valuesPerCodeword
@@ -96,8 +119,8 @@ function candidatePreparation(descriptor, mode, directMagnitudes) {
  * Code lengths and zero-run behavior are excluded because they consume the
  * prepared row without changing how it is produced.
  *
- * @param {object} left
- * @param {object} right
+ * @param {SpectrumSymbolPreparation} left
+ * @param {SpectrumSymbolPreparation} right
  * @returns {boolean}
  */
 function hasSamePreparation(left, right) {
@@ -112,11 +135,36 @@ function hasSamePreparation(left, right) {
 }
 
 /**
+ * Pack two candidate costs into independent 16-bit lanes.
+ *
+ * A band contains at most 128 symbols with byte-sized costs. Each lane
+ * sums to at most 32640, so a packed sum is at most 0x7f807f80 and fits i32.
+ * Summing one packed cost per symbol cannot carry into the adjacent lane.
+ *
+ * @param {Uint8Array} slots Candidates sharing one prepared symbol row.
+ * @param {SpectrumDescriptor[]} descriptors Candidate codebooks.
+ * @returns {Int32Array} Packed costs in symbol-major order.
+ */
+function buildPackedCandidateCosts(slots, descriptors) {
+  const groups = Math.ceil(slots.length / 2)
+  const packed = new Int32Array(SPECTRUM_PRICING_SYMBOL_COUNT * groups)
+  for (let candidate = 0; candidate < slots.length; candidate++) {
+    const group = candidate >> 1
+    const shift = (candidate & 1) * 16
+    const lengths = descriptors[slots[candidate]].costLengths
+    for (let symbol = 0; symbol < SPECTRUM_PRICING_SYMBOL_COUNT; symbol++) {
+      packed[symbol * groups + group] += lengths[symbol] << shift
+    }
+  }
+  return packed
+}
+
+/**
  * Group candidate slots that can price the same prepared symbol row.
  *
  * @param {SpectrumDescriptor[]} descriptors
- * @param {number} mode Quantization mode.
- * @returns {object[]}
+ * @param {i32} mode Quantization mode.
+ * @returns {SpectrumSymbolPreparation[]}
  */
 function buildSymbolPreparations(descriptors, mode) {
   const preparations = []
@@ -137,22 +185,61 @@ function buildSymbolPreparations(descriptors, mode) {
     shared.candidateSlots.push(slot)
   }
   for (const preparation of preparations) {
-    preparation.histogramSlots = preparation.candidateSlots.filter(
-      (slot) => descriptors[slot].zeroRunChunk <= 1
+    preparation.nonRunSlots = Uint8Array.from(
+      preparation.candidateSlots.filter(
+        (slot) => descriptors[slot].zeroRunChunk <= 1
+      )
     )
-    preparation.sequenceSlots = preparation.candidateSlots.filter(
-      (slot) => descriptors[slot].zeroRunChunk > 1
+    preparation.zeroRunSlots = Uint8Array.from(
+      preparation.candidateSlots.filter(
+        (slot) => descriptors[slot].zeroRunChunk > 1
+      )
     )
+    if (preparation.nonRunSlots.length > 1) {
+      preparation.packedCosts = buildPackedCandidateCosts(
+        preparation.nonRunSlots,
+        descriptors
+      )
+    }
   }
   return preparations
+}
+
+/**
+ * Precompute exact costs for a zero quantized band, including zero-run flags.
+ *
+ * Zero rows need no grouping, magnitude preparation, or histogram traversal.
+ * Candidate order is retained so equal-cost choices remain unchanged.
+ *
+ * @param {SpectrumDescriptor[]} descriptors Candidates in code-table order.
+ * @returns {Uint16Array} Band-major candidate costs.
+ */
+function buildZeroSpectrumCosts(descriptors) {
+  const costs = new Uint16Array(
+    SPECTRUM_PRICING_BAND_COUNT * SPECTRUM_PRICING_CANDIDATE_COUNT
+  )
+  for (let band = 0; band < SPECTRUM_PRICING_BAND_COUNT; band++) {
+    const count =
+      QUANTIZATION_UNIT_OFFSETS[band + 1] - QUANTIZATION_UNIT_OFFSETS[band]
+    for (let slot = 0; slot < descriptors.length; slot++) {
+      const descriptor = descriptors[slot]
+      const symbols = Math.trunc(count / descriptor.valuesPerCodeword)
+      const chunk = descriptor.zeroRunChunk
+      costs[band * SPECTRUM_PRICING_CANDIDATE_COUNT + slot] =
+        chunk > 1
+          ? Math.ceil(symbols / chunk)
+          : symbols * descriptor.costLengths[0]
+    }
+  }
+  return costs
 }
 
 /**
  * Build one context/mode plan at module initialization.
  *
  * @param {number} context Entropy-table context.
- * @param {number} mode Quantization mode.
- * @returns {object|null}
+ * @param {i32} mode Quantization mode.
+ * @returns {SpectrumPricingPlan|null}
  */
 function buildSpectrumPricingPlan(context, mode) {
   if (mode === 0) return null
@@ -161,7 +248,8 @@ function buildSpectrumPricingPlan(context, mode) {
   const requiresMagnitudes = preparations.some(
     (preparation) => preparation.usesMagnitudes
   )
-  return { descriptors, preparations, requiresMagnitudes }
+  const zeroCosts = buildZeroSpectrumCosts(descriptors)
+  return { descriptors, preparations, requiresMagnitudes, zeroCosts }
 }
 
 const spectrumPricingPlans = Array.from({ length: 2 }, (_unused, context) =>
@@ -176,8 +264,8 @@ const spectrumPricingPlans = Array.from({ length: 2 }, (_unused, context) =>
  * Callers validate context and mode as part of the public pricing boundary.
  *
  * @param {number} context Entropy-table context.
- * @param {number} mode Quantization mode.
- * @returns {object}
+ * @param {i32} mode Quantization mode.
+ * @returns {SpectrumPricingPlan|null}
  */
 export function spectrumPricingPlan(context, mode) {
   return spectrumPricingPlans[context][mode]
@@ -186,10 +274,10 @@ export function spectrumPricingPlan(context, mode) {
 /**
  * Map a context, band, and mode to its first pricing-cache entry.
  *
- * @param {number} context
- * @param {number} band
- * @param {number} mode
- * @returns {number}
+ * @param {i32} context
+ * @param {i32} band
+ * @param {i32} mode
+ * @returns {i32}
  */
 function firstCacheEntry(context, band, mode) {
   return (
@@ -204,8 +292,8 @@ function firstCacheEntry(context, band, mode) {
 /**
  * Map a pricing-cache entry and code table to its flat cost cell.
  *
- * @param {number} entry
- * @returns {number}
+ * @param {i32} entry
+ * @returns {i32}
  */
 function cacheCostOffset(entry) {
   return entry * SPECTRUM_PRICING_CANDIDATE_COUNT
@@ -214,11 +302,13 @@ function cacheCostOffset(entry) {
 /**
  * Index the lowest-cost table by pricing context and quantization mode.
  *
- * @param {ArrayLike<number>} costs
- * @param {number} limit
- * @returns {number}
+ * @param {Uint16Array} costs
+ * @param {i32} limit
+ * @returns {i32}
+ * @nativeUnchecked Internal callers supply a full candidate row and matching limit.
  */
 function lowestCostIndex(costs, limit) {
+  /** @type {i32} */
   let selected = 0
   for (let index = 1; index < limit; index++) {
     if (costs[index] < costs[selected]) selected = index
@@ -229,8 +319,8 @@ function lowestCostIndex(costs, limit) {
 /**
  * Interpret the low 16 bits of a cache key as a signed integer.
  *
- * @param {number} value
- * @returns {number}
+ * @param {i32} value
+ * @returns {i32}
  */
 function signed16(value) {
   return (value << 16) >> 16
@@ -240,16 +330,22 @@ function signed16(value) {
  * Write absolute quantized magnitudes and count their sign-bit payloads.
  *
  * @param {SpectrumPricingState} state
- * @param {number} rowStart
- * @param {number} count
- * @returns {number} Number of nonzero coefficients.
+ * @param {i32} rowStart
+ * @param {i32} count
+ * @returns {i32} Number of nonzero coefficients, bounded by the band length.
+ * @nativeUnchecked The caller bounds the quantization band and magnitude scratch.
  */
 function prepareMagnitudeRow(state, rowStart, count) {
+  const quantizedRows = state.quantizedRows
+  const magnitudes = state.magnitudeCoefficients
+  /** @type {i32} At most one nonzero value per coefficient in the bounded band. */
   let nonzeroCount = 0
   for (let index = 0; index < count; index++) {
-    const value = signed16(state.quantizedRows[rowStart + index])
+    const value = signed16(quantizedRows[rowStart + index])
     nonzeroCount += Number(value !== 0)
-    state.magnitudeCoefficients[index] = Math.abs(value)
+    /** @type {i32} Absolute signed-16 magnitude, from zero through 32768. */
+    const magnitude = Math.abs(value)
+    magnitudes[index] = magnitude
   }
   return nonzeroCount
 }
@@ -257,14 +353,15 @@ function prepareMagnitudeRow(state, rowStart, count) {
 /**
  * Measure one candidate's entropy cost over an already prepared symbol row.
  *
- * @param {ArrayLike<number>} data Prepared symbol storage.
- * @param {number} dataStart First prepared symbol.
- * @param {number} packedCount Number of prepared symbols to price.
+ * @param {Uint16Array} data Prepared symbol storage.
+ * @param {i32} dataStart First prepared symbol.
+ * @param {i32} packedCount Number of prepared symbols to price.
  * @param {SpectrumDescriptor} descriptor Candidate entropy descriptor.
  * @param {boolean} masksSymbols Whether direct symbols require masking.
- * @param {number} symbolMask Direct-symbol mask.
- * @param {number} nonzeroCount Sign-bit payload count for magnitude codebooks.
- * @returns {number}
+ * @param {i32} symbolMask Direct-symbol mask.
+ * @param {i32} nonzeroCount Sign-bit payload count for magnitude codebooks.
+ * @returns {i32} Bounded sum of stored symbol costs and sign bits.
+ * @nativeUnchecked Prepared symbols and padded cost rows share the 256-symbol domain.
  */
 function measurePreparedSpectrumCost(
   data,
@@ -275,7 +372,9 @@ function measurePreparedSpectrumCost(
   symbolMask,
   nonzeroCount
 ) {
+  const codeLengths = descriptor.costLengths
   const chunk = Math.max(descriptor.zeroRunChunk, 1)
+  /** @type {i32} At most 128 symbols, each with an eight-bit stored cost. */
   let entropyBits = 0
   for (let chunkStart = 0; chunkStart < packedCount; chunkStart += chunk) {
     const chunkEnd = Math.min(chunkStart + chunk, packedCount)
@@ -284,105 +383,77 @@ function measurePreparedSpectrumCost(
       let anyNonzero = false
       let chunkBits = 0
       for (let index = chunkStart; index < chunkEnd; index++) {
+        /** @type {i32} */
         let symbol = data[dataStart + index]
         if (masksSymbols) symbol &= symbolMask
         anyNonzero ||= symbol !== 0
-        chunkBits += descriptor.codeLengths[symbol] ?? 0
+        chunkBits += codeLengths[symbol]
       }
       if (anyNonzero) entropyBits += chunkBits
     } else {
+      /** @type {i32} */
       let symbol = data[dataStart + chunkStart]
       if (masksSymbols) symbol &= symbolMask
-      entropyBits += descriptor.codeLengths[symbol] ?? 0
+      entropyBits += codeLengths[symbol]
     }
   }
   return entropyBits + (descriptor.hasSignBits ? nonzeroCount : 0)
 }
 
 /**
- * Price simple entropy candidates from one exact prepared-symbol histogram.
+ * Price paired entropy candidates in a single traversal of their shared symbols.
  *
- * Codebooks without zero-run chunks depend only on symbol multiplicity. Building
- * that sufficient statistic once avoids traversing the same coefficient row for
- * every compatible code table.
+ * Each packed table entry has two independent cost lanes. Summing the entries
+ * directly avoids building and clearing a symbol histogram for every query.
  *
- * @param {SpectrumPricingState} state Per-channel pricing workspace.
- * @param {ArrayLike<number>} data Prepared symbol storage.
- * @param {number} dataStart First prepared symbol.
- * @param {number} packedCount Number of prepared symbols to price.
- * @param {object} preparation Shared symbol preparation.
- * @param {object} plan Read-only context/mode pricing plan.
- * @param {number} nonzeroCount Sign-bit payload count for magnitude codebooks.
+ * @param {Uint16Array} data Prepared symbol storage.
+ * @param {i32} dataStart First prepared symbol.
+ * @param {i32} packedCount Number of prepared symbols to price.
+ * @param {SpectrumSymbolPreparation} preparation Shared symbol preparation.
+ * @param {i32} nonzeroCount Sign-bit payload count for magnitude codebooks.
  * @param {PricedSpectrumBand} destination Candidate costs to overwrite.
+ * @nativeUnchecked Prepared rows, packed costs and candidate slots are bounded by the plan.
  */
-function priceHistogramCandidates(
-  state,
+function pricePackedCandidates(
   data,
   dataStart,
   packedCount,
   preparation,
-  plan,
   nonzeroCount,
   destination
 ) {
-  const counts = state.symbolCounts
-  const usedSymbols = state.usedSymbols
-  let usedCount = 0
+  const slots = preparation.nonRunSlots
+  const packed = preparation.packedCosts
+  const groups = Math.ceil(slots.length / 2)
+  /** @type {i32} Two independent 16-bit cost lanes, bounded by 0x7f807f80. */
+  let cost0 = 0
+  /** @type {i32} */
+  let cost1 = 0
+  /** @type {i32} */
+  let cost2 = 0
+  /** @type {i32} */
+  let cost3 = 0
+  const masksSymbols = preparation.masksSymbols
+  const symbolMask = preparation.symbolMask
   for (let index = 0; index < packedCount; index++) {
+    /** @type {i32} */
     let symbol = data[dataStart + index]
-    if (preparation.masksSymbols) symbol &= preparation.symbolMask
-    if (counts[symbol] === 0) usedSymbols[usedCount++] = symbol
-    counts[symbol]++
+    if (masksSymbols) symbol &= symbolMask
+    const first = symbol * groups
+    cost0 += packed[first]
+    if (groups > 1) cost1 += packed[first + 1]
+    if (groups > 2) cost2 += packed[first + 2]
+    if (groups > 3) cost3 += packed[first + 3]
   }
-  const slots = preparation.histogramSlots
-  let firstUnpricedSlot = 0
-  if (slots.length >= 4) {
-    const slot0 = slots[0]
-    const slot1 = slots[1]
-    const slot2 = slots[2]
-    const slot3 = slots[3]
-    const descriptor0 = plan.descriptors[slot0]
-    const descriptor1 = plan.descriptors[slot1]
-    const descriptor2 = plan.descriptors[slot2]
-    const descriptor3 = plan.descriptors[slot3]
-    const lengths0 = descriptor0.codeLengths
-    const lengths1 = descriptor1.codeLengths
-    const lengths2 = descriptor2.codeLengths
-    const lengths3 = descriptor3.codeLengths
-    let cost0 = descriptor0.hasSignBits ? nonzeroCount : 0
-    let cost1 = descriptor1.hasSignBits ? nonzeroCount : 0
-    let cost2 = descriptor2.hasSignBits ? nonzeroCount : 0
-    let cost3 = descriptor3.hasSignBits ? nonzeroCount : 0
-    for (let index = 0; index < usedCount; index++) {
-      const symbol = usedSymbols[index]
-      const frequency = counts[symbol]
-      cost0 += (lengths0[symbol] ?? 0) * frequency
-      cost1 += (lengths1[symbol] ?? 0) * frequency
-      cost2 += (lengths2[symbol] ?? 0) * frequency
-      cost3 += (lengths3[symbol] ?? 0) * frequency
+  const signBits = preparation.usesMagnitudes ? nonzeroCount : 0
+  const costs = destination.costs
+  for (let first = 0; first < slots.length; first += 2) {
+    const pair =
+      first === 0 ? cost0 : first === 2 ? cost1 : first === 4 ? cost2 : cost3
+    costs[slots[first]] = (pair & 0xffff) + signBits
+    if (first + 1 < slots.length) {
+      costs[slots[first + 1]] = (pair >> 16) + signBits
     }
-    destination.costs[slot0] = cost0
-    destination.costs[slot1] = cost1
-    destination.costs[slot2] = cost2
-    destination.costs[slot3] = cost3
-    firstUnpricedSlot = 4
-  }
-  for (
-    let candidate = firstUnpricedSlot;
-    candidate < slots.length;
-    candidate++
-  ) {
-    const slot = slots[candidate]
-    const descriptor = plan.descriptors[slot]
-    let entropyBits = descriptor.hasSignBits ? nonzeroCount : 0
-    for (let index = 0; index < usedCount; index++) {
-      const symbol = usedSymbols[index]
-      entropyBits += (descriptor.codeLengths[symbol] ?? 0) * counts[symbol]
-    }
-    destination.costs[slot] = entropyBits
-  }
-  for (let index = 0; index < usedCount; index++) {
-    counts[usedSymbols[index]] = 0
   }
 }
 
@@ -394,11 +465,12 @@ function priceHistogramCandidates(
  * shared; each descriptor still applies its own code lengths and zero-run rule.
  *
  * @param {SpectrumPricingState} state Per-channel pricing workspace.
- * @param {number} rowStart First coefficient in the retained quantized row.
- * @param {number} count Coefficients in the quantization unit.
- * @param {object} plan Read-only context/mode pricing plan.
- * @param {number} nonzeroCount Sign-bit payload count for magnitude codebooks.
+ * @param {i32} rowStart First coefficient in the retained quantized row.
+ * @param {i32} count Coefficients in the quantization unit.
+ * @param {SpectrumPricingPlan} plan Read-only context/mode pricing plan.
+ * @param {i32} nonzeroCount Sign-bit payload count for magnitude codebooks.
  * @param {PricedSpectrumBand} destination Candidate costs to overwrite.
+ * @nativeUnchecked The plan bounds all prepared rows, candidate slots and scratch capacities.
  */
 function pricePreparedSpectrumCandidates(
   state,
@@ -408,6 +480,8 @@ function pricePreparedSpectrumCandidates(
   nonzeroCount,
   destination
 ) {
+  const costs = destination.costs
+  const descriptors = plan.descriptors
   for (const preparation of plan.preparations) {
     let data = preparation.usesMagnitudes
       ? state.magnitudeCoefficients
@@ -431,21 +505,19 @@ function pricePreparedSpectrumCandidates(
       dataCount,
       128
     )
-    if (preparation.histogramSlots.length > 1) {
-      priceHistogramCandidates(
-        state,
+    if (preparation.nonRunSlots.length > 1) {
+      pricePackedCandidates(
         data,
         dataStart,
         packedCount,
         preparation,
-        plan,
         nonzeroCount,
         destination
       )
     } else {
-      for (const slot of preparation.histogramSlots) {
-        const descriptor = plan.descriptors[slot]
-        destination.costs[slot] = measurePreparedSpectrumCost(
+      for (const slot of preparation.nonRunSlots) {
+        const descriptor = descriptors[slot]
+        costs[slot] = measurePreparedSpectrumCost(
           data,
           dataStart,
           packedCount,
@@ -456,9 +528,9 @@ function pricePreparedSpectrumCandidates(
         )
       }
     }
-    for (const slot of preparation.sequenceSlots) {
-      const descriptor = plan.descriptors[slot]
-      destination.costs[slot] = measurePreparedSpectrumCost(
+    for (const slot of preparation.zeroRunSlots) {
+      const descriptor = descriptors[slot]
+      costs[slot] = measurePreparedSpectrumCost(
         data,
         dataStart,
         packedCount,
@@ -475,12 +547,13 @@ function pricePreparedSpectrumCandidates(
  * Return a cached quantized row or populate one in the retained pricing workspace.
  *
  * @param {SpectrumPricingState} state
- * @param {ArrayLike<number>} spectrum
- * @param {ArrayLike<number>} thresholdScales
- * @param {number} band
- * @param {number} mode
- * @param {number} offset
- * @returns {number}
+ * @param {Float32Array} spectrum
+ * @param {Float32Array} thresholdScales
+ * @param {i32} band
+ * @param {i32} mode
+ * @param {i32} offset
+ * @returns {i32}
+ * @nativeUnchecked Allocation supplies a valid band and complete spectrum workspace.
  */
 function ensureQuantizedRow(
   state,
@@ -490,9 +563,11 @@ function ensureQuantizedRow(
   mode,
   offset
 ) {
+  const quantizedKeys = state.quantizedKeys
+  const quantizedRows = state.quantizedRows
   const key = spectrumQuantizedKey(mode, offset)
   const rowStart = QUANTIZATION_UNIT_OFFSETS[band]
-  if (state.quantizedKeys[band] !== key) {
+  if (quantizedKeys[band] !== key) {
     const sourceStart = QUANTIZATION_UNIT_OFFSETS[band]
     const sourceEnd = QUANTIZATION_UNIT_OFFSETS[band + 1]
     quantizeSpectrumCoefficients(
@@ -502,10 +577,10 @@ function ensureQuantizedRow(
       offset,
       thresholdScales[band],
       sourceEnd - sourceStart,
-      state.quantizedRows,
+      quantizedRows,
       rowStart
     )
-    state.quantizedKeys[band] = key
+    quantizedKeys[band] = key
   }
   return rowStart
 }
@@ -516,12 +591,13 @@ function ensureQuantizedRow(
  * @param {SpectrumPricingState} state Per-channel pricing state.
  * @param {Float32Array} spectrum Normalized source spectrum.
  * @param {Float32Array} thresholdScales Threshold scale by band.
- * @param {number} entropyContext Entropy context to price.
- * @param {number} band Quantization-unit index.
- * @param {number} mode Quantization mode.
- * @param {number} offset Quantizer offset.
+ * @param {i32} entropyContext Entropy context to price.
+ * @param {i32} band Quantization-unit index.
+ * @param {i32} mode Quantization mode.
+ * @param {i32} offset Quantizer offset.
  * @param {PricedSpectrumBand} destination Result image to overwrite.
  * @returns {PricedSpectrumBand} The destination result.
+ * @nativeUnchecked Allocation supplies valid band, mode, context and full workspace capacities.
  */
 export function priceSpectrumBand(
   state,
@@ -533,20 +609,26 @@ export function priceSpectrumBand(
   offset,
   destination
 ) {
+  const cacheKeys = state.cacheKeys
+  const cacheCosts = state.cacheCosts
+  const costs = destination.costs
   destination.band = band
   const key = offset
   const firstEntry = firstCacheEntry(entropyContext, band, mode)
   let entry =
-    state.cacheKeys[firstEntry] === key
+    cacheKeys[firstEntry] === key
       ? firstEntry
-      : state.cacheKeys[firstEntry + 1] === key
+      : cacheKeys[firstEntry + 1] === key
         ? firstEntry + 1
         : -1
   if (entry >= 0) {
     const cachedOffset = cacheCostOffset(entry)
-    for (let slot = 0; slot < SPECTRUM_PRICING_CANDIDATE_COUNT; slot++) {
-      destination.costs[slot] = state.cacheCosts[cachedOffset + slot]
-    }
+    costs.set(
+      cacheCosts.subarray(
+        cachedOffset,
+        cachedOffset + SPECTRUM_PRICING_CANDIDATE_COUNT
+      )
+    )
   } else {
     const plan = spectrumPricingPlan(entropyContext, mode)
     const rowStart = ensureQuantizedRow(
@@ -562,25 +644,35 @@ export function priceSpectrumBand(
     const nonzeroCount = plan.requiresMagnitudes
       ? prepareMagnitudeRow(state, rowStart, count)
       : 0
-    pricePreparedSpectrumCandidates(
-      state,
-      rowStart,
-      count,
-      plan,
-      nonzeroCount,
-      destination
-    )
+    if (plan.requiresMagnitudes && nonzeroCount === 0) {
+      const zeroOffset = band * SPECTRUM_PRICING_CANDIDATE_COUNT
+      costs.set(
+        plan.zeroCosts.subarray(
+          zeroOffset,
+          zeroOffset + SPECTRUM_PRICING_CANDIDATE_COUNT
+        )
+      )
+    } else {
+      pricePreparedSpectrumCandidates(
+        state,
+        rowStart,
+        count,
+        plan,
+        nonzeroCount,
+        destination
+      )
+    }
     entry =
-      state.cacheKeys[firstEntry] === SPECTRUM_PRICING_EMPTY_KEY
+      cacheKeys[firstEntry] === SPECTRUM_PRICING_EMPTY_KEY
         ? firstEntry
-        : state.cacheKeys[firstEntry + 1] === SPECTRUM_PRICING_EMPTY_KEY
+        : cacheKeys[firstEntry + 1] === SPECTRUM_PRICING_EMPTY_KEY
           ? firstEntry + 1
           : firstEntry + (key % SPECTRUM_PRICING_CACHE_SLOTS)
-    state.cacheKeys[entry] = key
-    state.cacheCosts.set(destination.costs, cacheCostOffset(entry))
+    cacheKeys[entry] = key
+    cacheCosts.set(costs, cacheCostOffset(entry))
   }
   destination.selectedIndex = lowestCostIndex(
-    destination.costs,
+    costs,
     SPECTRUM_PRICING_CANDIDATE_COUNT
   )
   return destination

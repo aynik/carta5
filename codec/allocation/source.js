@@ -151,7 +151,9 @@ export function measureCodingUnitAllocationSource(
   const lowRateRatios = coreMode < 0x10
 
   for (let channel = 0; channel < channelCount; channel++) {
+    /** @type {Float32Array} Bound input checked by validateMeasurementInputs. */
     const scaled = gainScaledSpectra[channel]
+    /** @type {Float32Array} Bound input checked by validateMeasurementInputs. */
     const unscaled = gainUnscaledSpectra[channel]
     const output = sourceChannels[channel]
     const row = channel * QUANTIZATION_UNIT_COUNT

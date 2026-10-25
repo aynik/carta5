@@ -98,7 +98,7 @@ export function floatToPcm16(sample) {
 /**
  * Write one four-character RIFF identifier.
  *
- * @param {ArrayLike<number>} output
+ * @param {Uint8Array} output
  * @param {number} offset
  * @param {string} value
  */
@@ -151,8 +151,9 @@ export function createPcmWaveHeader({
 /**
  * Interleave normalized float channels as signed 16-bit PCM.
  *
- * @param {Float32Array[]} channels Two equal planar channels.
+ * @param {Float32Array[]} channels Equally sized planar channels.
  * @returns {Uint8Array} Little-endian interleaved PCM bytes.
+ * @nativeUnchecked Channel geometry is validated before writing the output.
  */
 export function interleavePcm16(channels) {
   if (
@@ -167,14 +168,15 @@ export function interleavePcm16(channels) {
   }
   const channelCount = channels.length
   const output = new Uint8Array(channels[0].length * channelCount * 2)
-  const view = new DataView(output.buffer)
-  for (let sample = 0; sample < channels[0].length; sample++) {
-    for (let channel = 0; channel < channelCount; channel++) {
-      view.setInt16(
-        (sample * channelCount + channel) * 2,
-        floatToPcm16(channels[channel][sample]),
-        true
-      )
+  const stride = channelCount * 2
+  for (let channel = 0; channel < channelCount; channel++) {
+    const source = channels[channel]
+    let offset = channel * 2
+    for (let sample = 0; sample < source.length; sample++) {
+      const value = floatToPcm16(source[sample])
+      output[offset] = value & 0xff
+      output[offset + 1] = (value >>> 8) & 0xff
+      offset += stride
     }
   }
   return output

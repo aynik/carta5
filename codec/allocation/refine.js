@@ -235,13 +235,13 @@ function prepareCommittedCodeTable(transaction, shared) {
 }
 
 /**
- * Index the committed-probe ledger by channel, band, and candidate slot.
+ * Price one committed quantization-offset candidate and its code-table delta.
  *
  * @param {CodingUnitAllocationTransaction} transaction
  * @param {number} channel
  * @param {number} band
  * @param {number} candidateOffset
- * @returns {number}
+ * @returns {PricedSpectrumBand} Reused candidate with exact cost deltas.
  */
 function probeCommittedOffset(transaction, channel, band, candidateOffset) {
   const block = transaction.channelBlocks[channel]

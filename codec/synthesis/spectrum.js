@@ -10,23 +10,27 @@ import { IMDCT } from '../signal/mdct.js'
 import { applyInverseGainScale, gainPairIsActive } from '../signal/gain.js'
 import { selectMdctWindow } from '../signal/window.js'
 
+/** @typedef {import('../state/transform.js').MdctScratch} MdctScratch */
+/** @typedef {import('../state/gain/coding.js').GainRecord} GainRecord */
+
 const inverseMdct = new IMDCT(MDCT_TIME_SAMPLE_COUNT)
 
 /**
  * Transform and overlap one ATRAC3plus subband.
  *
  * @param {Float32Array} spectrum Complete channel spectrum.
- * @param {number} spectrumOffset First coefficient of this subband.
+ * @param {i32} spectrumOffset First coefficient of this subband.
  * @param {Float32Array} destination Caller-owned subband samples.
- * @param {number} destinationOffset First output sample.
+ * @param {i32} destinationOffset First output sample.
  * @param {Float32Array} overlap Persistent overlap state.
- * @param {object} previousGain Previous gain record.
- * @param {object} currentGain Current gain record.
- * @param {number} previousTransient Previous transient flag.
- * @param {number} currentTransient Current transient flag.
- * @param {number} subband Subband index.
- * @param {object} scratch Reusable transform storage.
+ * @param {GainRecord} previousGain Previous gain record.
+ * @param {GainRecord} currentGain Current gain record.
+ * @param {i32} previousTransient Previous transient flag.
+ * @param {i32} currentTransient Current transient flag.
+ * @param {i32} subband Subband index.
+ * @param {MdctScratch} scratch Reusable transform storage.
  * @returns {boolean} Whether the inverse gain syntax was valid.
+ * @nativeUnchecked The frame entry point validates all subband buffer capacities.
  */
 function synthesizeMdctSubband(
   spectrum,
@@ -41,23 +45,25 @@ function synthesizeMdctSubband(
   subband,
   scratch
 ) {
+  const spectrumWork = scratch.spectrum
+  const timeSamples = scratch.timeSamples
   const reversed = MDCT_REVERSE_FLAGS_BY_SUBBAND[subband] !== 0
   for (let line = 0; line < MDCT_COEFFICIENT_COUNT; line++) {
     const sourceLine = reversed ? MDCT_COEFFICIENT_COUNT - 1 - line : line
-    scratch.spectrum[line] = spectrum[spectrumOffset + sourceLine]
+    spectrumWork[line] = spectrum[spectrumOffset + sourceLine]
   }
-  inverseMdct.transform(scratch.spectrum, scratch.buffers, scratch.timeSamples)
+  inverseMdct.transform(spectrumWork, scratch.buffers, timeSamples)
 
   const window = selectMdctWindow(previousTransient, currentTransient)
   for (let sample = 0; sample < MDCT_TIME_SAMPLE_COUNT; sample++) {
-    scratch.timeSamples[sample] *= window[sample]
+    timeSamples[sample] *= window[sample]
   }
   if (
     gainPairIsActive(previousGain, currentGain) &&
     applyInverseGainScale(
       previousGain,
       currentGain,
-      scratch.timeSamples,
+      timeSamples,
       scratch.gainScale
     ) === null
   ) {
@@ -65,10 +71,10 @@ function synthesizeMdctSubband(
   }
   for (let sample = 0; sample < MDCT_COEFFICIENT_COUNT; sample++) {
     destination[destinationOffset + sample] = Math.fround(
-      scratch.timeSamples[sample] + overlap[destinationOffset + sample]
+      timeSamples[sample] + overlap[destinationOffset + sample]
     )
     overlap[destinationOffset + sample] =
-      scratch.timeSamples[MDCT_COEFFICIENT_COUNT + sample]
+      timeSamples[MDCT_COEFFICIENT_COUNT + sample]
   }
   return true
 }
@@ -78,13 +84,13 @@ function synthesizeMdctSubband(
  *
  * @param {Float32Array} spectrum Dequantized channel spectrum.
  * @param {Float32Array} destination Caller-owned subband samples.
- * @param {object[]} previousGainRecords Previous-frame gain records.
- * @param {object[]} currentGainRecords Current-frame gain records.
+ * @param {GainRecord[]} previousGainRecords Previous-frame gain records.
+ * @param {GainRecord[]} currentGainRecords Current-frame gain records.
  * @param {Uint8Array} previousWindowFlags Previous transient flags.
  * @param {Uint8Array} currentWindowFlags Current transient flags.
  * @param {number} activeSubbandCount Active transform subbands.
  * @param {Float32Array} overlap Staged overlap state.
- * @param {object} scratch Reusable transform storage.
+ * @param {MdctScratch} scratch Reusable transform storage.
  * @returns {Float32Array|null} Destination samples, or `null` if invalid.
  */
 export function inverseMdctFrame(

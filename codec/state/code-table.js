@@ -5,6 +5,14 @@ import { CODING_UNIT_MAX_CHANNELS } from '../core/constants.js'
 
 /**
  * Optional code-table classification and exact count/mode plan.
+ *
+ * @property {number} valueMask Full 32-bit table-value mask.
+ * @property {number} oneBitMask Full 32-bit one-bit table mask.
+ * @property {i32} mode Selected syntax mode.
+ * @property {i32} count Coded table count.
+ * @property {boolean} explicit Whether values use explicit classification.
+ * @property {number} bits Exact syntax cost, including rejected infinities.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class CodeTableCodingSyntax {
   /**
@@ -36,7 +44,12 @@ export class CodeTableCodingSyntax {
    * @returns {CodeTableCodingSyntax}
    */
   copyTo(destination) {
-    Object.assign(destination, this)
+    destination.valueMask = this.valueMask
+    destination.oneBitMask = this.oneBitMask
+    destination.mode = this.mode
+    destination.count = this.count
+    destination.explicit = this.explicit
+    destination.bits = this.bits
     return destination
   }
 }

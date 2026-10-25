@@ -9,6 +9,22 @@ import {
 
 /**
  * Fixed field image for the selected word-length plan; kind 0 is raw.
+ *
+ * @property {i32} kind Selected syntax kind.
+ * @property {i32} delta Predictor delta mode.
+ * @property {i32} tailMode Uncoded tail mode.
+ * @property {i32} tailCount Coded tail prefix length.
+ * @property {i32} tailExtra Tail escape payload.
+ * @property {i32} lead Leading predictor width.
+ * @property {i32} width Literal value width.
+ * @property {i32} base Predictor base.
+ * @property {i32} pairFlag Primary-channel predictor flag.
+ * @property {i32} codebook Selected Huffman codebook.
+ * @property {i32} shapeBase Shape predictor base.
+ * @property {i32} shapeShift Shape predictor shift.
+ * @property {i32} first Initial coded value.
+ * @property {i32} channelMode Interchannel coding mode.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class WordLengthCodingPlan {
   /**
@@ -45,7 +61,7 @@ export class WordLengthCodingPlan {
   /**
    * Return the word-length packing mode selected for one channel.
    *
-   * @returns {number|string}
+   * @returns {i32}
    */
   get packMode() {
     return this.kind === 4 ? this.channelMode + 1 : this.kind
@@ -58,13 +74,28 @@ export class WordLengthCodingPlan {
    * @returns {WordLengthCodingPlan}
    */
   copyTo(destination) {
-    Object.assign(destination, this)
+    destination.bits = this.bits
+    destination.kind = this.kind
+    destination.delta = this.delta
+    destination.tailMode = this.tailMode
+    destination.tailCount = this.tailCount
+    destination.tailExtra = this.tailExtra
+    destination.lead = this.lead
+    destination.width = this.width
+    destination.base = this.base
+    destination.pairFlag = this.pairFlag
+    destination.codebook = this.codebook
+    destination.shapeBase = this.shapeBase
+    destination.shapeShift = this.shapeShift
+    destination.first = this.first
+    destination.channelMode = this.channelMode
     return destination
   }
 }
 
 /**
  * Allocation-private caches for one channel's candidate word-length plan.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 class WordLengthScratch {
   /**
@@ -131,6 +162,7 @@ class WordLengthScratch {
 
 /**
  * Shared fixed-capacity work arrays for exact word-length cost evaluation.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 class WordLengthCostWork {
   /**

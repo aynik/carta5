@@ -10,6 +10,10 @@ import {
  *
  * `entries`, `locations`, and `levels` are syntax. `peakHistory` is explicitly
  * local encoder history and is never packed by this module.
+ *
+ * @property {i32} entries Active syntax-point count, at most seven.
+ * @property {number} peakHistory Detector-local retained peak.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class GainRecord {
   /**
@@ -25,8 +29,8 @@ export class GainRecord {
   /**
    * Copy wire-visible fields while preserving destination-local detector state.
    *
-   * @param {object} source Record whose coded fields should be copied.
-   * @returns {object} This destination record.
+   * @param {GainRecord} source Record whose coded fields should be copied.
+   * @returns {GainRecord} This destination record.
    */
   copyCodedFieldsFrom(source) {
     this.entries = source.entries
@@ -41,8 +45,8 @@ export class GainRecord {
    *
    * `peakHistory` is retained beside the coded fields as detector-local carry.
    *
-   * @param {object} destination Preallocated record to overwrite.
-   * @returns {object} The destination record.
+   * @param {GainRecord} destination Preallocated record to overwrite.
+   * @returns {GainRecord} The destination record.
    */
   copyTo(destination) {
     destination.entries = this.entries
@@ -65,7 +69,7 @@ export class GainRecord {
   /**
    * Create a detached copy including local detector history.
    *
-   * @returns {object} Independent record copy.
+   * @returns {GainRecord} Independent record copy.
    */
   clone() {
     const clone = new GainRecord()
@@ -76,7 +80,7 @@ export class GainRecord {
   /**
    * Compare only fields that affect encoded gain syntax.
    *
-   * @param {object} other Record to compare.
+   * @param {GainRecord} other Record to compare.
    * @returns {boolean} Whether both records encode identical syntax.
    */
   codedEquals(other) {

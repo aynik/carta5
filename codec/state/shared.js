@@ -13,6 +13,8 @@ import { configureCodingUnitProfiles } from '../core/profiles.js'
 
 /**
  * Fixed storage for the global channel indices owned by one coding unit.
+ *
+ * @property {i32} length Number of channels in this coding unit.
  */
 export class CodingUnitChannels {
   /**
@@ -171,6 +173,16 @@ export function configureCodingUnitChannels(streamMode, destination) {
 
 /**
  * Bitstream-visible syntax shared by all channels in one coding unit.
+ *
+ * @property {i32} gainModeFlag Shared code-table mode flag.
+ * @property {i32} noisePresent Coded noise presence flag.
+ * @property {i32} noiseLevelIndex Four-bit noise level.
+ * @property {i32} noiseTableIndex Four-bit noise table selector.
+ * @property {i32} scaleFactorCount Active scale-factor bands.
+ * @property {i32} quantizationUnitCount Active quantization units.
+ * @property {i32} bandLimit Upper coded-band bound.
+ * @property {i32} muteFlag Coded mute flag.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class SharedState {
   /**
@@ -254,6 +266,10 @@ export class SharedState {
 
 /**
  * Selected per-channel ATRAC3plus fields shared by encode and decode syntax stages.
+ *
+ * @property {i32} toneScaleFactorMode Coded tone amplitude mode.
+ * @property {i32} codeTableContext Coded spectral code-table context.
+ * @nativeStable Own data descriptors and field order stay fixed after construction.
  */
 export class ChannelSyntaxState {
   /**

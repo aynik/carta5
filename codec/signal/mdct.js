@@ -51,7 +51,14 @@ function multiplyAdd(left, right, addend) {
   return Math.fround(left * right + addend)
 }
 
-/** Common geometry and rotations for power-of-two MDCT transforms. */
+/**
+ * Common geometry and rotations for power-of-two MDCT transforms.
+ *
+ * @property {i32} size Validated time-domain transform size.
+ * @property {i32} halfSize Number of transform coefficients.
+ * @property {i32} quarterSize Number of complex transform pairs.
+ * @property {i32} fftStages Integral base-two transform depth.
+ */
 class MdctBase {
   /**
    * @param {number} size Time-domain transform size.
@@ -139,6 +146,7 @@ export class MDCT extends MdctBase {
    * @param {Float32Array|null} [destination=null] Optional caller-owned output.
    * @param {number} [destinationOffset=0] First output coefficient.
    * @returns {Float32Array} Destination containing the coefficients.
+   * @nativeUnchecked Validated geometry bounds the constructor-owned tables and work.
    */
   transform(input, buffers, destination = null, destinationOffset = 0) {
     if (
@@ -156,26 +164,35 @@ export class MDCT extends MdctBase {
     ) {
       throw new RangeError('MDCT output geometry is invalid')
     }
+    /** @type {Float32Array} */
     const work = this.resolveWork(buffers)
-    const quarterSize = this.quarterSize
+    const {
+      size,
+      halfSize,
+      quarterSize,
+      fftStages,
+      scale,
+      reorder,
+      fftCosines,
+      fftSines,
+      rotationCosines,
+      rotationSines,
+    } = this
 
     for (let sample = 0; sample < quarterSize; sample++) {
-      const firstIndex = this.reorder[quarterSize + sample]
-      const secondIndex = this.reorder[quarterSize - 1 - sample]
-      work[firstIndex] = subtract(
-        input[sample],
-        input[this.halfSize - 1 - sample]
-      )
+      const firstIndex = reorder[quarterSize + sample]
+      const secondIndex = reorder[quarterSize - 1 - sample]
+      work[firstIndex] = subtract(input[sample], input[halfSize - 1 - sample])
       work[secondIndex] = Math.fround(
-        -add(input[this.halfSize + sample], input[this.size - 1 - sample])
+        -add(input[halfSize + sample], input[size - 1 - sample])
       )
     }
 
     let twiddleBase = 0
-    for (let stage = 0; stage < this.fftStages; stage++) {
+    for (let stage = 0; stage < fftStages; stage++) {
       const step = 1 << stage
       const butterflySpan = step << 1
-      const groups = this.halfSize / (step * 4)
+      const groups = halfSize / (step * 4)
       let base = 0
       for (let group = 0; group < groups; group++) {
         let twiddle = twiddleBase
@@ -186,8 +203,8 @@ export class MDCT extends MdctBase {
           const firstImaginary = work[firstIndex + 1]
           const secondReal = work[secondIndex]
           const secondImaginary = work[secondIndex + 1]
-          const cosine = this.fftCosines[twiddle]
-          const sine = this.fftSines[twiddle]
+          const cosine = fftCosines[twiddle]
+          const sine = fftSines[twiddle]
           const rotatedReal = add(
             multiply(sine, secondImaginary),
             multiply(cosine, secondReal)
@@ -210,15 +227,15 @@ export class MDCT extends MdctBase {
     for (let pair = 0; pair < quarterSize; pair++) {
       const real = work[pair * 2]
       const imaginary = work[pair * 2 + 1]
-      const cosine = this.rotationCosines[pair]
-      const sine = this.rotationSines[pair]
+      const cosine = rotationCosines[pair]
+      const sine = rotationSines[pair]
       output[destinationOffset + pair * 2] = multiply(
         multiplyAdd(sine, imaginary, multiply(cosine, real)),
-        this.scale
+        scale
       )
-      output[destinationOffset + this.halfSize - 1 - pair * 2] = multiply(
+      output[destinationOffset + halfSize - 1 - pair * 2] = multiply(
         multiplyAdd(real, sine, -multiply(imaginary, cosine)),
-        this.scale
+        scale
       )
     }
     return output
@@ -243,6 +260,7 @@ export class IMDCT extends MdctBase {
    * @param {Float32Array|null} [destination=null] Optional caller-owned output.
    * @param {number} [destinationOffset=0] First output sample.
    * @returns {Float32Array} Destination containing the time-domain samples.
+   * @nativeUnchecked Validated geometry bounds the constructor-owned tables and work.
    */
   transform(input, buffers, destination = null, destinationOffset = 0) {
     if (
@@ -260,25 +278,36 @@ export class IMDCT extends MdctBase {
     ) {
       throw new RangeError('IMDCT output geometry is invalid')
     }
+    /** @type {Float32Array} */
     const work = this.resolveWork(buffers)
-    const quarterSize = this.quarterSize
+    const {
+      halfSize,
+      quarterSize,
+      fftStages,
+      scale,
+      reorder,
+      fftCosines,
+      fftSines,
+      rotationCosines,
+      rotationSines,
+    } = this
 
     for (let pair = 0; pair < quarterSize; pair++) {
       const index = pair * 2
       const head = input[index]
-      const tail = input[this.halfSize - 1 - index]
-      const cosine = this.rotationCosines[pair]
-      const sine = this.rotationSines[pair]
+      const tail = input[halfSize - 1 - index]
+      const cosine = rotationCosines[pair]
+      const sine = rotationSines[pair]
       work[index] = cosine * head + sine * tail
       work[index + 1] = head * sine - tail * cosine
     }
 
     let twiddleBase = quarterSize - 1
-    for (let stage = this.fftStages - 1; stage >= 0; stage--) {
+    for (let stage = fftStages - 1; stage >= 0; stage--) {
       const step = 1 << stage
       const half = step * 2
       const groupStride = step * 4
-      const groups = this.halfSize / groupStride
+      const groups = halfSize / groupStride
       for (let group = 0; group < groups; group++) {
         let twiddle = twiddleBase - step
         const base = group * groupStride
@@ -291,8 +320,8 @@ export class IMDCT extends MdctBase {
           const secondImaginary = work[secondIndex + 1]
           const differenceReal = firstReal - secondReal
           const differenceImaginary = firstImaginary - secondImaginary
-          const cosine = this.fftCosines[twiddle]
-          const sine = this.fftSines[twiddle]
+          const cosine = fftCosines[twiddle]
+          const sine = fftSines[twiddle]
           work[firstIndex] = firstReal + secondReal
           work[firstIndex + 1] = firstImaginary + secondImaginary
           work[secondIndex] =
@@ -306,22 +335,19 @@ export class IMDCT extends MdctBase {
     }
 
     for (let sample = 0; sample < quarterSize; sample++) {
-      const firstIndex = this.reorder[quarterSize + sample]
-      output[destinationOffset + sample] = multiply(
-        work[firstIndex],
-        this.scale
-      )
-      const lastIndex = this.reorder[sample]
+      const firstIndex = reorder[quarterSize + sample]
+      output[destinationOffset + sample] = multiply(work[firstIndex], scale)
+      const lastIndex = reorder[sample]
       output[destinationOffset + 3 * quarterSize + sample] = multiply(
         -work[lastIndex],
-        this.scale
+        scale
       )
     }
-    for (let sample = 0; sample < this.halfSize; sample++) {
-      const workIndex = this.reorder[this.halfSize - 1 - sample]
+    for (let sample = 0; sample < halfSize; sample++) {
+      const workIndex = reorder[halfSize - 1 - sample]
       output[destinationOffset + quarterSize + sample] = multiply(
         -work[workIndex],
-        this.scale
+        scale
       )
     }
     return output
