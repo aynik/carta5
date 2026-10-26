@@ -269,8 +269,8 @@ npm test            # Run the test suite once
 npm run test:watch  # Re-run affected tests while editing
 npm run lint        # Check JavaScript and formatting
 npm run format      # Apply repository formatting
-npm run build       # Build browser bundles and the WME plugin
-npm run check       # Run lint, tests, builds, and packaged WME checks
+npm run build       # Build browser bundles
+npm run check       # Run lint, tests, and browser builds
 ```
 
 Run `npm run check` before submitting a change. Pull requests and release tags

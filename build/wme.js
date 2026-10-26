@@ -4,6 +4,7 @@
  */
 import { readFile, writeFile } from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 
 // The host imports blobs; relative source-map URLs cannot resolve there.
 function bundledScript(contents) {
@@ -40,11 +41,13 @@ export function createWmeArchive(metadata, index, worker) {
 }
 
 async function main() {
+  if (!process.argv[2]) throw new Error('Expected a WME build directory')
+  const directory = path.resolve(process.argv[2])
   const root = new URL('../', import.meta.url)
   const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
   const [index, worker] = await Promise.all([
-    readFile(new URL('dist/wme/index.js', root)),
-    readFile(new URL(`dist/${pkg.name}-worker.min.js`, root)),
+    readFile(path.join(directory, 'index.js')),
+    readFile(path.join(directory, `${pkg.name}-worker.min.js`)),
   ])
   const archive = createWmeArchive(
     {
@@ -59,9 +62,9 @@ async function main() {
     index,
     worker
   )
-  const output = new URL(`dist/${pkg.name}.wme`, root)
+  const output = path.join(directory, `${pkg.name}.wme`)
   await writeFile(output, archive)
-  console.log(`Built ${fileURLToPath(output)} (${archive.length} bytes)`)
+  console.log(`Built ${output} (${archive.length} bytes)`)
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {

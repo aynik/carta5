@@ -51,7 +51,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/carta5.wme
             dist/carta5.min.js
             dist/carta5.min.js.map
             dist/carta5-worker.min.js
@@ -70,19 +69,22 @@ jobs:
   native:
     uses: ./.github/workflows/native.yml
 
-  release-native:
-    needs: [publish, native]
+  wme:
+    uses: ./.github/workflows/wme.yml
+
+  release-assets:
+    needs: [publish, native, wme]
     runs-on: ubuntu-latest
     steps:
-      - name: Download native binaries outside the npm package
+      - name: Download release assets
         uses: actions/download-artifact@v8
         with:
-          pattern: carta5-native-*
-          path: ${{ runner.temp }}/native-release
+          pattern: carta5-*
+          path: ${{ runner.temp }}/release-assets
           merge-multiple: true
 
-      - name: Attach native binaries to GitHub Release
+      - name: Attach release assets to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ runner.temp }}/native-release/*
+          files: ${{ runner.temp }}/release-assets/*
           fail_on_unmatched_files: true

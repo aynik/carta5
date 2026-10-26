@@ -11,7 +11,8 @@
   "files": [
     "bin/",
     "codec/",
-    "dist/",
+    "dist/*.js",
+    "dist/*.map",
     "LICENSE",
     "README.md"
   ],
@@ -22,8 +23,8 @@
     "prepare": "husky",
     "lint": "eslint bin/ build/ codec/ tests/",
     "format": "prettier --write .",
-    "build": "webpack --config webpack.config.js && node build/wme.js",
-    "check": "npm run lint && npm test && npm run build && npm run test:wme",
+    "build": "webpack --config webpack.config.js",
+    "check": "npm run lint && npm test && npm run build",
     "prepublishOnly": "npm run check",
     "test:wme": "node --test tests/wme-build.integration.mjs"
   },

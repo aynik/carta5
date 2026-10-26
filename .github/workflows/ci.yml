@@ -35,3 +35,8 @@ jobs:
     if: github.ref_type != 'tag'
     needs: check
     uses: ./.github/workflows/native.yml
+
+  wme:
+    if: github.ref_type != 'tag'
+    needs: check
+    uses: ./.github/workflows/wme.yml

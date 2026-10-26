@@ -7,7 +7,7 @@ import { encodeWavePcm, parseWave } from '../codec/index.js'
 
 const root = new URL('../', import.meta.url)
 const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
-const archive = await readFile(new URL(`dist/${pkg.name}.wme`, root))
+const archive = await readFile(process.env.WME_ARCHIVE)
 assert.equal(archive.subarray(0, 7).toString(), 'SARFile')
 const subMagicLength = archive.readUInt16BE(7)
 assert.equal(

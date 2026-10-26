@@ -4,18 +4,18 @@ import TerserPlugin from 'terser-webpack-plugin'
 // Configuration for multiple builds
 const builds = [
   {
+    name: 'wme',
     entry: './codec/boundary/wme.js',
     output: {
-      path: path.resolve('dist/wme'),
       filename: 'index.js',
       library: { type: 'module' },
     },
     experiments: { outputModule: true },
   },
   {
+    name: 'library',
     entry: './codec/index.js',
     output: {
-      path: path.resolve('dist'),
       filename: 'carta5.min.js',
       library: 'Carta5',
       libraryTarget: 'umd',
@@ -23,17 +23,17 @@ const builds = [
     },
   },
   {
+    name: 'worker',
     entry: './codec/boundary/worker.js',
     output: {
-      path: path.resolve('dist'),
       filename: 'carta5-worker.min.js',
       libraryTarget: 'self',
     },
   },
   {
+    name: 'interface',
     entry: './codec/boundary/browser.js',
     output: {
-      path: path.resolve('dist'),
       filename: 'carta5-worker-interface.min.js',
       libraryTarget: 'module',
       globalObject: 'this',
@@ -42,32 +42,38 @@ const builds = [
   },
 ]
 
-export default builds.map(({ entry, output, experiments }) => ({
-  mode: 'production',
-  entry,
-  output,
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-          options: {
-            presets: ['@babel/preset-env'],
+export default (env = {}) =>
+  builds
+    .filter(({ name }) =>
+      env.wme ? name === 'wme' || name === 'worker' : name !== 'wme'
+    )
+    .map(({ name, entry, output, experiments }) => ({
+      name,
+      mode: 'production',
+      entry,
+      output: { ...output, path: path.resolve(env.wme || 'dist') },
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: {
+              loader: 'babel-loader',
+              options: {
+                presets: ['@babel/preset-env'],
+              },
+            },
           },
-        },
+        ],
       },
-    ],
-  },
-  optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        extractComments: false,
-      }),
-    ],
-  },
-  devtool: 'source-map',
-  experiments,
-}))
+      optimization: {
+        minimize: true,
+        minimizer: [
+          new TerserPlugin({
+            extractComments: false,
+          }),
+        ],
+      },
+      devtool: 'source-map',
+      experiments,
+    }))
