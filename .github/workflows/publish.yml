@@ -60,11 +60,7 @@ jobs:
             dist/carta5-worker-interface.min.js.map
           fail_on_unmatched_files: true
           body: |
-            Changes in this release:
-            - ATRAC3plus WME for Hi-MD recording (48, 64, 192, 256, 352 kbps). Use Carta3 for standard MD LP2/LP4.
-            - Published to npm: https://www.npmjs.com/package/carta5
-
-            Release assets include carta5.wme, the three browser JS bundles, and source maps.
+            Published to npm: https://www.npmjs.com/package/carta5
 
             CDN URLs (this version):
             - https://unpkg.com/carta5@${{ steps.release.outputs.version }}/dist/carta5.min.js
